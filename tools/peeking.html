@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peeking checker</title>
+<meta name="description" content="You checked your A/B test before it finished. This works out what that actually did to your false-positive rate, and what threshold you should have used instead.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-header">
+  <a class="home" href="../index.html">Experimentation calculators</a>
+  <nav class="site-nav">
+    <a href="sample-size.html">Sample size</a>
+    <a href="mde.html">Detectable effect</a>
+    <a href="peeking.html" aria-current="page">Peeking checker</a>
+    <a href="geo-holdout.html">Geo holdout</a>
+    <a href="cuped.html">CUPED &amp; ratio metrics</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Peeking checker</h1>
+  <p class="tool-sub">You checked the results before the test finished. Everyone
+  does. This is what it cost you — and the threshold that would have bought it
+  back.</p>
+
+  <div class="fields">
+    <div class="field">
+      <label for="looks">How many times did you look?</label>
+      <input type="number" id="looks" step="1" min="1" max="50" inputmode="numeric">
+      <span class="hint">Count every time you checked whether it was significant yet.</span>
+    </div>
+
+    <div class="field">
+      <label for="alpha">Significance level you used</label>
+      <input type="number" id="alpha" step="0.01" min="0.1" max="20" inputmode="decimal">
+      <span class="hint">Percent. Almost always 5.</span>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="result-main">
+      <span class="result-value" id="out-real">--</span>
+      <span class="result-label">your real chance of a false positive</span>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <span class="result-value" id="out-thought">--</span>
+        <span class="result-label">what you thought it was</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-factor">--</span>
+        <span class="result-label">times more likely to be fooled</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-pocock">--</span>
+        <span class="result-label">threshold you needed per look</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="judgement" id="judgement"></div>
+
+  <h2>Watch it happen</h2>
+  <p>Numbers from a formula are easy to disbelieve, so here is the same claim
+  as an experiment. Below, thousands of A/B tests are simulated in your browser
+  in which <strong>the variant is identical to the control</strong> — every
+  significant result is a false positive by construction. One run peeks the way
+  you did; the other applies the corrected threshold.</p>
+
+  <div class="sim">
+    <div class="sim-row">
+      <div class="sim-head">
+        <span class="sim-name">Peeking at <span id="sim-alpha">5%</span>, <span id="sim-looks">5</span>× per test</span>
+        <span class="sim-figure" id="sim-naive">—</span>
+      </div>
+      <div class="sim-track"><div class="sim-bar sim-bar-bad" id="sim-bar-naive"></div></div>
+    </div>
+    <div class="sim-row">
+      <div class="sim-head">
+        <span class="sim-name">Same peeking, corrected threshold</span>
+        <span class="sim-figure" id="sim-fixed">—</span>
+      </div>
+      <div class="sim-track"><div class="sim-bar sim-bar-good" id="sim-bar-fixed"></div></div>
+    </div>
+    <p class="sim-status" id="sim-status">Ready.</p>
+    <button type="button" class="btn" id="sim-run">Run 200,000 simulated tests</button>
+  </div>
+
+  <div class="share">
+    <button type="button" class="btn" id="copy">Copy link</button>
+    <span class="note">Inputs live in the URL — send this link to a colleague.</span>
+  </div>
+
+  <details class="honesty">
+    <summary>The advanced version: spending the error deliberately</summary>
+    <p>A constant corrected threshold (Pocock) is the easiest to act on, but it
+    is strict at the final look, which is where most of the information is.
+    O'Brien-Fleming spends almost nothing early and nearly the full budget at
+    the end — the usual choice when you want the option to stop early without
+    paying much for it.</p>
+    <div class="table-scroll">
+      <table id="obf-table">
+        <thead><tr><th>Look</th><th>Pocock z</th><th>Pocock p</th><th>O'Brien-Fleming z</th><th>O'Brien-Fleming p</th></tr></thead>
+        <tbody id="obf-body"></tbody>
+      </table>
+    </div>
+    <p>Both are computed live by the same recursion that produced the headline
+    number, at your significance level.</p>
+  </details>
+
+  <details class="honesty">
+    <summary>What this assumes, and what it does not cover</summary>
+    <ul>
+      <li><strong>Equally spaced looks.</strong> The looks are assumed to divide
+      the data evenly. Peeking mostly early is less costly than this says;
+      peeking mostly late is worse.</li>
+      <li><strong>You would have stopped at the first significant result.</strong>
+      That is the standard model of peeking. If you saw significance and kept
+      running anyway, this arithmetic does not describe what you did.</li>
+      <li><strong>A two-sided z-test on accruing, independent data</strong>, with
+      the normal approximation — the same footing as the
+      <a href="sample-size.html">sample size calculator</a>.</li>
+      <li><strong>This is retrospective.</strong> It tells you what looking has
+      already cost. It cannot rescue a test you have already stopped: a result
+      that only cleared 0.05 is not made valid by reading this page.</li>
+      <li><strong>The prospective fix is a different tool.</strong> If you want
+      to monitor continuously and stop whenever you like, you need
+      always-valid inference — mixture SPRT or confidence sequences — set up
+      before the test starts. That is what
+      <a href="https://docs.statsig.com/experiments-plus/sequential-testing">Statsig</a>,
+      <a href="https://www.optimizely.com/insights/blog/statistics-for-the-internet-age-the-story-behind-optimizelys-new-stats-engine/">Optimizely</a>
+      and <a href="https://docs.growthbook.io/statistics/sequential">GrowthBook</a>
+      run internally. Platforms with batched daily data, like
+      <a href="https://engineering.atspotify.com/2023/03/choosing-sequential-testing-framework-comparisons-and-discussions">Spotify</a>,
+      tend to choose group-sequential methods instead — which is the family
+      this page belongs to, and why discrete looks are the right model here.</li>
+      <li><strong>Not covered:</strong> futility stopping, several metrics at
+      once, unequal information between looks in the headline figure, and
+      Bayesian stopping rules (which are not immune to this problem either).</li>
+    </ul>
+    <p>The recursion behind this page is checked against a multivariate-normal
+    integration in scipy, against the values published by Armitage, McPherson
+    &amp; Rowe (1969), Pocock (1977) and O'Brien &amp; Fleming (1979), and
+    against a million-run Monte Carlo — see
+    <a href="../validation/RESULTS.md">the published comparison</a>.</p>
+  </details>
+</main>
+
+<footer class="site-footer">
+  <p>Part of a small suite of experimentation calculators. Every result comes
+  with the caveat that would invalidate it, and every formula is checked against
+  a reference implementation.</p>
+  <p>Built by <a href="https://github.com/igorsslima">Igor Lima</a>.</p>
+</footer>
+
+</div>
+
+<script src="../assets/stats.js"></script>
+<script src="../assets/sequential.js"></script>
+<script src="../assets/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var SPEC = {
+    looks: { def: 5, min: 1,   max: 50 },
+    alpha: { def: 5, min: 0.1, max: 20 }
+  };
+
+  var out = {
+    real: document.getElementById('out-real'),
+    thought: document.getElementById('out-thought'),
+    factor: document.getElementById('out-factor'),
+    pocock: document.getElementById('out-pocock'),
+    judgement: document.getElementById('judgement'),
+    obfBody: document.getElementById('obf-body'),
+    simAlpha: document.getElementById('sim-alpha'),
+    simLooks: document.getElementById('sim-looks'),
+    simNaive: document.getElementById('sim-naive'),
+    simFixed: document.getElementById('sim-fixed'),
+    barNaive: document.getElementById('sim-bar-naive'),
+    barFixed: document.getElementById('sim-bar-fixed'),
+    simStatus: document.getElementById('sim-status'),
+    simRun: document.getElementById('sim-run')
+  };
+
+  /* Boundary work costs enough at 20+ looks to be felt between keystrokes, so
+   * the headline number lands immediately and the thresholds follow once the
+   * input has settled. */
+  var slowTimer = null;
+  var current = { looks: 5, alpha: 0.05, pocock: null };
+
+  function renderSlow(v) {
+    var alpha = v.alpha / 100;
+    var pocockZ = Sequential.pocockBound(v.looks, alpha);
+    var pocockP = Sequential.nominalAlphaFor(pocockZ);
+    current.pocock = pocockP;
+    out.pocock.textContent = 'p < ' + UI.decimal(pocockP, 4);
+
+    var obf = Sequential.obrienFlemingBounds(v.looks, alpha);
+    var rows = '';
+    for (var i = 0; i < v.looks; i++) {
+      rows += '<tr><td>' + (i + 1) + '</td>' +
+              '<td>' + UI.decimal(pocockZ, 3) + '</td>' +
+              '<td>' + UI.pValue(pocockP) + '</td>' +
+              '<td>' + UI.decimal(obf[i], 3) + '</td>' +
+              '<td>' + UI.pValue(Sequential.nominalAlphaFor(obf[i])) + '</td></tr>';
+    }
+    out.obfBody.innerHTML = rows;
+    resetSim();
+  }
+
+  function render(v) {
+    var alpha = v.alpha / 100;
+    current.looks = v.looks;
+    current.alpha = alpha;
+
+    var real = Sequential.alphaInflation(v.looks, alpha);
+    var factor = real / alpha;
+
+    out.real.textContent = UI.percent(real * 100, 1);
+    out.thought.textContent = UI.percent(v.alpha, 1);
+    out.factor.textContent = UI.decimal(factor, 1) + '×';
+    out.pocock.textContent = '…';
+    out.simAlpha.textContent = UI.percent(v.alpha, 1);
+    out.simLooks.textContent = UI.integer(v.looks);
+
+    if (v.looks === 1) {
+      out.judgement.innerHTML =
+        '<strong>One look is not peeking.</strong>' +
+        'A single test at the end is exactly what the ' +
+        UI.percent(v.alpha, 1) + ' level is designed for, so nothing is ' +
+        'inflated. Come back if you check again before the planned end.';
+    } else {
+      out.judgement.innerHTML =
+        '<strong>You looked ' + UI.integer(v.looks) + ' times.</strong>' +
+        'Your real chance of calling a dead change a winner is ' +
+        UI.percent(real * 100, 1) + ', not ' + UI.percent(v.alpha, 1) +
+        ' — you are ' + UI.decimal(factor, 1) + '× more likely to have been ' +
+        'fooled than you believed. The test did not get less reliable because ' +
+        'the data changed; it got less reliable because you gave yourself ' +
+        UI.integer(v.looks) + ' chances to catch it at a lucky moment. ' +
+        'This assumes your looks were evenly spaced and that you would have ' +
+        'stopped at the first significant result.';
+    }
+
+    window.clearTimeout(slowTimer);
+    slowTimer = window.setTimeout(function () { renderSlow(v); }, 120);
+  }
+
+  /* ---- simulation ---- */
+
+  var TOTAL = 200000;
+  var BATCH = 4000;
+  var sim = null;
+
+  function setBar(el, value) {
+    /* Fixed 30% scale so the two bars stay comparable as inputs change. */
+    el.style.width = Math.min(100, value / 0.30 * 100) + '%';
+  }
+
+  /*
+   * requestAnimationFrame is the right primitive for painting and the wrong one
+   * for this: it stops entirely in a hidden tab, so a run started and then
+   * backgrounded would freeze with the button stuck on "Running". The work here
+   * is computation being visualised, not animation, so fall back to a timer
+   * when the page is not visible and let it finish either way.
+   */
+  function schedule(fn) {
+    if (document.hidden) return window.setTimeout(fn, 0);
+    return window.requestAnimationFrame(fn);
+  }
+
+  function resetSim() {
+    if (sim) { sim.cancelled = true; sim = null; }
+    out.simNaive.textContent = '—';
+    out.simFixed.textContent = '—';
+    setBar(out.barNaive, 0);
+    setBar(out.barFixed, 0);
+    out.simStatus.textContent = 'Ready.';
+    out.simRun.disabled = false;
+    out.simRun.textContent = 'Run 200,000 simulated tests';
+  }
+
+  function runSim() {
+    if (current.pocock === null) return;
+    var zNaive = Stats.normalQuantile(1 - current.alpha / 2);
+    var zFixed = Stats.normalQuantile(1 - current.pocock / 2);
+    var state = { done: 0, hitNaive: 0, hitFixed: 0, cancelled: false };
+    sim = state;
+    out.simRun.disabled = true;
+    out.simRun.textContent = 'Running…';
+
+    function step() {
+      if (state.cancelled) return;
+      var batch = Math.min(BATCH, TOTAL - state.done);
+      state.hitNaive += Sequential.simulateBatch(current.looks, zNaive, batch);
+      state.hitFixed += Sequential.simulateBatch(current.looks, zFixed, batch);
+      state.done += batch;
+
+      var pn = state.hitNaive / state.done;
+      var pf = state.hitFixed / state.done;
+      out.simNaive.textContent = UI.percent(pn * 100, 2);
+      out.simFixed.textContent = UI.percent(pf * 100, 2);
+      setBar(out.barNaive, pn);
+      setBar(out.barFixed, pf);
+
+      var se2 = 2 * Math.sqrt(pn * (1 - pn) / state.done);
+      out.simStatus.textContent = UI.integer(state.done) + ' tests simulated, ' +
+        'none of which had a real effect. Estimate ±' +
+        UI.percent(se2 * 100, 2) + ' (2 standard errors).';
+
+      if (state.done < TOTAL) {
+        schedule(step);
+      } else {
+        out.simRun.disabled = false;
+        out.simRun.textContent = 'Run it again';
+        out.simStatus.textContent = UI.integer(TOTAL) + ' tests simulated, none ' +
+          'with a real effect. Peeking produced ' + UI.percent(pn * 100, 2) +
+          ' false positives against the exact figure of ' +
+          UI.percent(Sequential.alphaInflation(current.looks, current.alpha) * 100, 2) +
+          '. The corrected threshold produced ' + UI.percent(pf * 100, 2) +
+          ', which is the level you wanted all along.';
+        sim = null;
+      }
+    }
+    schedule(step);
+  }
+
+  out.simRun.addEventListener('click', runSim);
+
+  UI.attach(SPEC, render);
+  UI.initCopyButton('copy');
+})();
+</script>
+</body>
+</html>

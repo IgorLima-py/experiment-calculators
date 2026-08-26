@@ -1,0 +1,241 @@
+{
+ "inflation": [
+  {
+   "looks": 1,
+   "nominal_alpha": 0.05,
+   "mvn": 0.050000000000000044,
+   "published": 0.05
+  },
+  {
+   "looks": 2,
+   "nominal_alpha": 0.05,
+   "mvn": 0.08311780335451813,
+   "published": 0.083
+  },
+  {
+   "looks": 3,
+   "nominal_alpha": 0.05,
+   "mvn": 0.1072547824003538,
+   "published": 0.107
+  },
+  {
+   "looks": 4,
+   "nominal_alpha": 0.05,
+   "mvn": 0.1261681434413301,
+   "published": 0.126
+  },
+  {
+   "looks": 5,
+   "nominal_alpha": 0.05,
+   "mvn": 0.14168563927600208,
+   "published": 0.142
+  },
+  {
+   "looks": 6,
+   "nominal_alpha": 0.05,
+   "mvn": 0.15483041029949585,
+   "published": null
+  },
+  {
+   "looks": 8,
+   "nominal_alpha": 0.05,
+   "mvn": 0.1762624069298826,
+   "published": null
+  },
+  {
+   "looks": 10,
+   "nominal_alpha": 0.05,
+   "mvn": 0.1933591498032936,
+   "published": 0.193
+  },
+  {
+   "looks": 12,
+   "nominal_alpha": 0.05,
+   "mvn": 0.20754086272204741,
+   "published": null
+  },
+  {
+   "looks": 15,
+   "nominal_alpha": 0.05,
+   "mvn": null,
+   "published": null
+  },
+  {
+   "looks": 20,
+   "nominal_alpha": 0.05,
+   "mvn": null,
+   "published": 0.248
+  },
+  {
+   "looks": 30,
+   "nominal_alpha": 0.05,
+   "mvn": null,
+   "published": null
+  },
+  {
+   "looks": 50,
+   "nominal_alpha": 0.05,
+   "mvn": null,
+   "published": 0.32
+  }
+ ],
+ "pocock": [
+  {
+   "looks": 2,
+   "target_alpha": 0.05,
+   "mvn": 2.1782720088209135,
+   "per_look_alpha": 0.029385791811754717,
+   "published": 2.178
+  },
+  {
+   "looks": 3,
+   "target_alpha": 0.05,
+   "mvn": 2.2894889361211725,
+   "per_look_alpha": 0.022050960016665733,
+   "published": 2.289
+  },
+  {
+   "looks": 4,
+   "target_alpha": 0.05,
+   "mvn": 2.3612776086016876,
+   "per_look_alpha": 0.018212091624184412,
+   "published": 2.361
+  },
+  {
+   "looks": 5,
+   "target_alpha": 0.05,
+   "mvn": 2.4132241429354435,
+   "per_look_alpha": 0.015812092257859352,
+   "published": 2.413
+  },
+  {
+   "looks": 6,
+   "target_alpha": 0.05,
+   "mvn": 2.453209088305132,
+   "per_look_alpha": 0.014158801245153958,
+   "published": null
+  },
+  {
+   "looks": 8,
+   "target_alpha": 0.05,
+   "mvn": 2.512334571046438,
+   "per_look_alpha": 0.011993532187570164,
+   "published": null
+  },
+  {
+   "looks": 10,
+   "target_alpha": 0.05,
+   "mvn": 2.5550290047621016,
+   "per_look_alpha": 0.010617894986468085,
+   "published": 2.555
+  }
+ ],
+ "obf": [
+  {
+   "looks": 2,
+   "target_alpha": 0.05,
+   "mvn": [
+    2.796509906392172,
+    1.9774311184652618
+   ],
+   "published": null
+  },
+  {
+   "looks": 3,
+   "target_alpha": 0.05,
+   "mvn": [
+    3.47109655793797,
+    2.4544359142712224,
+    2.0040385321086704
+   ],
+   "published": [
+    3.471,
+    2.454,
+    2.004
+   ]
+  },
+  {
+   "looks": 4,
+   "target_alpha": 0.05,
+   "mvn": [
+    4.048582469346908,
+    2.8627801182681765,
+    2.3374501785138366,
+    2.024291234673454
+   ],
+   "published": null
+  },
+  {
+   "looks": 5,
+   "target_alpha": 0.05,
+   "mvn": [
+    4.561626551180962,
+    3.2255570675806617,
+    2.6336563172668725,
+    2.280813275590481,
+    2.0400214112817108
+   ],
+   "published": [
+    4.562,
+    3.226,
+    2.634,
+    2.281,
+    2.04
+   ]
+  },
+  {
+   "looks": 8,
+   "target_alpha": 0.05,
+   "mvn": [
+    5.861094177020087,
+    4.14441943774389,
+    3.383904300848295,
+    2.9305470885100435,
+    2.62116100046902,
+    2.3927816780161524,
+    2.2152853718748475,
+    2.072209718871945
+   ],
+   "published": null
+  }
+ ],
+ "other_alphas": [
+  {
+   "looks": 3,
+   "nominal_alpha": 0.01,
+   "mvn_inflation": 0.02365829369967065,
+   "mvn_pocock": 2.872977792426164
+  },
+  {
+   "looks": 5,
+   "nominal_alpha": 0.01,
+   "mvn_inflation": 0.03274751522447705,
+   "mvn_pocock": 2.9864380342435775
+  },
+  {
+   "looks": 10,
+   "nominal_alpha": 0.01,
+   "mvn_inflation": 0.04738060118537779,
+   "mvn_pocock": 3.1170105426389076
+  },
+  {
+   "looks": 3,
+   "nominal_alpha": 0.1,
+   "mvn_inflation": 0.2020738118213482,
+   "mvn_pocock": 1.9921775000311546
+  },
+  {
+   "looks": 5,
+   "nominal_alpha": 0.1,
+   "mvn_inflation": 0.25962742333458444,
+   "mvn_pocock": 2.121672308338998
+  },
+  {
+   "looks": 10,
+   "nominal_alpha": 0.1,
+   "mvn_inflation": 0.341687230712048,
+   "mvn_pocock": 2.269886193985384
+  }
+ ],
+ "mvn_max_looks": 12
+}

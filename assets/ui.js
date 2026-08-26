@@ -207,6 +207,22 @@ var UI = (function () {
     return decimal(n, digits === undefined ? 2 : digits) + '%';
   }
 
+  var SUPERSCRIPT = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+                      '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+                      '-': '⁻' };
+
+  /* Early O'Brien-Fleming boundaries sit at p ~ 1e-6, where fixed decimals
+   * would print a misleading 0.0000. */
+  function pValue(p) {
+    if (!isFinite(p)) return '--';
+    if (p >= 0.0001) return decimal(p, 4);
+    var parts = p.toExponential(1).split('e');
+    var exponent = parts[1].replace(/[0-9-]/g, function (ch) {
+      return SUPERSCRIPT[ch];
+    }).replace('+', '');
+    return parts[0] + ' × 10' + exponent;
+  }
+
   return {
     read: read,
     write: write,
@@ -216,6 +232,7 @@ var UI = (function () {
     initCopyButton: initCopyButton,
     integer: integer,
     decimal: decimal,
-    percent: percent
+    percent: percent,
+    pValue: pValue
   };
 })();

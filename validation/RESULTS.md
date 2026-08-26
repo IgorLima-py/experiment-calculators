@@ -188,11 +188,109 @@ denominator, so there is no algebraic inverse. The common shortcut is to drop
 it from the variance and invert what remains, which produces a number that
 looks right and is not. The tool bisects the real function instead.
 
-## Phase 3 — Peeking / sequential checker
+## Phase 3 — Peeking / sequential checker (`tools/peeking.html`)
 
-*Not started. Seed scripts `verify_tool3_mvn.py` and
-`verify_tool3_recursion.py` already reproduce the published
-Armitage / Pocock / O'Brien-Fleming tables.*
+Reproduce with:
+
+```bash
+python reference_tool3.py && node check_tool3.js
+```
+
+This is the tool the suite exists for, so it is checked four ways. Each is
+independent of the others: they share no code, and two of them predate this
+repository by decades.
+
+1. **The Armitage-McPherson recursion**, in `assets/sequential.js` — the code
+   that actually runs in the browser. It integrates the sub-density of the
+   running sum forward one look at a time, and the mass falling outside each
+   boundary is the error spent there.
+2. **A multivariate-normal integration in scipy**, in `reference_tool3.py`. The
+   test statistics at K looks are jointly normal with correlation
+   √(tᵢ/tⱼ), so the same quantity is one call to Genz's algorithm. Completely
+   different mathematics, same answer.
+3. **The published tables**: Armitage, McPherson & Rowe (1969), Pocock (1977),
+   O'Brien & Fleming (1979).
+4. **A million-run Monte Carlo** per row, simulating null experiments and
+   counting how often peeking finds a "winner" that does not exist.
+
+### Type I error when testing at nominal 5% at every look
+
+| Looks | This tool (recursion) | scipy (multivariate normal) | Published | Monte Carlo (1M) |
+|---:|---:|---:|---:|---:|
+| 1 | 0.0500 | 0.0500 | 0.050 | 0.0498 ± 0.0004 |
+| 2 | 0.0831 | 0.0831 | 0.083 | 0.0833 ± 0.0006 |
+| 3 | 0.1073 | 0.1073 | 0.107 | 0.1073 ± 0.0006 |
+| 4 | 0.1262 | 0.1262 | 0.126 | 0.1261 ± 0.0007 |
+| 5 | 0.1417 | 0.1417 | 0.142 | 0.1424 ± 0.0007 |
+| 6 | 0.1548 | 0.1548 | — | 0.1549 ± 0.0007 |
+| 8 | 0.1763 | 0.1763 | — | 0.1761 ± 0.0008 |
+| 10 | 0.1934 | 0.1934 | 0.193 | 0.1938 ± 0.0008 |
+| 12 | 0.2075 | 0.2075 | — | 0.2076 ± 0.0008 |
+| 15 | 0.2251 | — | — | 0.2257 ± 0.0008 |
+| 20 | 0.2479 | — | 0.248 | 0.2481 ± 0.0009 |
+| 30 | 0.2802 | — | — | 0.2803 ± 0.0009 |
+| 50 | 0.3205 | — | 0.320 | 0.3204 ± 0.0009 |
+
+### Pocock constant critical value (overall alpha 5%)
+
+| Looks | This tool | scipy | Published | Per-look alpha | Bonferroni would say |
+|---:|---:|---:|---:|---:|---:|
+| 2 | 2.178 | 2.178 | 2.178 | 0.0294 | 0.0250 |
+| 3 | 2.289 | 2.289 | 2.289 | 0.0221 | 0.0167 |
+| 4 | 2.361 | 2.361 | 2.361 | 0.0182 | 0.0125 |
+| 5 | 2.413 | 2.413 | 2.413 | 0.0158 | 0.0100 |
+| 6 | 2.453 | 2.453 | — | 0.0142 | 0.0083 |
+| 8 | 2.512 | 2.512 | — | 0.0120 | 0.0063 |
+| 10 | 2.555 | 2.555 | 2.555 | 0.0106 | 0.0050 |
+
+The last column is there because Bonferroni is the correction people reach for
+by instinct. It is valid but wasteful: at five looks it demands p < 0.010 where
+the exact answer is p < 0.0158, throwing away real power for no gain in
+protection. The looks are strongly correlated — they share most of their data —
+and Bonferroni assumes they are not.
+
+### O'Brien-Fleming boundaries (overall alpha 5%)
+
+| Looks | This tool | scipy | Published |
+|---:|---|---|---|
+| 2 | 2.797 / 1.977 | 2.797 / 1.977 | — |
+| 3 | 3.471 / 2.454 / 2.004 | 3.471 / 2.454 / 2.004 | 3.471 / 2.454 / 2.004 |
+| 4 | 4.049 / 2.863 / 2.337 / 2.024 | 4.049 / 2.863 / 2.337 / 2.024 | — |
+| 5 | 4.562 / 3.226 / 2.634 / 2.281 / 2.040 | 4.562 / 3.226 / 2.634 / 2.281 / 2.040 | 4.562 / 3.226 / 2.634 / 2.281 / 2.040 |
+| 8 | 5.861 / 4.144 / 3.384 / 2.931 / 2.621 / 2.393 / 2.215 / 2.072 | (identical) | — |
+
+### Other significance levels
+
+Included to show the recursion is not quietly tuned to 5%.
+
+| Looks | Nominal alpha | Inflated: this tool | Inflated: scipy | Pocock: this tool | Pocock: scipy |
+|---:|---:|---:|---:|---:|---:|
+| 3 | 0.01 | 0.0237 | 0.0237 | 2.873 | 2.873 |
+| 5 | 0.01 | 0.0327 | 0.0327 | 2.986 | 2.986 |
+| 10 | 0.01 | 0.0474 | 0.0474 | 3.117 | 3.117 |
+| 3 | 0.10 | 0.2021 | 0.2021 | 1.992 | 1.992 |
+| 5 | 0.10 | 0.2596 | 0.2596 | 2.122 | 2.122 |
+| 10 | 0.10 | 0.3417 | 0.3417 | 2.270 | 2.270 |
+
+### Worst disagreements
+
+- Recursion vs multivariate normal: **8.1e-6**
+- Recursion vs published inflation values: **4.5e-4** (the published figures are
+  printed to three decimals, so this is their rounding, not an error here)
+- Pocock constants: **1.6e-4**
+- O'Brien-Fleming boundaries: **1.1e-4**
+
+Every Monte Carlo estimate sits inside two standard errors of the exact value.
+
+### Why the multivariate column stops at 12 looks
+
+Genz's algorithm is quasi-Monte Carlo, so in high dimensions it becomes both
+slow and less precise. At 50 looks the first version of this script ran for
+over twenty minutes without returning a usable figure. Rather than publish a
+number from a method operating outside its comfortable range, the comparison is
+capped at 12 looks, and beyond that the recursion is checked against the
+published tables and the Monte Carlo. Each method is used where it is actually
+trustworthy — which is the same standard the tools themselves are held to.
 
 ## Phase 4 — Geo-holdout power
 

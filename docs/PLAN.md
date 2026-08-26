@@ -290,31 +290,29 @@ dois sentidos, defaults omitidos, guardas, mobile a 375px sem overflow).
 **Pronto:** 1.5e-13 contra o statsmodels invertido, round-trip em 2.2e-13.
 As linhas 2–4 da tabela recuperam exatamente os efeitos da tabela da Fase 1.
 
-### Fase 3 — ⭐ Tool 3: peeking checker · ~2.5–3h
+### Fase 3 — ⭐ Tool 3: peeking checker ✅
 
-A fase que carrega o portfólio. Sub-fases são commits separados.
+- [x] **3.1** Recursão de Armitage–McPherson em `assets/sequential.js`.
+      Bate com a tabela publicada **exatamente** em 3 casas (k=2..50).
+- [x] **3.2** Constante de Pocock por bissecção sobre a recursão:
+      2.178 / 2.289 / 2.361 / 2.413 / 2.555 — casamento exato.
+- [x] **3.3** O'Brien-Fleming (exato) + formas fechadas de spending Lan-DeMets
+      + `overallAlphaUneven` para peeks desigualmente espaçados. OBF k=5:
+      4.562 / 3.226 / 2.634 / 2.281 / 2.040 — exato.
+- [x] **3.4** Simulação Monte Carlo animada, 200k testes nulos, duas barras
+      (peeking vs limiar corrigido), banda de ±2 SE. Converge para 14,10%
+      contra a cifra exata de 14,17%.
+- [x] **3.5** `tools/peeking.html` com julgamento, aba avançada e a nota sobre
+      mSPRT/always-valid (o que as plataformas grandes fazem, e por que este
+      problema é discreto e portanto group-sequential).
+- [x] **3.6** Validação **quádrupla** publicada: recursão JS vs integração
+      multivariada no scipy vs tabelas publicadas (1969/1977/1979) vs Monte
+      Carlo de 1 milhão de rodadas. Pior desvio contra o scipy: 8.1e-6.
 
-- [ ] **3.1** Recursão de Armitage–McPherson em JS (convolução em grade +
-      truncamento) → alfa real para k peeks. **Critério: bate com a tabela
-      publicada em ±0.002** (k=2..50: 0.083 / 0.107 / 0.126 / 0.142 / 0.193 /
-      0.248 / 0.320).
-- [ ] **3.2** Constante de Pocock por root-finding (bissecção sobre a recursão).
-      **Critério: c = 2.178 / 2.289 / 2.361 / 2.413 / 2.555** para k=2/3/4/5/10.
-- [ ] **3.3** O'Brien-Fleming + alpha-spending Lan-DeMets (formas fechadas:
-      OBF `2−2Φ(z_{α/2}/√t)`, Pocock `α·ln(1+(e−1)t)`) na aba avançada, com
-      peeks em tempos desiguais. **Critério OBF k=3: 3.471/2.454/2.004.**
-- [ ] **3.4** Simulação Monte Carlo animada (100k reps em nível de incremento-z,
-      em blocos via `requestAnimationFrame`, sem web worker) convergindo para o
-      número exato; segunda rodada com threshold corrigido volta a ~5%.
-      Mostrar a banda de ±2 SE.
-- [ ] **3.5** `tools/peeking.html` — página, julgamento, honesty box, nota
-      "o que as plataformas grandes fazem" (mSPRT) com links.
-- [ ] **3.6** Validação tripla publicada: recursão JS vs tabela publicada vs
-      `verify_tool3_mvn.py` (rota MVN) vs `verify_tool3_recursion.py`
-      (recursão + Monte Carlo).
-
-**Pronto quando:** as três rotas concordam, a simulação converge na tela para o
-número exato, e `RESULTS.md` mostra as três colunas.
+**Pronto:** quatro rotas independentes concordam. A rota MVN foi limitada a 12
+looks — acima disso o algoritmo de Genz fica lento e impreciso (a primeira
+versão rodou 20+ min sem retornar), então lá valem tabela publicada + Monte
+Carlo. Está documentado no `RESULTS.md`.
 
 ### Fase 4 — Tool 4: geo-holdout power · ~1.5–2h
 

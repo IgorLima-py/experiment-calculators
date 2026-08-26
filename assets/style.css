@@ -252,6 +252,57 @@ textarea:focus {
 
 .share .note { font-size: 0.8rem; color: var(--text-soft); }
 
+/* ---------- live simulation ---------- */
+
+.sim {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.sim-row { margin-bottom: 0.9rem; }
+
+.sim-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.sim-figure {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sim-track {
+  height: 0.85rem;
+  background: var(--surface-alt);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sim-bar {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  transition: width 120ms linear;
+}
+
+.sim-bar-bad { background: var(--warn-border); }
+.sim-bar-good { background: var(--ok); }
+
+.sim-status {
+  margin: 0.9rem 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  min-height: 2.4em;
+}
+
 /* ---------- figures ---------- */
 
 figure { margin: 1.25rem 0; }
