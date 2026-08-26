@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geo holdout power</title>
+<meta name="description" content="How many markets to hold out of a geo incrementality test, and the smallest lift that design could actually detect.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-header">
+  <a class="home" href="../index.html">Experimentation calculators</a>
+  <nav class="site-nav">
+    <a href="sample-size.html">Sample size</a>
+    <a href="mde.html">Detectable effect</a>
+    <a href="peeking.html">Peeking checker</a>
+    <a href="geo-holdout.html" aria-current="page">Geo holdout</a>
+    <a href="cuped.html">CUPED &amp; ratio metrics</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Geo holdout power</h1>
+  <p class="tool-sub">You are about to go dark in some markets to measure
+  incrementality. This is how many to hold out, and the smallest lift that
+  design could honestly detect.</p>
+
+  <div class="fields">
+    <div class="field">
+      <label for="geos">Markets available</label>
+      <input type="number" id="geos" step="1" min="4" max="500" inputmode="numeric">
+      <span class="hint">DMAs, cities, states — whatever you can split on.</span>
+    </div>
+
+    <div class="field">
+      <label for="holdout">Markets held out</label>
+      <input type="number" id="holdout" step="1" min="1" inputmode="numeric">
+      <span class="hint">The dark group. The rest keep spending.</span>
+    </div>
+
+    <div class="field">
+      <label for="cv">Variation between markets</label>
+      <input type="number" id="cv" step="0.1" min="0.1" max="300" inputmode="decimal">
+      <span class="hint">Percent. Standard deviation of the per-market metric,
+      as a share of its mean. Paste your data below if you don't know it.</span>
+    </div>
+
+    <div class="field">
+      <label for="rho">Pre-period correlation</label>
+      <input type="number" id="rho" step="0.01" min="0" max="0.99" inputmode="decimal">
+      <span class="hint">How well a market's past predicts its present.
+      Leave at 0 if your variation figure is already pre-period adjusted.</span>
+    </div>
+
+    <div class="field">
+      <label for="lift">Lift you expect</label>
+      <input type="number" id="lift" step="0.1" min="0.1" max="500" inputmode="decimal">
+      <span class="hint">Percent. Used to work out whether this design can see it.</span>
+    </div>
+
+    <div class="field">
+      <label for="alpha">Significance level</label>
+      <input type="number" id="alpha" step="0.1" min="0.1" max="50" inputmode="decimal">
+      <span class="hint">Percent. Geo tests often accept 10 rather than 5.</span>
+    </div>
+
+    <div class="field field-span">
+      <label for="power">Target power</label>
+      <input type="number" id="power" step="1" min="50" max="99" inputmode="decimal">
+      <span class="hint">Percent. 80 is conventional.</span>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="result-main">
+      <span class="result-value" id="out-mde">--</span>
+      <span class="result-label">smallest lift this design can detect</span>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <span class="result-value" id="out-power">--</span>
+        <span class="result-label">power at the lift you expect</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-smallest">--</span>
+        <span class="result-label">markets needed for target power</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-split">--</span>
+        <span class="result-label">treated / held out</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn" id="warn"></div>
+
+  <div class="judgement" id="judgement"></div>
+
+  <figure>
+    <div id="curve"></div>
+    <figcaption>Detectable lift against holdout size, for your markets and
+    variation. The curve bottoms out at an even split — holding out a small
+    handful of markets is the expensive end, and the cost rises steeply.</figcaption>
+  </figure>
+
+  <details class="honesty">
+    <summary>Don't know your between-market variation? Paste your numbers.</summary>
+    <p>One market per line, with the figures at the end: the metric you plan to
+    measure — revenue, orders, signups — over a period the length of your test,
+    then optionally the same market over an equally long earlier period, which
+    gives the correlation. Market names go first and are ignored, digits and
+    all. Nothing leaves your browser.</p>
+    <textarea id="paste" rows="6" placeholder="New York   482300   471900&#10;Los Angeles 356100  349200&#10;Chicago     214800   208400"></textarea>
+    <p><button type="button" class="btn" id="use-paste">Use these numbers</button>
+    <span class="note" id="paste-summary"></span></p>
+  </details>
+
+  <div class="share">
+    <button type="button" class="btn" id="copy">Copy link</button>
+    <span class="note">Inputs live in the URL — send this link to a colleague.</span>
+  </div>
+
+  <details class="honesty">
+    <summary>What this assumes, and what it does not cover</summary>
+    <ul>
+      <li><strong>Markets are independent.</strong> They are not, quite. People
+      travel, word of mouth crosses borders, and IP-based geo targeting is
+      commonly cited as only 55–80% accurate, so some of your dark markets see
+      the ads anyway. Every one of those effects drags the measured lift toward
+      zero, which means a real effect looks smaller than it is.</li>
+      <li><strong>The pre-period was stable.</strong> One regional promotion, one
+      storm, one competitor launch in either group and the comparison is
+      measuring that instead.</li>
+      <li><strong>Market-level metrics are skewed.</strong> Raw DMA revenue is
+      heavy-tailed — a handful of markets dominate. That is why the honest input
+      is the variation of a <em>pre-period-adjusted</em> metric, not of raw
+      totals, and why one whale market can still distort the result. Stratify by
+      size when you assign groups.</li>
+      <li><strong>This is a design-stage estimate.</strong> It is the standard
+      first-order method (a two-sample t-test with markets as units, in the
+      Hayes &amp; Bennett cluster-trial tradition), and it deliberately asks less
+      of you than the tools that do this properly.
+      <a href="https://github.com/facebookincubator/GeoLift">GeoLift</a> and
+      <a href="https://github.com/google/trimmed_match">Trimmed Match</a> fit a
+      synthetic control and simulate on your actual market history, and will
+      usually squeeze a better minimum detectable effect out of the same
+      markets. Run one of them before you commit budget.</li>
+      <li><strong>No delayed effects.</strong> If your channel has an adstock
+      tail, the test window has to cover it or you will measure a fraction of
+      the true effect.</li>
+      <li><strong>Not covered:</strong> synthetic control and matched-market
+      designs, unequal market sizes as an explicit weight, staggered rollouts,
+      and any channel you cannot actually split geographically — SEO, podcast,
+      PR.</li>
+    </ul>
+    <p>Power uses the noncentral t distribution, checked against
+    <code>scipy.stats.nct</code> and <code>statsmodels TTestIndPower</code> —
+    see <a href="../validation/RESULTS.md">the published comparison</a>.</p>
+  </details>
+</main>
+
+<footer class="site-footer">
+  <p>Part of a small suite of experimentation calculators. Every result comes
+  with the caveat that would invalidate it, and every formula is checked against
+  a reference implementation.</p>
+  <p>Built by <a href="https://github.com/igorsslima">Igor Lima</a>.</p>
+</footer>
+
+</div>
+
+<script src="../assets/stats.js"></script>
+<script src="../assets/geo.js"></script>
+<script src="../assets/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var SPEC = {
+    geos:    { def: 40, min: 4,   max: 500 },
+    holdout: { def: 10, min: 1,   max: 499 },
+    cv:      { def: 10, min: 0.1, max: 300 },
+    rho:     { def: 0,  min: 0,   max: 0.99 },
+    lift:    { def: 10, min: 0.1, max: 500 },
+    alpha:   { def: 10, min: 0.1, max: 50 },
+    power:   { def: 80, min: 50,  max: 99 }
+  };
+
+  var out = {
+    mde: document.getElementById('out-mde'),
+    power: document.getElementById('out-power'),
+    smallest: document.getElementById('out-smallest'),
+    split: document.getElementById('out-split'),
+    warn: document.getElementById('warn'),
+    judgement: document.getElementById('judgement'),
+    curve: document.getElementById('curve'),
+    pasteSummary: document.getElementById('paste-summary')
+  };
+
+  function curveSvg(points, currentHoldout, totalGeos) {
+    if (points.length < 2) return '';
+    var W = 620, H = 240, L = 52, R = 12, T = 14, B = 34;
+    var maxMde = 0;
+    for (var i = 0; i < points.length; i++) {
+      if (points[i].mde > maxMde) maxMde = points[i].mde;
+    }
+    /* Clip the y axis: as the holdout approaches one market the detectable
+     * effect runs away to infinity and would flatten everything else. */
+    var lowest = points[0].mde;
+    for (var j = 0; j < points.length; j++) {
+      if (points[j].mde < lowest) lowest = points[j].mde;
+    }
+    var yMax = Math.min(maxMde, lowest * 4);
+
+    var xFor = function (h) {
+      return L + (h - 1) / Math.max(1, totalGeos - 2) * (W - L - R);
+    };
+    var yFor = function (m) {
+      return T + (1 - Math.min(m, yMax) / yMax) * (H - T - B);
+    };
+
+    var d = '';
+    for (var k = 0; k < points.length; k++) {
+      d += (k === 0 ? 'M' : 'L') + xFor(points[k].holdout).toFixed(1) + ' ' +
+           yFor(points[k].mde).toFixed(1) + ' ';
+    }
+
+    var ticks = '';
+    for (var t = 0; t <= 4; t++) {
+      var value = yMax * t / 4;
+      var y = yFor(value);
+      ticks += '<line x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) +
+               '" y2="' + y.toFixed(1) + '" class="grid"/>' +
+               '<text x="' + (L - 8) + '" y="' + (y + 4).toFixed(1) +
+               '" class="axis" text-anchor="end">' +
+               (value * 100).toFixed(0) + '%</text>';
+    }
+
+    var xTicks = '';
+    var step = Math.max(1, Math.round((totalGeos - 1) / 6));
+    for (var h = 1; h <= totalGeos - 1; h += step) {
+      xTicks += '<text x="' + xFor(h).toFixed(1) + '" y="' + (H - 12) +
+                '" class="axis" text-anchor="middle">' + h + '</text>';
+    }
+
+    var marker = '';
+    var here = points.filter(function (p) { return p.holdout === currentHoldout; })[0];
+    if (here) {
+      marker = '<line x1="' + xFor(here.holdout).toFixed(1) + '" y1="' + T +
+               '" x2="' + xFor(here.holdout).toFixed(1) + '" y2="' + (H - B) +
+               '" class="marker"/>' +
+               '<circle cx="' + xFor(here.holdout).toFixed(1) + '" cy="' +
+               yFor(here.mde).toFixed(1) + '" r="4" class="dot"/>';
+    }
+
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" ' +
+      'aria-label="Detectable lift against holdout size">' +
+      '<style>' +
+      '.grid{stroke:var(--border);stroke-width:1}' +
+      '.axis{fill:var(--text-soft);font-size:11px;font-family:inherit}' +
+      '.line{fill:none;stroke:var(--accent);stroke-width:2.5}' +
+      '.marker{stroke:var(--judgement-border);stroke-width:1.5;stroke-dasharray:4 3}' +
+      '.dot{fill:var(--judgement-border)}' +
+      '</style>' + ticks + xTicks +
+      '<path class="line" d="' + d + '"/>' + marker +
+      '<text x="' + (L + (W - L - R) / 2) + '" y="' + (H - 1) +
+      '" class="axis" text-anchor="middle">markets held out</text>' +
+      '</svg>';
+  }
+
+  function render(v) {
+    var holdout = Math.min(v.holdout, v.geos - 1);
+    var treated = v.geos - holdout;
+    var cv = v.cv / 100;
+    var lift = v.lift / 100;
+    var alpha = v.alpha / 100;
+    var target = v.power / 100;
+
+    var mde = Geo.mde(v.geos, holdout, cv, v.rho, alpha, target);
+    var pw = Geo.power(v.geos, holdout, cv, v.rho, lift, alpha);
+    var smallest = Geo.smallestHoldout(v.geos, cv, v.rho, lift, alpha, target);
+
+    out.mde.textContent = isFinite(mde) ? UI.percent(mde * 100, 1) : '--';
+    out.power.textContent = isFinite(pw) ? UI.percent(pw * 100, 0) : '--';
+    out.smallest.textContent = smallest === null ? 'none' : UI.integer(smallest);
+    out.split.textContent = UI.integer(treated) + ' / ' + UI.integer(holdout);
+    out.curve.innerHTML = curveSvg(
+      Geo.mdeCurve(v.geos, cv, v.rho, alpha, target), holdout, v.geos);
+
+    var warnings = [];
+    if (holdout < 5) {
+      warnings.push('<strong>A holdout of ' + holdout + ' markets is too few.</strong> ' +
+        'With this many units a single local shock — one storm, one promotion — ' +
+        'moves the whole group, and there are not enough degrees of freedom to ' +
+        'tell that apart from your campaign. Trimmed Match puts the floor at ' +
+        'about ten matched pairs for the same reason.');
+    }
+    if (v.geos < 10) {
+      warnings.push('<strong>Fewer than ten markets is outside what this ' +
+        'method can honestly size.</strong> With so few units the geo-level ' +
+        't-test is fragile; time-based regression on a handful of markets is ' +
+        'the appropriate design instead.');
+    }
+    if (v.rho >= 0.9) {
+      warnings.push('<strong>A pre-period correlation of ' +
+        UI.decimal(v.rho, 2) + ' is doing a lot of work here.</strong> The ' +
+        'variance reduction it implies assumes the relationship holds exactly ' +
+        'in the test window and that the correlation itself is known rather ' +
+        'than estimated. With a few dozen markets it is estimated, from the ' +
+        'same small sample, so the detectable effect above is optimistic. ' +
+        'Treat a figure this high as a reason to check your data rather than ' +
+        'as good news.');
+    }
+    if (cv >= 0.5 && v.rho === 0) {
+      warnings.push('<strong>Variation of ' + UI.percent(v.cv, 0) + ' looks ' +
+        'like raw market totals.</strong> Market sizes are heavy-tailed, so raw ' +
+        'variation is huge and makes any test look impossible. Use a ' +
+        'pre-period-adjusted metric — each market against its own past — or set ' +
+        'the correlation field above.');
+    }
+    out.warn.innerHTML = warnings.join('<br><br>');
+
+    if (!isFinite(mde)) {
+      out.judgement.innerHTML = '';
+      return;
+    }
+
+    var verdict;
+    if (pw >= target) {
+      verdict = 'That is enough to see the ' + UI.percent(v.lift, 1) +
+        ' lift you are expecting, at ' + UI.percent(pw * 100, 0) + ' power.';
+    } else if (smallest !== null) {
+      verdict = 'That is not enough to see the ' + UI.percent(v.lift, 1) +
+        ' lift you are expecting — you would have ' + UI.percent(pw * 100, 0) +
+        ' power, not ' + UI.percent(v.power, 0) + '. Holding out ' +
+        UI.integer(smallest) + ' markets instead would get you there.';
+    } else {
+      verdict = 'No holdout size reaches ' + UI.percent(v.power, 0) +
+        ' power for a ' + UI.percent(v.lift, 1) + ' lift with this many ' +
+        'markets and this much variation between them. Either the effect has ' +
+        'to be bigger, or the test cannot answer the question.';
+    }
+
+    out.judgement.innerHTML =
+      '<strong>What would make this number a lie.</strong>' +
+      'Holding out ' + UI.integer(holdout) + ' of ' + UI.integer(v.geos) +
+      ' markets, the smallest lift you could detect is ' +
+      UI.percent(mde * 100, 1) + '. ' + verdict +
+      ' All of it assumes your markets do not leak into each other and that ' +
+      'nothing but your campaign changed between the groups. Geo targeting is ' +
+      'commonly only 55–80% accurate, and every bit of leakage pushes the ' +
+      'measured effect toward zero — so a real win can still come back looking ' +
+      'like nothing. Treat this as the design-stage estimate and run GeoLift on ' +
+      'your own history before the budget moves.';
+  }
+
+  var getValues = UI.attach(SPEC, render);
+  UI.initCopyButton('copy');
+
+  document.getElementById('use-paste').addEventListener('click', function () {
+    var stats = Geo.parsePasted(document.getElementById('paste').value);
+    if (!(stats.n >= 2) || !isFinite(stats.cv)) {
+      out.pasteSummary.textContent =
+        'Could not read at least two markets with a numeric value.';
+      return;
+    }
+    var cvField = document.getElementById('cv');
+    cvField.value = (stats.cv * 100).toFixed(1);
+    cvField.dispatchEvent(new Event('input', { bubbles: true }));
+
+    var message = stats.n + ' markets, mean ' + UI.decimal(stats.mean, 1) +
+      ', variation ' + UI.percent(stats.cv * 100, 1) + '.';
+    if (stats.pairs) {
+      var rhoField = document.getElementById('rho');
+      /* Clamped to the field's own range so the box never shows a value the
+       * calculation is not using. A correlation of exactly 1 would drive the
+       * effective variation to zero and the detectable effect with it. */
+      var rho = Math.min(0.99, Math.max(0, stats.rho));
+      rhoField.value = rho.toFixed(2);
+      rhoField.dispatchEvent(new Event('input', { bubbles: true }));
+      message += ' Pre-period correlation ' + UI.decimal(stats.rho, 2) +
+        ' across ' + stats.pairs + ' pairs.';
+    } else {
+      message += ' Add a second column per line for the correlation.';
+    }
+    out.pasteSummary.textContent = message;
+  });
+})();
+</script>
+</body>
+</html>

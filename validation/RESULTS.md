@@ -292,9 +292,95 @@ capped at 12 looks, and beyond that the recursion is checked against the
 published tables and the Monte Carlo. Each method is used where it is actually
 trustworthy — which is the same standard the tools themselves are held to.
 
-## Phase 4 — Geo-holdout power
+## Phase 4 — Geo-holdout power (`tools/geo-holdout.html`)
 
-*Not started.*
+Reproduce with:
+
+```bash
+python reference_tool4.py && node check_tool4.js
+```
+
+### Power with markets as units
+
+Checked against a direct `scipy.stats.nct` calculation and, independently,
+against `statsmodels.stats.power.TTestIndPower`. The translation is
+d = lift / (cv·√(1−ρ²)), since a market-level metric with coefficient of
+variation cv has standard deviation cv × mean while the difference in means is
+lift × mean.
+
+| Markets | Held out | Variation | Pre-period ρ | Lift | Alpha | This tool | scipy nct | statsmodels |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 40 | 10 | 10% | 0.00 | 10% | 10% | 0.85187 | 0.85187 | 0.85187 |
+| 40 | 20 | 10% | 0.00 | 10% | 10% | 0.92790 | 0.92790 | 0.92790 |
+| 40 | 5 | 10% | 0.00 | 10% | 10% | 0.65896 | 0.65896 | 0.65896 |
+| 40 | 10 | 10% | 0.70 | 10% | 10% | 0.98301 | 0.98301 | 0.98301 |
+| 20 | 6 | 15% | 0.00 | 15% | 10% | 0.62817 | 0.62817 | 0.62817 |
+| 12 | 6 | 20% | 0.00 | 25% | 10% | 0.64466 | 0.64466 | 0.64466 |
+| 10 | 5 | 25% | 0.50 | 30% | 5% | 0.48682 | 0.48682 | 0.48682 |
+| 100 | 25 | 8% | 0.00 | 5% | 5% | 0.76416 | 0.76416 | 0.76416 |
+| 210 | 30 | 12% | 0.60 | 4% | 5% | 0.55694 | 0.55694 | 0.55694 |
+| 8 | 4 | 30% | 0.00 | 50% | 10% | 0.66899 | 0.66899 | 0.66899 |
+| 60 | 30 | 5% | 0.00 | 2% | 1% | 0.14221 | 0.14221 | 0.14221 |
+| 40 | 10 | 10% | 0.00 | 3% | 10% | 0.20816 | 0.20816 | 0.20816 |
+
+Worst absolute error against either reference: **3.1e-14**.
+
+### The detectable effect: why the textbook formula is not used
+
+Cluster-trial guidance, Hayes & Bennett included, states the detectable effect
+as (t₁₋α/₂ + t₁₋β) × SE. That closed form is what this tool's
+`mdeClosedForm` computes, and it matches scipy to **1.6e-14** — it is
+faithfully implemented. It is also, quietly, not the inverse of noncentral-t
+power: adding two central-t quantiles is an approximation.
+
+The right-hand columns feed each candidate effect back through the exact power
+function and report the power it actually delivers.
+
+| Markets | Held out | df | Target power | Closed form | Power it really gives | Exact inversion | Power it really gives |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 40 | 10 | 38 | 80% | 9.264% | 80.14% | 9.245% | 80.00% |
+| 40 | 20 | 38 | 80% | 8.023% | 80.14% | 8.007% | 80.00% |
+| 40 | 5 | 38 | 80% | 12.130% | 80.14% | 12.105% | 80.00% |
+| 40 | 10 | 38 | 80% | 6.616% | 80.14% | 6.602% | 80.00% |
+| 20 | 6 | 18 | 80% | 19.002% | 80.28% | 18.924% | 80.00% |
+| 12 | 6 | 10 | 80% | 31.079% | 80.46% | 30.871% | 80.00% |
+| 10 | 5 | 8 | 80% | 43.748% | 79.85% | 43.830% | 80.00% |
+| 100 | 25 | 98 | 90% | 6.050% | 90.02% | 6.048% | 90.00% |
+| 210 | 30 | 208 | 80% | 5.329% | 80.01% | 5.328% | 80.00% |
+| 8 | 4 | 6 | 80% | 60.434% | 80.65% | 59.865% | 80.00% |
+| 60 | 30 | 58 | 95% | 5.596% | 94.88% | 5.611% | 95.00% |
+| 40 | 10 | 38 | 80% | 9.264% | 80.14% | 9.245% | 80.00% |
+
+- Worst power error of the shipped, exactly inverted effect: **7.2e-12**
+- Worst power error of the textbook closed form: **0.65 percentage points**
+
+The gap grows as the degrees of freedom fall — 0.01 points at 208 df, 0.65
+points at 6 df — which is precisely the regime geo tests operate in. Half a
+percentage point of power is a small error and nobody would notice it. That is
+the reason to fix it rather than to tolerate it: it is checkable from outside,
+and a calculator that is quietly off is worse than no calculator. So the tool
+ships the exact inversion and publishes the closed form beside it.
+
+### Descriptive statistics from pasted market data
+
+| Quantity | This tool | numpy | Difference |
+|---|---:|---:|---:|
+| count | 25 | 25 | 0 |
+| mean | 53806.0 | 53806.0 | 1.4e-16 |
+| standard deviation | 35206.4 | 35206.4 | 0 |
+| coefficient of variation | 0.654321 | 0.654321 | 0 |
+| pre-period correlation | 0.994606 | 0.994606 | 1.1e-16 |
+
+Twenty-five lognormal markets with a correlated earlier period, pasted as
+`Market 1  <value>  <earlier value>`.
+
+That fixture is deliberately hostile, and it caught a real defect. The first
+parser read numbers from the start of each line and so consumed the `1` in
+`Market 1` as the market's revenue, returning a mean of 13 where the answer was
+53,806 — a wrong number with no outward sign of being wrong. Market names
+containing digits are the norm, not an edge case. The parser now reads from the
+end of the line and uses the median ratio between the last two numbers to tell
+a genuine pre-period column from a stray index.
 
 ## Phase 5 — CUPED & delta method
 

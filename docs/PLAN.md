@@ -314,21 +314,31 @@ looks — acima disso o algoritmo de Genz fica lento e impreciso (a primeira
 versão rodou 20+ min sem retornar), então lá valem tabela publicada + Monte
 Carlo. Está documentado no `RESULTS.md`.
 
-### Fase 4 — Tool 4: geo-holdout power · ~1.5–2h
+### Fase 4 — Tool 4: geo-holdout power ✅
 
-- [ ] **4.1** `geoMde()` e `geoPower()` — t de duas amostras com geos como
-      unidades, `CV_eff = CV·√(1−ρ²)`, poder exato por t não-central.
-- [ ] **4.2** Helper "cole seus totais por geo" (textarea → média/SD/CV/ρ
-      client-side).
-- [ ] **4.3** Curva MDE × tamanho do holdout (SVG inline, sem lib).
-- [ ] **4.4** `tools/geo-holdout.html` — avisos duros (holdout < 5 geos
-      vermelho; CV bruto ≥ 0.5; N < 10 → fora do escopo), julgamento com
-      spillover/IP 55–80%/pré-período estável, honesty box apontando GeoLift.
-- [ ] **4.5** Validação vs `scipy.stats.nct` + `TTestIndPower.power` e vs a
-      fórmula publicada de Hayes & Bennett → `RESULTS.md`.
+- [x] **4.1** `assets/geo.js` — poder exato por t não-central, `CV_eff =
+      CV·√(1−ρ²)`, e **MDE por inversão numérica da função de poder** (não a
+      forma fechada — ver abaixo).
+- [x] **4.2** Helper "cole seus dados por geo" com detecção robusta de coluna.
+- [x] **4.3** Curva MDE × tamanho do holdout em SVG inline.
+- [x] **4.4** `tools/geo-holdout.html` — 4 avisos duros (holdout < 5, N < 10,
+      CV bruto ≥ 50%, ρ ≥ 0.9), julgamento com spillover / IP 55–80% /
+      pré-período estável, honesty box apontando GeoLift e Trimmed Match.
+- [x] **4.5** Validação vs `scipy.stats.nct` **e** `TTestIndPower` → 3.1e-14.
 
-**Pronto quando:** poder JS bate com `scipy.stats.nct` em 1e-6 numa grade de
-(n_T, n_C, CV, lift).
+**Pronto:** poder bate em 3.1e-14 contra as duas referências.
+
+Duas descobertas da validação, ambas publicadas no `RESULTS.md`:
+
+1. **A fórmula fechada da literatura não entrega o poder que promete.**
+   `(t_α + t_β)·SE` erra até **0,65 ponto percentual** de poder, e o erro
+   cresce conforme os graus de liberdade caem — exatamente o regime dos geo
+   testes. O tool inverte a função exata (erro 7.2e-12) e publica a forma
+   fechada ao lado.
+2. **O parser de dados colados lia o dígito do nome do mercado como valor.**
+   "Market 1" virava receita 1 — média 13 onde a resposta era 53.806. Agora lê
+   do fim da linha e usa a razão mediana para distinguir coluna de pré-período
+   de índice solto.
 
 ### Fase 5 — Tool 5: CUPED & ratio metrics explainer · ~1.5–2h
 
