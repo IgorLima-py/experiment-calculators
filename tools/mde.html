@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minimum detectable effect</title>
+<meta name="description" content="The smallest lift your A/B test could actually detect with the traffic and time you have — and whether it is worth running at all.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-header">
+  <a class="home" href="../index.html">Experimentation calculators</a>
+  <nav class="site-nav">
+    <a href="sample-size.html">Sample size</a>
+    <a href="mde.html" aria-current="page">Detectable effect</a>
+    <a href="peeking.html">Peeking checker</a>
+    <a href="geo-holdout.html">Geo holdout</a>
+    <a href="cuped.html">CUPED &amp; ratio metrics</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Minimum detectable effect</h1>
+  <p class="tool-sub">You have the traffic you have. This is the smallest lift
+  it can actually detect — and the number that tells you whether to run the
+  test at all.</p>
+
+  <div class="fields">
+    <div class="field">
+      <label for="traffic">Daily traffic</label>
+      <input type="number" id="traffic" step="1" min="1" inputmode="numeric">
+      <span class="hint">Users entering the test per day, both variants.</span>
+    </div>
+
+    <div class="field">
+      <label for="days">Days you can run</label>
+      <input type="number" id="days" step="1" min="1" inputmode="numeric">
+      <span class="hint">Whole weeks avoid weekday effects.</span>
+    </div>
+
+    <div class="field">
+      <label for="base">Baseline conversion rate</label>
+      <input type="number" id="base" step="0.01" min="0.01" max="99.99" inputmode="decimal">
+      <span class="hint">Percent. What the control converts at today.</span>
+    </div>
+
+    <div class="field">
+      <label for="power">Statistical power</label>
+      <input type="number" id="power" step="1" min="50" max="99.9" inputmode="decimal">
+      <span class="hint">Percent. 80 is conventional.</span>
+    </div>
+
+    <div class="field">
+      <label for="alpha">Significance level</label>
+      <input type="number" id="alpha" step="0.01" min="0.01" max="50" inputmode="decimal">
+      <span class="hint">Percent. 5 is conventional.</span>
+    </div>
+
+    <div class="field">
+      <label for="tails">Test type</label>
+      <select id="tails">
+        <option value="2">Two-tailed</option>
+        <option value="1">One-tailed</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="result-main">
+      <span class="result-value" id="out-rel">--</span>
+      <span class="result-label">smallest relative lift you could detect</span>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <span class="result-value" id="out-abs">--</span>
+        <span class="result-label">in percentage points</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-rates">--</span>
+        <span class="result-label">rate you could detect</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-n">--</span>
+        <span class="result-label">users per variant</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn" id="warn"></div>
+
+  <div class="judgement" id="judgement"></div>
+
+  <div class="share">
+    <button type="button" class="btn" id="copy">Copy link</button>
+    <span class="note">Inputs live in the URL — send this link to a colleague.</span>
+  </div>
+
+  <details class="honesty">
+    <summary>What this assumes, and what it does not cover</summary>
+    <ul>
+      <li><strong>A detectable effect is not a visibility cliff.</strong> This
+      is the most common way to misread the number. At 80% power, an effect
+      exactly equal to the figure above has an 80% chance of reaching
+      significance — not a certainty. Smaller effects are not invisible either;
+      they are just detected less than 80% of the time. The number is a
+      reliability threshold, not a threshold of existence.</li>
+      <li><strong>Normal approximation to the binomial</strong>, pooled variance
+      under the null, no continuity correction — the same conventions as the
+      <a href="sample-size.html">sample size calculator</a>, since this is its
+      exact inverse.</li>
+      <li><strong>An even 50/50 split</strong> and steady traffic for the whole
+      window.</li>
+      <li><strong>One primary metric, analysed once</strong> at the end of the
+      window.</li>
+      <li><strong>Not covered:</strong> revenue and other continuous metrics,
+      more than two variants, sequential designs, and any allowance for traffic
+      that varies by day of week.</li>
+    </ul>
+    <p>Solved by bisection against the sample-size formula and round-tripped
+    against it — see <a href="../validation/RESULTS.md">the published
+    comparison</a>.</p>
+  </details>
+</main>
+
+<footer class="site-footer">
+  <p>Part of a small suite of experimentation calculators. Every result comes
+  with the caveat that would invalidate it, and every formula is checked against
+  a reference implementation.</p>
+  <p>Built by <a href="https://github.com/igorsslima">Igor Lima</a>.</p>
+</footer>
+
+</div>
+
+<script src="../assets/stats.js"></script>
+<script src="../assets/experiments.js"></script>
+<script src="../assets/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var SPEC = {
+    traffic: { def: 2000, min: 1,    max: 100000000 },
+    days:    { def: 14,   min: 1,    max: 3650 },
+    base:    { def: 5,    min: 0.01, max: 99.99 },
+    power:   { def: 80,   min: 50,   max: 99.9 },
+    alpha:   { def: 5,    min: 0.01, max: 50 },
+    tails:   { def: 2,    values: [1, 2] }
+  };
+
+  var out = {
+    rel: document.getElementById('out-rel'),
+    abs: document.getElementById('out-abs'),
+    rates: document.getElementById('out-rates'),
+    n: document.getElementById('out-n'),
+    warn: document.getElementById('warn'),
+    judgement: document.getElementById('judgement')
+  };
+
+  function blank(message) {
+    out.rel.textContent = '--';
+    out.abs.textContent = '--';
+    out.rates.textContent = '--';
+    out.warn.innerHTML = message;
+    out.judgement.innerHTML = '';
+  }
+
+  function render(v) {
+    var p1 = v.base / 100;
+    var n = v.traffic * v.days / 2;
+    out.n.textContent = UI.integer(n);
+
+    var delta = Experiments.mdeFromSampleSize(p1, n, v.alpha / 100,
+                                              v.power / 100, v.tails);
+
+    if (!isFinite(delta)) {
+      blank('<strong>Nothing is detectable here.</strong> With ' +
+        UI.integer(n) + ' users per variant at a ' + UI.percent(v.base, 2) +
+        ' baseline, even the largest arithmetically possible effect would ' +
+        'not reach significance at this power. You need more traffic or a ' +
+        'longer window before a test of any kind is worth starting.');
+      return;
+    }
+
+    var p2 = p1 + delta;
+    var relative = delta / p1 * 100;
+
+    out.rel.textContent = UI.percent(relative, 1);
+    out.abs.textContent = UI.decimal(delta * 100, 2) + ' pp';
+    out.rates.textContent = UI.percent(p1 * 100, 2) + ' → ' + UI.percent(p2 * 100, 2);
+
+    out.warn.innerHTML = Experiments.normalApproxOk(p1, delta, n) ? '' :
+      '<strong>Treat this number as indicative.</strong> The expected count ' +
+      'of the rarer outcome per variant is in single digits, where the ' +
+      'normal approximation behind every calculator of this kind stops ' +
+      'being reliable.';
+
+    var verdict;
+    if (relative >= 100) {
+      verdict = 'That is not a test, it is a formality. The variant would ' +
+        'have to convert ' + UI.decimal(1 + relative / 100, 1) + '× the ' +
+        'control rate before this setup could call the result reliable, and ' +
+        'no real change does that.';
+    } else if (relative >= 20) {
+      verdict = 'That is a big effect to demand. Very few honest changes move ' +
+        'a conversion rate by ' + UI.percent(relative, 0) + '. If yours is a ' +
+        'copy tweak or a button colour, this test cannot answer your question.';
+    } else {
+      verdict = 'That is within reach of a substantial change, though still ' +
+        'well above what most single tweaks deliver.';
+    }
+
+    out.judgement.innerHTML =
+      '<strong>Read this before you run it.</strong>' +
+      'In ' + UI.integer(v.days) + ' days you can only detect a lift of ' +
+      UI.percent(relative, 1) + ' or larger. ' + verdict +
+      ' If the effect you realistically expect is smaller than this, do not ' +
+      'run the test: you will get an inconclusive result and file it as a ' +
+      'failure, when what you actually ran was a test too small to see the ' +
+      'answer. Find more traffic, run longer, or test something bolder.';
+  }
+
+  UI.attach(SPEC, render);
+  UI.initCopyButton('copy');
+})();
+</script>
+</body>
+</html>

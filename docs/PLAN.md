@@ -249,50 +249,46 @@ compartilhado, então a ⭐ Tool 3 chega com o esqueleto já rodado.
 
 ---
 
-### Fase 0 — Esqueleto e núcleo numérico · ~1–1.5h
+### Fase 0 — Esqueleto e núcleo numérico ✅
 
-- [ ] **0.1** `assets/stats.js` — primitivas: `normalPdf`, `normalCdf` (Φ, West
+- [x] **0.1** `assets/stats.js` — primitivas: `normalPdf`, `normalCdf` (Φ, West
       2005), `normalQuantile` (Φ⁻¹, Acklam + refino de Halley), `logGamma`
       (Lanczos), `incompleteBeta` (Lentz), `tCdf`, `tQuantile`,
-      `noncentralTCdf` (Simpson sobre a densidade qui), `randNormal` (Box-Muller).
-- [ ] **0.2** `validation/stats-check.html` + rodar no browser; comparar com
-      valores do Python (Φ, Φ⁻¹, t, nct) → primeira seção de
-      `validation/RESULTS.md`. **Critério: erro relativo < 1e-9** nas primitivas.
-- [ ] **0.3** `assets/ui.js` — leitura/escrita de query params nomeados,
-      defaults omitidos, `history.replaceState` ao vivo, botão "Copy link" com
-      feedback, parse estrito com fallback, auto-cálculo no load.
-- [ ] **0.4** `assets/style.css` — mobile-first (base estreita + um `max-width`
-      pro desktop), tipografia de utilitário, estilo do bloco de julgamento e
-      da honesty box.
-- [ ] **0.5** Template de página aplicado numa página real (a Tool 1 serve de
-      template).
+      `noncentralTCdf` (Simpson sobre a densidade qui), `randNormal`
+      (Marsaglia polar), `bisect`.
+- [x] **0.2** Validação por linha de comando (`node` foi instalado; ver
+      restrições) — `reference_core.py` + `check_core.js`, 546 casos contra o
+      scipy. Passou. Pegou 2 bugs reais (`tCdf` perto de t=0 com ν grande;
+      cancelamento do refino de Halley no `normalQuantile`).
+- [x] **0.3** `assets/ui.js` — params nomeados, defaults omitidos,
+      `replaceState` ao vivo, botão "Copy link" com fallback fora de contexto
+      seguro, parse estrito, auto-cálculo no load.
+- [x] **0.4** `assets/style.css` — mobile-first, dark mode, bloco de julgamento
+      e honesty box.
+- [x] **0.5** Template aplicado em `tools/sample-size.html`.
 
-**Pronto quando:** uma página carrega, lê e escreve URL, e as primitivas batem
-com o Python dentro de 1e-9.
+**Pronto:** primitivas batem com o scipy dentro das tolerâncias documentadas.
 
-### Fase 1 — Tool 1: sample size & duration · ~1–1.5h
+### Fase 1 — Tool 1: sample size & duration ✅
 
-- [ ] **1.1** `assets/experiments.js`: `sampleSizePooled()` (variância pooled p̄
-      — a primária) e `sampleSizeEvanMiller()` (a convenção dele), `duration()`.
-- [ ] **1.2** `tools/sample-size.html` — inputs, outputs, frase de julgamento
-      (com link pra Tool 3), honesty box, link de validação, footer.
-- [ ] **1.3** `validation/verify_tool1.py` → tabela em `validation/RESULTS.md`
-      com as duas convenções lado a lado **e a explicação da diferença**
-      (variância sob H0). JS conferido contra a tabela no browser.
+- [x] **1.1** `assets/experiments.js`: `sampleSizePooled()`,
+      `sampleSizeEvanMiller()`, `powerPooled()`, `durationDays()`.
+- [x] **1.2** `tools/sample-size.html` — template da suíte.
+- [x] **1.3** `reference_tool1.py` + `check_tool1.js` → tabela no `RESULTS.md`
+      com as duas convenções e a explicação da diferença.
 
-**Pronto quando:** `?base=20&mde=5&abs=1&traffic=1000` abre calculado, o n bate
-com `statsmodels.samplesize_proportions_2indep_onetail`, e a tabela está no repo.
+**Pronto:** bate com o statsmodels em **7.9e-16**. Testado no browser (URL nos
+dois sentidos, defaults omitidos, guardas, mobile a 375px sem overflow).
 
-### Fase 2 — Tool 2: MDE · ~0.5–1h
+### Fase 2 — Tool 2: MDE ✅
 
-- [ ] **2.1** `mdeFromSampleSize()` por bissecção (δ está dentro da variância de
-      H1 — **nunca** aproximar ignorando isso).
-- [ ] **2.2** `tools/mde.html` + julgamento ("se este número é maior que o
-      efeito que você espera, não rode o teste").
-- [ ] **2.3** Validação: round-trip contra a Fase 1 + rota Cohen's h
-      (`NormalIndPower.solve_power` + back-transform) → `RESULTS.md`.
+- [x] **2.1** `mdeFromSampleSize()` por bissecção sobre a função real.
+- [x] **2.2** `tools/mde.html` + julgamento em três níveis de severidade.
+- [x] **2.3** Validação: inversão numérica do statsmodels + round-trip +
+      rota Cohen's h → `RESULTS.md`.
 
-**Pronto quando:** round-trip Tool 1 ↔ Tool 2 fecha em 1e-6 e a tabela está no repo.
+**Pronto:** 1.5e-13 contra o statsmodels invertido, round-trip em 2.2e-13.
+As linhas 2–4 da tabela recuperam exatamente os efeitos da tabela da Fase 1.
 
 ### Fase 3 — ⭐ Tool 3: peeking checker · ~2.5–3h
 

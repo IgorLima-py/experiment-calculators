@@ -81,6 +81,30 @@ var Experiments = (function () {
     return upper + Stats.normalCdf((-shift - za * sdNull) / sdAlt);
   }
 
+  /*
+   * Smallest absolute effect detectable with n users per variant - the inverse
+   * of sampleSizePooled.
+   *
+   * Solved by bisection rather than in closed form, because the effect appears
+   * inside the alternative-hypothesis variance as well as in the denominator.
+   * The usual shortcut is to drop it from the variance and invert what is left;
+   * that returns a number that looks right and is not, which is precisely the
+   * kind of quiet error this suite exists to avoid.
+   *
+   * Returns NaN when even the largest arithmetically possible effect would
+   * still need more users than are available: at that point the honest answer
+   * is that no effect is detectable, not a number.
+   */
+  function mdeFromSampleSize(p1, nPerVariant, alpha, power, tails) {
+    if (!(p1 > 0 && p1 < 1) || !(nPerVariant > 0)) return NaN;
+    var hi = (1 - p1) * 0.999999;
+    var f = function (d) {
+      return sampleSizePooled(p1, d, alpha, power, tails) - nPerVariant;
+    };
+    if (!(f(hi) < 0)) return NaN;
+    return Stats.bisect(f, 1e-12, hi, 1e-15, 300);
+  }
+
   /* Both variants share the daily traffic, so the run needs 2n users total. */
   function durationDays(nPerVariant, dailyTraffic) {
     if (!(dailyTraffic > 0) || !isFinite(nPerVariant)) return NaN;
@@ -111,6 +135,7 @@ var Experiments = (function () {
     sampleSizePooled: sampleSizePooled,
     sampleSizeEvanMiller: sampleSizeEvanMiller,
     powerPooled: powerPooled,
+    mdeFromSampleSize: mdeFromSampleSize,
     durationDays: durationDays,
     absoluteEffect: absoluteEffect,
     normalApproxOk: normalApproxOk
