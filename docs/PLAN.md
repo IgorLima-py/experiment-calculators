@@ -359,16 +359,25 @@ Duas descobertas da validação, ambas publicadas no `RESULTS.md`:
 - [ ] **(opcional, cortado)** Painel 3: skewness/CLT/355·s²/winsorização.
       O conteúdo entrou como texto na lista de equívocos, sem demo.
 
-### Fase 6 — Fechamento · ~1h
+### Fase 6 — Fechamento ✅
 
-- [ ] **6.1** `index.html` — a suíte, 1 parágrafo de filosofia, links.
-- [ ] **6.2** `README.md` em inglês — o que é, como validar, premissas.
-- [ ] **6.3** Passada mobile em todas as páginas (375px) + footer/links.
-- [ ] **6.4** `validation/RESULTS.md` consolidado e conferido.
-- [ ] **6.5** Teste do público em todo o histórico; repo pronto pra virar
-      público (a chave é do Igor).
+- [x] **6.1** `index.html` — a suíte, a filosofia, os 3 defeitos que a
+      validação pegou, links.
+- [x] **6.2** `README.md` em inglês — o que é, como rodar, como validar,
+      premissas estatísticas de cada tool.
+- [x] **6.3** Passada mobile a 375px nas 6 páginas: zero overflow horizontal.
+- [x] **6.4** `RESULTS.md` consolidado; as 6 suítes de validação passam.
+- [x] **6.5** Varredura de segredos limpa; links internos conferidos (14 URLs,
+      todas 200); usuário do GitHub corrigido para `IgorLima-py`.
 
-**Pronto quando:** o Definition of Done do BRIEF fecha (§7 abaixo).
+**Pendência que é decisão do Igor, não minha:**
+
+- [ ] **Licença.** Não escolhi por você. Sem `LICENSE`, o padrão legal é
+      "todos os direitos reservados" — ninguém pode reusar, o que para peça
+      de portfólio geralmente não é o que se quer. MIT é o default óbvio.
+      A seção de licença foi **removida** do README para não afirmar o que
+      não existe.
+- [ ] **`git push`** e virar o repo público (GitHub Pages liga junto).
 
 ---
 

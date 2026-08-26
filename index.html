@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experimentation calculators</title>
+<meta name="description" content="Five free calculators for people who run A/B tests, each result paired with the caveat that would invalidate it. Every formula checked against a reference implementation, with the comparison published.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-header">
+  <a class="home" href="index.html">Experimentation calculators</a>
+</header>
+
+<main>
+  <h1>Calculators are a commodity. Judgement is not.</h1>
+
+  <p class="tool-sub">There are fifty free A/B test calculators. Almost none of
+  them tell you what the number means, and none of them tell you what would make
+  it a lie. These do both.</p>
+
+  <p>Every result on this site comes with one plain sentence explaining what it
+  actually means and — the part that matters — what would invalidate it. The
+  arithmetic is the easy half. Knowing that your sample size assumes you never
+  looked at the results early, and that looking five times turns your 5%
+  false-positive rate into 14%, is the half that decides whether the number was
+  worth computing.</p>
+
+  <nav class="tool-list">
+    <a class="tool-card" href="tools/sample-size.html">
+      <span class="tool-name">Sample size &amp; duration</span>
+      <span class="tool-desc">How many users an A/B test needs, and how long
+      that takes at your traffic.</span>
+    </a>
+
+    <a class="tool-card" href="tools/mde.html">
+      <span class="tool-name">Minimum detectable effect</span>
+      <span class="tool-desc">The smallest lift your traffic can actually
+      detect — and whether the test is worth running at all.</span>
+    </a>
+
+    <a class="tool-card" href="tools/peeking.html">
+      <span class="tool-name">Peeking checker</span>
+      <span class="tool-desc">You checked the results early. This is what it
+      cost you, the threshold that would have bought it back, and 200,000
+      simulated tests proving it.</span>
+    </a>
+
+    <a class="tool-card" href="tools/geo-holdout.html">
+      <span class="tool-name">Geo holdout power</span>
+      <span class="tool-desc">How many markets to go dark in for an
+      incrementality test, and the smallest lift that design could honestly
+      detect.</span>
+    </a>
+
+    <a class="tool-card" href="tools/cuped.html">
+      <span class="tool-name">CUPED &amp; ratio metrics</span>
+      <span class="tool-desc">Why revenue-per-session tests need different
+      maths than conversion-rate tests, and how to buy traffic you do not
+      have. Two interactive demonstrations.</span>
+    </a>
+  </nav>
+
+  <h2>Why you should believe any of it</h2>
+
+  <p>Because you do not have to. A calculator that is subtly wrong is worse
+  than no calculator: it is publicly checkable and permanently embarrassing.
+  So every formula here is cross-checked against a reference implementation —
+  statsmodels, scipy, numpy — and
+  <a href="validation/RESULTS.md">the comparison is published</a>, including
+  the places where implementations legitimately disagree and why.</p>
+
+  <p>Three things that check found, all of which would otherwise have shipped
+  silently:</p>
+
+  <ul>
+    <li>The Student t distribution lost every significant digit near zero at
+    large degrees of freedom, because the textbook form of the identity rounds
+    to exactly 1.</li>
+    <li>The detectable-effect formula that cluster-trial guidance publishes does
+    not deliver the power it claims — it is out by up to two thirds of a
+    percentage point, worst exactly where geo tests operate. This site inverts
+    the exact function instead and shows both.</li>
+    <li>A data parser read the digit in "Market 1" as that market's revenue,
+    returning a mean of 13 where the answer was 53,806.</li>
+  </ul>
+
+  <p>It also explains where widely used tools disagree rather than pretending
+  they do not. Evan Miller's sample size calculator returns about 6% fewer
+  users than this one; the reason is the variance convention under the null
+  hypothesis, it is not a continuity correction and not Cohen's h, and both are
+  defensible.
+  <a href="validation/RESULTS.md">The comparison is in the open.</a></p>
+
+  <h2>What this is</h2>
+
+  <p>Plain HTML and JavaScript. No framework, no build step, no backend, no
+  tracking, nothing to install, no email form in front of anything. Inputs live
+  in the URL, so any result can be sent to a colleague as a link. It will keep
+  working for as long as browsers do.</p>
+
+  <p>Every tool states its statistical assumptions and what it does not cover.
+  Where a better method exists — GeoLift for geo tests, always-valid inference
+  for continuous monitoring — the page says so and links to it, rather than
+  letting you believe this was the last word.</p>
+</main>
+
+<footer class="site-footer">
+  <p>Built by <a href="https://github.com/IgorLima-py">Igor Lima</a>.
+  <a href="https://github.com/IgorLima-py/experiment-calculators">Source and
+  validation on GitHub.</a></p>
+</footer>
+
+</div>
+</body>
+</html>

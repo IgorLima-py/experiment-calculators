@@ -252,6 +252,36 @@ textarea:focus {
 
 .share .note { font-size: 0.8rem; color: var(--text-soft); }
 
+/* ---------- landing page tool list ---------- */
+
+.tool-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1.75rem 0;
+}
+
+.tool-card {
+  display: block;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.tool-card:hover { border-color: var(--accent); background: var(--surface-alt); }
+
+.tool-name {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  color: var(--accent);
+}
+
+.tool-desc { display: block; font-size: 0.88rem; color: var(--text-soft); }
+
 /* ---------- live simulation ---------- */
 
 .sim {
