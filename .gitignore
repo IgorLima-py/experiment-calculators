@@ -1,0 +1,30 @@
+# Segredos — nunca commitar
+.env
+*.key
+*.pem
+credentials*
+.secrets/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Build
+build/
+dist/
+
+# Editores / SO
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Config do Claude Code: os comandos são versionados, o resto é local
+.claude/*
+!.claude/commands/
