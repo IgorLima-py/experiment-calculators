@@ -340,23 +340,24 @@ Duas descobertas da validação, ambas publicadas no `RESULTS.md`:
    do fim da linha e usa a razão mediana para distinguir coluna de pré-período
    de índice solto.
 
-### Fase 5 — Tool 5: CUPED & ratio metrics explainer · ~1.5–2h
+### Fase 5 — Tool 5: CUPED & ratio metrics explainer ✅
 
-- [ ] **5.1** Demo 1: slider de ρ — scatter com reta θ, duas distribuições
-      amostrais estreitando com `1−ρ²`, leituras (redução %, multiplicador de
-      tráfego efetivo `1/(1−ρ²)`, dias economizados), âncoras Bing
-      (queries/user ρ≈0.7 → ~50%; **revenue/user → <5%**).
-- [ ] **5.2** Demo 2: delta method — três barras de erro (SE ingênuo, SE delta,
-      verdade Monte Carlo) + slider de correlação intra-usuário + toggle
-      "randomize by session".
-- [ ] **5.3** `tools/cuped.html` — texto com os 4 equívocos corrigidos
-      (com fontes), fórmulas, links canônicos.
-- [ ] **5.4** Validação: simulação numpy → razão de variância ≈ 1−ρ² e SE delta
-      vs fórmula de Deng 2018 → `RESULTS.md`.
-- [ ] **(opcional, 1º a cortar)** Painel 3: skewness/CLT/355·s²/winsorização.
+- [x] **5.1** Demo 1: slider de ρ — scatter com reta θ, duas distribuições
+      amostrais, redução %, multiplicador de tráfego efetivo, dias
+      economizados, e a checagem empírica contra a teoria na tela.
+- [x] **5.2** Demo 2: delta method — três barras (SE ingênuo, SE delta,
+      verdade por 300 réplicas) + slider de heterogeneidade entre usuários,
+      com a incerteza do próprio Monte Carlo reportada.
+- [x] **5.3** `tools/cuped.html` — 4 equívocos corrigidos, fórmulas, âncoras
+      do Bing (queries/user ~50% vs **revenue/user <5%**), links canônicos.
+- [x] **5.4** Validação em duas camadas → `RESULTS.md`.
 
-**Pronto quando:** os dois demos rodam e a simulação bate com a teoria em
-`RESULTS.md`.
+**Pronto:** implementação bate com numpy sobre dados idênticos (1.9e-13 e
+4.4e-15); e a teoria se sustenta — o SE delta acompanha a verdade dentro de
+1,14% enquanto o ingênuo subestima o ruído em até 1,41×.
+
+- [ ] **(opcional, cortado)** Painel 3: skewness/CLT/355·s²/winsorização.
+      O conteúdo entrou como texto na lista de equívocos, sem demo.
 
 ### Fase 6 — Fechamento · ~1h
 

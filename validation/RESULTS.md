@@ -382,6 +382,80 @@ containing digits are the norm, not an edge case. The parser now reads from the
 end of the line and uses the median ratio between the last two numbers to tell
 a genuine pre-period column from a stray index.
 
-## Phase 5 — CUPED & delta method
+## Phase 5 — CUPED & ratio metrics (`tools/cuped.html`)
 
-*Not started.*
+Reproduce with:
+
+```bash
+python reference_tool5.py && node check_tool5.js
+```
+
+This page teaches rather than calculates, but the numbers it draws still have
+to be right. Two kinds of check, and the distinction matters:
+
+- **Implementation.** Fixed datasets are generated in numpy and written out, so
+  the browser code and numpy run the same formulas over identical numbers. Any
+  disagreement is a coding error.
+- **Theory.** Large Monte Carlo runs confirm the formulas describe reality —
+  that CUPED removes the share of variance it promises, and that the
+  delta-method standard error is the one that actually obtains.
+
+### CUPED adjustment on identical data
+
+| ρ | n | θ (this tool) | θ (numpy) | Variance removed (this tool) | Variance removed (numpy) | Worst error |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 400 | -0.061840 | -0.061840 | 0.400% | 0.400% | 1.9e-13 |
+| 0.3 | 400 | 0.336822 | 0.336822 | 12.656% | 12.656% | 2.6e-15 |
+| 0.6 | 400 | 0.639681 | 0.639681 | 38.036% | 38.036% | 1.8e-15 |
+| 0.85 | 400 | 0.865086 | 0.865086 | 74.640% | 74.640% | 6.2e-16 |
+| 0.95 | 400 | 0.949135 | 0.949135 | 88.150% | 88.150% | 6.0e-16 |
+
+### Ratio-metric standard errors on identical data
+
+| User spread | Users | Naive (this tool) | Naive (numpy) | Delta (this tool) | Delta (numpy) | Worst error |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 800 | 0.6756 pp | 0.6756 pp | 0.6814 pp | 0.6814 pp | 3.4e-15 |
+| 0.5 | 800 | 0.6957 pp | 0.6957 pp | 0.7321 pp | 0.7321 pp | 3.4e-15 |
+| 1 | 800 | 0.7037 pp | 0.7037 pp | 0.8380 pp | 0.8380 pp | 3.7e-15 |
+| 2 | 800 | 0.8522 pp | 0.8522 pp | 1.2182 pp | 1.2182 pp | 4.4e-15 |
+
+### Does CUPED remove the variance it promises?
+
+200,000 simulated users per row.
+
+| ρ | ρ² promised | Measured | θ expected | θ measured |
+|---:|---:|---:|---:|---:|
+| 0.3 | 9.00% | 8.89% | 0.3000 | 0.2983 |
+| 0.6 | 36.00% | 35.56% | 0.6000 | 0.5969 |
+| 0.85 | 72.25% | 72.31% | 0.8500 | 0.8516 |
+
+### Which standard error is the real one?
+
+800 users, the whole experiment re-run 4,000 times. "Truth" is the standard
+deviation of the metric across those runs — what the noise actually is.
+
+| User spread | Naive | Delta method | Truth | Truth ± | Naive understates by |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 0.6631 pp | 0.6631 pp | 0.6696 pp | 0.0075 pp | 1.01× |
+| 0.5 | 0.6859 pp | 0.7105 pp | 0.7110 pp | 0.0079 pp | 1.04× |
+| 1 | 0.7414 pp | 0.8497 pp | 0.8401 pp | 0.0094 pp | 1.13× |
+| 2 | 0.8527 pp | 1.1893 pp | 1.2010 pp | 0.0134 pp | 1.41× |
+
+This table is the argument the page is making, in one place. The top row is the
+honest half: when every user has the same conversion propensity, sessions
+really are independent and the naive standard error is correct — the delta
+method agrees with it and there is nothing to fix. As users start to differ,
+the naive figure stays where it is while the real noise grows away from it,
+until at the bottom row it is understating the noise by 41%. The delta method
+tracks the truth the whole way, within 1.14%.
+
+Nothing about the data looks wrong in any of these rows. That is the point:
+the failure is silent.
+
+### Worst disagreements
+
+- CUPED formula vs numpy on identical data: **1.9e-13**
+- Ratio standard errors vs numpy on identical data: **4.4e-15**
+- Measured CUPED reduction vs ρ²: **0.44 percentage points** at n = 200,000
+  (sampling noise, not bias — it falls as n grows)
+- Delta-method standard error vs simulated truth: **1.14%**

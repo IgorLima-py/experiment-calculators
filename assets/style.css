@@ -295,6 +295,29 @@ textarea:focus {
 
 .sim-bar-bad { background: var(--warn-border); }
 .sim-bar-good { background: var(--ok); }
+.sim-bar-truth { background: var(--text-soft); }
+
+.control { margin-bottom: 1rem; }
+
+.control label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.control input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  vertical-align: middle;
+}
+
+.control output {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
 
 .sim-status {
   margin: 0.9rem 0;

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUPED &amp; ratio metrics</title>
+<meta name="description" content="Why revenue-per-user tests need different maths than conversion-rate tests, and how CUPED buys you traffic you do not have. Two interactive demonstrations.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-header">
+  <a class="home" href="../index.html">Experimentation calculators</a>
+  <nav class="site-nav">
+    <a href="sample-size.html">Sample size</a>
+    <a href="mde.html">Detectable effect</a>
+    <a href="peeking.html">Peeking checker</a>
+    <a href="geo-holdout.html">Geo holdout</a>
+    <a href="cuped.html" aria-current="page">CUPED &amp; ratio metrics</a>
+  </nav>
+</header>
+
+<main>
+  <h1>CUPED &amp; ratio metrics</h1>
+  <p class="tool-sub">Not a calculator. Two things that go wrong once your
+  metric stops being a simple conversion rate — and one technique that is worth
+  more than most of the experiments you will run this quarter.</p>
+
+  <h2>1. Variance reduction: buying traffic you do not have</h2>
+
+  <p>Every calculator in this suite tells you the same depressing thing: you
+  need more users than you have. There is one honest way around it that does
+  not involve lowering your standards, and it is that a great deal of the
+  variation you are fighting was <strong>already there before the experiment
+  started</strong>. Heavy users were heavy users last month too. If you know
+  that, you can subtract it.</p>
+
+  <p>That is CUPED. Take a covariate <code>X</code> measured
+  <em>before</em> the experiment, and analyse an adjusted metric instead of the
+  raw one:</p>
+
+  <p><code>Y_cv = Y − θ(X − E[X])</code> &nbsp; where &nbsp;
+  <code>θ = cov(Y, X) / var(X)</code></p>
+
+  <p>The variance of the adjusted metric is <code>var(Y) × (1 − ρ²)</code>,
+  where ρ is the correlation between the covariate and the metric. Drag it:</p>
+
+  <div class="sim">
+    <div class="control">
+      <label for="rho">Correlation between the pre-period and the experiment metric</label>
+      <input type="range" id="rho" min="0" max="0.95" step="0.01">
+      <output id="rho-out">0.60</output>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-cell">
+        <span class="result-value" id="out-reduction">--</span>
+        <span class="result-label">of the variance removed</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-multiplier">--</span>
+        <span class="result-label">effective traffic multiplier</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-days">--</span>
+        <span class="result-label">a 14-day test becomes</span>
+      </div>
+    </div>
+
+    <figure>
+      <div id="scatter"></div>
+      <figcaption>Each point is a user: their pre-period value against their
+      value during the experiment. The line is θ — how much of today the past
+      already explains.</figcaption>
+    </figure>
+
+    <figure>
+      <div id="densities"></div>
+      <figcaption>What that does to the thing you actually care about: the
+      spread of the measured difference between your two arms. Narrower means
+      you can see smaller effects with the same traffic.</figcaption>
+    </figure>
+
+    <p class="sim-status" id="cuped-check"></p>
+  </div>
+
+  <div class="judgement">
+    <strong>Where this stops being free.</strong>
+    Three conditions, and violating the last one is how people get burned. The
+    covariate has to exist, which rules out users who are new. It has to be
+    correlated, and how strongly is a property of your metric that you do not
+    get to choose. And it must be measured <em>before</em> randomisation — use
+    an in-experiment covariate and the whole argument collapses, because the
+    treatment can move it. The original paper reports exactly that: a covariate
+    measured during the experiment reversed the sign of a known-positive effect
+    and reported the reversal with a tight confidence interval.
+  </div>
+
+  <h3>What it is actually worth, on real metrics</h3>
+
+  <p>The numbers people quote for CUPED come from Bing, in the paper that
+  introduced it, and they are worth knowing because they are so uneven:</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Metric</th><th>Variance reduction</th><th>Worth</th></tr></thead>
+      <tbody>
+        <tr><td>Queries per user, two-week pre-period</td><td>~50%</td><td>Doubles your traffic</td></tr>
+        <tr><td>Revenue per user</td><td>under 5%</td><td>Practically nothing</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Revenue is the metric people most want to rescue and the one CUPED helps
+  least, because what someone spent last month predicts what they spend this
+  month far more weakly than you would hope. If a vendor tells you CUPED will
+  fix your revenue test, ask them for the correlation.</p>
+
+  <h2>2. Ratio metrics: when your standard error is quietly wrong</h2>
+
+  <p>Here is the trap, and it is not the one people expect. It is
+  <strong>not</strong> that revenue is skewed. It is that
+  <strong>you randomised users and then measured sessions</strong>.</p>
+
+  <p>Conversion rate per session, revenue per order, click-through per
+  pageview — all of these are ratios whose denominator is not the thing you
+  randomised. Sessions from one user are not independent of each other: a user
+  who converts once tends to convert again. The textbook standard error assumes
+  every session is a fresh, independent draw. It is not, so the standard error
+  comes out too small, and you get confident about effects that are not
+  there.</p>
+
+  <p>The fix is the delta method: write the metric as a ratio of
+  <em>per-user</em> averages, so the unit of analysis is the unit you actually
+  randomised, and propagate the variance through the ratio.</p>
+
+  <div class="sim">
+    <div class="control">
+      <label for="spread">How much users differ from each other in conversion propensity</label>
+      <input type="range" id="spread" min="0" max="2" step="0.05">
+      <output id="spread-out">1.00</output>
+    </div>
+
+    <div class="sim-row">
+      <div class="sim-head">
+        <span class="sim-name">Naive standard error, sessions treated as independent</span>
+        <span class="sim-figure" id="se-naive">—</span>
+      </div>
+      <div class="sim-track"><div class="sim-bar sim-bar-bad" id="bar-naive"></div></div>
+    </div>
+    <div class="sim-row">
+      <div class="sim-head">
+        <span class="sim-name">Delta method, users as the unit</span>
+        <span class="sim-figure" id="se-delta">—</span>
+      </div>
+      <div class="sim-track"><div class="sim-bar sim-bar-good" id="bar-delta"></div></div>
+    </div>
+    <div class="sim-row">
+      <div class="sim-head">
+        <span class="sim-name">The truth, from re-running the experiment 300 times</span>
+        <span class="sim-figure" id="se-true">—</span>
+      </div>
+      <div class="sim-track"><div class="sim-bar sim-bar-truth" id="bar-true"></div></div>
+    </div>
+    <p class="sim-status" id="ratio-status">Simulating…</p>
+  </div>
+
+  <div class="judgement" id="ratio-judgement"></div>
+
+  <h2>What people get wrong</h2>
+
+  <ul>
+    <li><strong>"Revenue per user needs the delta method."</strong> Usually not.
+    If you randomised users and you are measuring a per-user average, every
+    observation is one user and they are independent — an ordinary t-test is
+    structurally correct. The delta method is about the analysis unit differing
+    from the randomisation unit, not about the metric being money.</li>
+    <li><strong>"Revenue is too skewed for a t-test."</strong> The central limit
+    theorem still applies to the mean of skewed data, just slowly. The usual
+    rule of thumb asks for roughly 355 × (skewness)² observations per arm before
+    the normal approximation is comfortable. Winsorising the tail helps the
+    variance and biases the estimate toward zero — and your outliers are often
+    your best customers, so think before you trim them.</li>
+    <li><strong>"CUPED is regression adjustment magic."</strong> It is
+    regression adjustment, and there is no magic in it: the gain is exactly ρ²
+    and nothing else. It is equivalent to ANCOVA on the pre-period covariate.</li>
+    <li><strong>"Estimate θ separately for each arm."</strong> No — pool it. A
+    per-arm θ is fitted partly to the treatment effect itself, which biases the
+    result.</li>
+  </ul>
+
+  <div class="share">
+    <button type="button" class="btn" id="copy">Copy link</button>
+    <span class="note">Slider positions live in the URL.</span>
+  </div>
+
+  <details class="honesty">
+    <summary>Sources, and what this page does not cover</summary>
+    <ul>
+      <li>Deng, Xu, Kohavi &amp; Walker, <a href="https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf">Improving
+      the Sensitivity of Online Controlled Experiments by Utilizing
+      Pre-Experiment Data</a> (WSDM 2013) — the CUPED paper. Source of the
+      formulas, the Bing figures and the in-experiment-covariate warning.</li>
+      <li>Deng, Knoblich &amp; Lu, <a href="https://arxiv.org/abs/1803.06336">Applying
+      the Delta Method in Metric Analytics</a> (KDD 2018) — the ratio-metric
+      variance and the rewrite that makes it work.</li>
+      <li>Kohavi, Tang &amp; Xu, <em>Trustworthy Online Controlled
+      Experiments</em> (2020), chapters 14, 17 and 18 — randomisation units,
+      skewed metrics, variance reduction.</li>
+      <li>Microsoft's experimentation platform,
+      <a href="https://www.microsoft.com/en-us/research/group/experimentation-platform-exp/articles/deep-dive-into-variance-reduction/">Deep
+      Dive Into Variance Reduction</a> — source of the effective traffic
+      multiplier framing, and honest that gains vary enormously by product.</li>
+      <li>Xie &amp; Aurisset, <a href="https://dl.acm.org/doi/10.1145/2939672.2939733">Improving
+      the Sensitivity of Online Controlled Experiments: Case Studies at
+      Netflix</a> (KDD 2016).</li>
+    </ul>
+    <p><strong>Not covered:</strong> multi-covariate regression adjustment,
+    variance reduction applied to ratio metrics, stratification as an
+    alternative, bootstrap standard errors, and how to handle users with no
+    pre-period at all beyond noting that an indicator variable is the usual
+    answer.</p>
+    <p>Both simulations are checked against theory — the variance reduction
+    against 1 − ρ², the delta-method standard error against a Monte Carlo of
+    the same experiment — in
+    <a href="../validation/RESULTS.md">the published comparison</a>.</p>
+  </details>
+</main>
+
+<footer class="site-footer">
+  <p>Part of a small suite of experimentation calculators. Every result comes
+  with the caveat that would invalidate it, and every formula is checked against
+  a reference implementation.</p>
+  <p>Built by <a href="https://github.com/igorsslima">Igor Lima</a>.</p>
+</footer>
+
+</div>
+
+<script src="../assets/stats.js"></script>
+<script src="../assets/cuped.js"></script>
+<script src="../assets/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var SPEC = {
+    rho:    { def: 0.6, min: 0, max: 0.95 },
+    spread: { def: 1,   min: 0, max: 2 }
+  };
+
+  var POINTS = 260;
+  var USERS = 1200;
+
+  var el = {
+    rhoOut: document.getElementById('rho-out'),
+    spreadOut: document.getElementById('spread-out'),
+    reduction: document.getElementById('out-reduction'),
+    multiplier: document.getElementById('out-multiplier'),
+    days: document.getElementById('out-days'),
+    scatter: document.getElementById('scatter'),
+    densities: document.getElementById('densities'),
+    cupedCheck: document.getElementById('cuped-check'),
+    seNaive: document.getElementById('se-naive'),
+    seDelta: document.getElementById('se-delta'),
+    seTrue: document.getElementById('se-true'),
+    barNaive: document.getElementById('bar-naive'),
+    barDelta: document.getElementById('bar-delta'),
+    barTrue: document.getElementById('bar-true'),
+    ratioStatus: document.getElementById('ratio-status'),
+    ratioJudgement: document.getElementById('ratio-judgement')
+  };
+
+  function scatterSvg(sample) {
+    var W = 620, H = 260, pad = 34;
+    var span = 3.2;
+    var toX = function (v) { return pad + (v + span) / (2 * span) * (W - 2 * pad); };
+    var toY = function (v) { return H - pad - (v + span) / (2 * span) * (H - 2 * pad); };
+
+    var dots = '';
+    for (var i = 0; i < sample.xs.length; i++) {
+      dots += '<circle cx="' + toX(sample.xs[i]).toFixed(1) + '" cy="' +
+              toY(sample.ys[i]).toFixed(1) + '" r="2.6" class="pt"/>';
+    }
+    var x1 = -span, x2 = span;
+    var line = '<line x1="' + toX(x1).toFixed(1) + '" y1="' +
+      toY(sample.theta * x1).toFixed(1) + '" x2="' + toX(x2).toFixed(1) +
+      '" y2="' + toY(sample.theta * x2).toFixed(1) + '" class="fit"/>';
+
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" ' +
+      'aria-label="Pre-period value against experiment value, one point per user">' +
+      '<style>' +
+      '.pt{fill:var(--accent);opacity:.42}' +
+      '.fit{stroke:var(--judgement-border);stroke-width:2.5}' +
+      '.ax{stroke:var(--border);stroke-width:1}' +
+      '.lb{fill:var(--text-soft);font-size:11px;font-family:inherit}' +
+      '</style>' +
+      '<line x1="' + pad + '" y1="' + (H - pad) + '" x2="' + (W - pad) +
+      '" y2="' + (H - pad) + '" class="ax"/>' +
+      '<line x1="' + pad + '" y1="' + pad + '" x2="' + pad + '" y2="' +
+      (H - pad) + '" class="ax"/>' + dots + line +
+      '<text x="' + (W / 2) + '" y="' + (H - 8) +
+      '" class="lb" text-anchor="middle">before the experiment</text>' +
+      '<text x="12" y="' + (H / 2) + '" class="lb" text-anchor="middle" ' +
+      'transform="rotate(-90 12 ' + (H / 2) + ')">during</text>' +
+      '</svg>';
+  }
+
+  function densitySvg(rho) {
+    var W = 620, H = 210, pad = 30;
+    var shrink = Math.sqrt(1 - rho * rho);
+    var span = 3.4;
+    var toX = function (v) { return pad + (v + span) / (2 * span) * (W - 2 * pad); };
+    var peak = Stats.normalPdf(0) / Math.max(shrink, 0.05);
+    var toY = function (d) { return H - pad - d / peak * (H - 2 * pad); };
+
+    function path(sd) {
+      var d = '';
+      for (var i = 0; i <= 160; i++) {
+        var v = -span + i * (2 * span) / 160;
+        var density = Stats.normalPdf(v / sd) / sd;
+        d += (i === 0 ? 'M' : 'L') + toX(v).toFixed(1) + ' ' + toY(density).toFixed(1) + ' ';
+      }
+      return d;
+    }
+
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" ' +
+      'aria-label="Spread of the measured difference, before and after adjustment">' +
+      '<style>' +
+      '.raw{fill:none;stroke:var(--text-soft);stroke-width:2;stroke-dasharray:5 4}' +
+      '.adj{fill:none;stroke:var(--ok);stroke-width:2.5}' +
+      '.ax{stroke:var(--border);stroke-width:1}' +
+      '.lb{fill:var(--text-soft);font-size:11px;font-family:inherit}' +
+      '</style>' +
+      '<line x1="' + pad + '" y1="' + (H - pad) + '" x2="' + (W - pad) +
+      '" y2="' + (H - pad) + '" class="ax"/>' +
+      '<path class="raw" d="' + path(1) + '"/>' +
+      '<path class="adj" d="' + path(Math.max(shrink, 0.05)) + '"/>' +
+      '<text x="' + (W - pad) + '" y="' + (pad + 4) +
+      '" class="lb" text-anchor="end">solid: after CUPED · dashed: raw</text>' +
+      '</svg>';
+  }
+
+  function renderCuped(rho) {
+    el.rhoOut.textContent = UI.decimal(rho, 2);
+    var sample = Cuped.cupedSample(rho, POINTS, 20260826);
+    var reduction = rho * rho;
+
+    el.reduction.textContent = UI.percent(reduction * 100, 0);
+    var mult = Cuped.trafficMultiplier(reduction);
+    el.multiplier.textContent = UI.decimal(mult, 2) + '×';
+    el.days.textContent = UI.decimal(14 * (1 - reduction), 1) + ' days';
+
+    el.scatter.innerHTML = scatterSvg(sample);
+    el.densities.innerHTML = densitySvg(rho);
+
+    el.cupedCheck.textContent =
+      'Theory says ' + UI.percent(reduction * 100, 1) + ' of the variance goes. ' +
+      'Measured on the ' + POINTS + ' simulated users above, using a θ of ' +
+      UI.decimal(sample.theta, 3) + ' estimated from the sample itself: ' +
+      UI.percent(sample.empiricalReduction * 100, 1) + '.';
+  }
+
+  var ratioTimer = null;
+
+  function renderRatio(spread) {
+    el.spreadOut.textContent = UI.decimal(spread, 2);
+    window.clearTimeout(ratioTimer);
+    el.ratioStatus.textContent = 'Simulating…';
+    ratioTimer = window.setTimeout(function () { runRatio(spread); }, 90);
+  }
+
+  function runRatio(spread) {
+    var result = Cuped.ratioMetricComparison({
+      users: USERS,
+      spread: spread,
+      meanSessions: 3,
+      baseRate: 0.12,
+      reps: 300,
+      seed: 20260826
+    });
+
+    var scale = Math.max(result.naiveSe, result.deltaSe, result.trueSe) * 1.15;
+    var show = function (node, bar, value) {
+      node.textContent = UI.decimal(value * 100, 3) + ' pp';
+      bar.style.width = (value / scale * 100).toFixed(1) + '%';
+    };
+    show(el.seNaive, el.barNaive, result.naiveSe);
+    show(el.seDelta, el.barDelta, result.deltaSe);
+    show(el.seTrue, el.barTrue, result.trueSe);
+
+    var understatement = result.trueSe / result.naiveSe;
+    el.ratioStatus.textContent =
+      UI.integer(USERS) + ' users, ' + UI.integer(result.meanSessions) +
+      ' sessions between them, a ' + UI.percent(result.meanRatio * 100, 1) +
+      ' session conversion rate, the whole experiment re-run ' + result.reps +
+      ' times. The simulated truth is itself an estimate, good to about ±' +
+      UI.decimal(result.trueSeUncertainty * 100, 3) + ' pp.';
+
+    if (spread < 0.05) {
+      el.ratioJudgement.innerHTML =
+        '<strong>At zero, there is nothing to correct.</strong>' +
+        'Every user has the same conversion propensity, so sessions really ' +
+        'are independent draws and the two formulas agree with each other. ' +
+        'This is the honest half of the lesson: the correction is not always ' +
+        'needed, and knowing when it is not matters as much as knowing when ' +
+        'it is. Both still sit a hair under the simulated truth, because the ' +
+        'number of sessions is random too and only the delta method has any ' +
+        'machinery for that — with identical users there is barely anything ' +
+        'for it to do. Now drag the slider right: real users are not identical.';
+    } else {
+      el.ratioJudgement.innerHTML =
+        '<strong>The naive standard error is understating the noise by ' +
+        UI.decimal(understatement, 1) + '×.</strong>' +
+        'Every confidence interval you build from it is that much too narrow, ' +
+        'and every p-value that much too small. Nothing about the data looks ' +
+        'wrong — you simply counted ' + UI.integer(result.meanSessions) +
+        ' independent observations when you had ' + UI.integer(USERS) + '. ' +
+        'The delta method lands on ' + UI.decimal(result.deltaSe * 100, 3) +
+        ' pp against a true ' + UI.decimal(result.trueSe * 100, 3) + ' pp.';
+    }
+  }
+
+  function render(v) {
+    renderCuped(v.rho);
+    renderRatio(v.spread);
+  }
+
+  UI.attach(SPEC, render);
+  UI.initCopyButton('copy');
+})();
+</script>
+</body>
+</html>

@@ -259,6 +259,44 @@ var Stats = (function () {
   }
 
   /*
+   * Seeded generator, for demonstrations that redraw as a control is dragged.
+   * With Math.random the whole sample would resample on every frame and the
+   * picture would boil, hiding the one thing the control is meant to show.
+   * mulberry32, then Marsaglia polar for normals.
+   */
+  function makeRng(seed) {
+    var state = seed >>> 0;
+    var spare = null;
+
+    function uniform() {
+      state = (state + 0x6D2B79F5) >>> 0;
+      var t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+
+    function normal() {
+      if (spare !== null) {
+        var s = spare;
+        spare = null;
+        return s;
+      }
+      var u, v, s2;
+      do {
+        u = uniform() * 2 - 1;
+        v = uniform() * 2 - 1;
+        s2 = u * u + v * v;
+      } while (s2 >= 1 || s2 === 0);
+      var mul = Math.sqrt(-2 * Math.log(s2) / s2);
+      spare = v * mul;
+      return u * mul;
+    }
+
+    return { uniform: uniform, normal: normal };
+  }
+
+  /*
    * Bisection root-finder. Deliberately not Newton: the functions it is pointed
    * at here (sample size in the effect size, crossing probability in the
    * boundary) have no cheap derivative, and bisection cannot diverge.
@@ -296,6 +334,7 @@ var Stats = (function () {
     tQuantile: tQuantile,
     noncentralTCdf: noncentralTCdf,
     randNormal: randNormal,
+    makeRng: makeRng,
     bisect: bisect
   };
 })();
