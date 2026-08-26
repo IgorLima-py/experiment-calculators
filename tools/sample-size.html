@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A/B test sample size &amp; duration</title>
+<meta name="description" content="How many users an A/B test needs and how long it will take, with the assumptions that would invalidate the answer stated up front.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-header">
+  <a class="home" href="../index.html">Experimentation calculators</a>
+  <nav class="site-nav">
+    <a href="sample-size.html" aria-current="page">Sample size</a>
+    <a href="mde.html">Detectable effect</a>
+    <a href="peeking.html">Peeking checker</a>
+    <a href="geo-holdout.html">Geo holdout</a>
+    <a href="cuped.html">CUPED &amp; ratio metrics</a>
+  </nav>
+</header>
+
+<main>
+  <h1>A/B test sample size &amp; duration</h1>
+  <p class="tool-sub">How many users you need per variant, and how long that
+  takes at your traffic.</p>
+
+  <div class="fields">
+    <div class="field">
+      <label for="base">Baseline conversion rate</label>
+      <input type="number" id="base" step="0.01" min="0.01" max="99.99" inputmode="decimal">
+      <span class="hint">Percent. What the control converts at today.</span>
+    </div>
+
+    <div class="field">
+      <label for="mde">Minimum detectable effect</label>
+      <input type="number" id="mde" step="0.01" min="0.01" inputmode="decimal">
+      <span class="hint">The smallest lift worth detecting.</span>
+    </div>
+
+    <div class="field">
+      <label for="rel">Effect measured as</label>
+      <select id="rel">
+        <option value="1">Relative lift (%)</option>
+        <option value="0">Percentage points</option>
+      </select>
+      <span class="hint">A 10% relative lift on 5% means 5.5%.</span>
+    </div>
+
+    <div class="field">
+      <label for="traffic">Daily traffic</label>
+      <input type="number" id="traffic" step="1" min="1" inputmode="numeric">
+      <span class="hint">Users entering the test per day, both variants.</span>
+    </div>
+
+    <div class="field">
+      <label for="power">Statistical power</label>
+      <input type="number" id="power" step="1" min="50" max="99.9" inputmode="decimal">
+      <span class="hint">Percent. Chance of detecting a real effect. 80 is conventional.</span>
+    </div>
+
+    <div class="field">
+      <label for="alpha">Significance level</label>
+      <input type="number" id="alpha" step="0.01" min="0.01" max="50" inputmode="decimal">
+      <span class="hint">Percent. False-positive rate you accept. 5 is conventional.</span>
+    </div>
+
+    <div class="field field-span">
+      <label for="tails">Test type</label>
+      <select id="tails">
+        <option value="2">Two-tailed (the variant could be worse)</option>
+        <option value="1">One-tailed (only interested in an improvement)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="result-main">
+      <span class="result-value" id="out-n">--</span>
+      <span class="result-label">users per variant</span>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <span class="result-value" id="out-total">--</span>
+        <span class="result-label">users in total</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-days">--</span>
+        <span class="result-label">days to run</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-rates">--</span>
+        <span class="result-label">rate you could detect</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn" id="warn"></div>
+
+  <div class="judgement" id="judgement"></div>
+
+  <div class="share">
+    <button type="button" class="btn" id="copy">Copy link</button>
+    <span class="note">Inputs live in the URL — send this link to a colleague.</span>
+  </div>
+
+  <details class="honesty">
+    <summary>What this assumes, and what it does not cover</summary>
+    <ul>
+      <li><strong>Normal approximation to the binomial.</strong> Standard for
+      this calculation and accurate at realistic sample sizes, but it degrades
+      when the expected number of conversions per variant drops into single
+      digits. The tool warns you when that happens.</li>
+      <li><strong>Pooled variance under the null.</strong> The null standard
+      error is computed at the average of the two rates. Evan Miller's
+      calculator uses the baseline rate in both arms instead and returns about
+      6% fewer users. Both conventions are defensible; the comparison is
+      published rather than hidden.</li>
+      <li><strong>No continuity correction.</strong> Adding one (the Fleiss
+      convention) raises the requirement by roughly 4%.</li>
+      <li><strong>An even 50/50 split</strong> and equal traffic to both
+      variants for the whole run.</li>
+      <li><strong>One primary metric, analysed once.</strong> Every extra metric
+      you check is another chance at a false positive, and so is every extra
+      look at the same metric.</li>
+      <li><strong>Not covered:</strong> revenue and other continuous metrics,
+      more than two variants, sequential or always-valid designs, and any
+      correction for the fact that users are not always independent.</li>
+    </ul>
+    <p>Cross-checked against
+    <code>statsmodels.stats.proportion.samplesize_proportions_2indep_onetail</code>
+    — see <a href="../validation/RESULTS.md">the published comparison</a>.</p>
+  </details>
+</main>
+
+<footer class="site-footer">
+  <p>Part of a small suite of experimentation calculators. Every result comes
+  with the caveat that would invalidate it, and every formula is checked against
+  a reference implementation.</p>
+  <p>Built by <a href="https://github.com/igorsslima">Igor Lima</a>.</p>
+</footer>
+
+</div>
+
+<script src="../assets/stats.js"></script>
+<script src="../assets/experiments.js"></script>
+<script src="../assets/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var SPEC = {
+    base:    { def: 5,    min: 0.01, max: 99.99 },
+    mde:     { def: 10,   min: 0.01, max: 100000 },
+    rel:     { def: 1,    values: [0, 1] },
+    traffic: { def: 2000, min: 1,    max: 100000000 },
+    power:   { def: 80,   min: 50,   max: 99.9 },
+    alpha:   { def: 5,    min: 0.01, max: 50 },
+    tails:   { def: 2,    values: [1, 2] }
+  };
+
+  var out = {
+    n: document.getElementById('out-n'),
+    total: document.getElementById('out-total'),
+    days: document.getElementById('out-days'),
+    rates: document.getElementById('out-rates'),
+    warn: document.getElementById('warn'),
+    judgement: document.getElementById('judgement')
+  };
+
+  function render(v) {
+    var p1 = v.base / 100;
+    var delta = Experiments.absoluteEffect(p1, v.mde / 100, v.rel === 1);
+    var p2 = p1 + delta;
+
+    if (!(p2 > 0 && p2 < 1)) {
+      out.n.textContent = '--';
+      out.total.textContent = '--';
+      out.days.textContent = '--';
+      out.rates.textContent = '--';
+      out.warn.innerHTML = 'That effect would push the variant’s conversion ' +
+        'rate to ' + UI.percent(p2 * 100, 1) + ', which is not a rate. ' +
+        'Lower the detectable effect or the baseline.';
+      out.judgement.innerHTML = '';
+      return;
+    }
+
+    var n = Experiments.sampleSizePooled(p1, delta, v.alpha / 100,
+                                         v.power / 100, v.tails);
+    var days = Experiments.durationDays(n, v.traffic);
+
+    out.n.textContent = UI.integer(n);
+    out.total.textContent = UI.integer(2 * n);
+    out.days.textContent = UI.integer(days);
+    out.rates.textContent = UI.percent(p1 * 100, 2) + ' → ' + UI.percent(p2 * 100, 2);
+
+    out.warn.innerHTML = Experiments.normalApproxOk(p1, delta, n) ? '' :
+      '<strong>Treat this number as indicative.</strong> At this baseline the ' +
+      'expected count of the rarer outcome per variant is in single digits, ' +
+      'where the normal approximation behind every calculator of this kind ' +
+      'stops being reliable. Use an exact test to plan a test this small.';
+
+    out.judgement.innerHTML =
+      '<strong>What would make this number a lie.</strong>' +
+      'It assumes you look at the result once, after day ' + UI.integer(days) +
+      '. If you watch the test daily and stop the moment it looks significant, ' +
+      'the ' + UI.decimal(v.alpha, 1) + '% false-positive rate you think you ' +
+      'have is closer to 14% after five looks. The test did not get more ' +
+      'sensitive; you just gave yourself more chances to be fooled. ' +
+      '<a href="peeking.html">See exactly what peeking cost you →</a>';
+  }
+
+  UI.attach(SPEC, render);
+  UI.initCopyButton('copy');
+})();
+</script>
+</body>
+</html>

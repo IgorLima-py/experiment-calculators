@@ -1,0 +1,312 @@
+/*
+ * style.css - one stylesheet for the whole suite.
+ *
+ * Mobile-first: the base rules assume a narrow screen, and the single media
+ * query below widens the layout for desktop. This is a utility, not a
+ * showpiece - clean and fast beats beautiful.
+ */
+
+:root {
+  --bg: #ffffff;
+  --surface: #f6f7f9;
+  --surface-alt: #eceef2;
+  --border: #d8dce3;
+  --text: #16181d;
+  --text-soft: #575d6b;
+  --accent: #1d4ed8;
+  --accent-soft: #eef2ff;
+  --judgement-bg: #fff8e6;
+  --judgement-border: #e0a800;
+  --warn-bg: #fdecea;
+  --warn-border: #c62828;
+  --ok: #1b7a3d;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a;
+    --surface: #1c1f25;
+    --surface-alt: #23272f;
+    --border: #333944;
+    --text: #e9ecf1;
+    --text-soft: #a2aab8;
+    --accent: #7da2ff;
+    --accent-soft: #1b2440;
+    --judgement-bg: #2b2515;
+    --judgement-border: #b98900;
+    --warn-bg: #2e1a19;
+    --warn-border: #e57373;
+    --ok: #6fcf8f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 1rem 3rem;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap { max-width: 46rem; margin: 0 auto; }
+
+a { color: var(--accent); }
+a:hover { text-decoration: none; }
+
+/* ---------- header ---------- */
+
+.site-header {
+  padding: 1.25rem 0 0.75rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.site-header .home {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.site-nav {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.site-nav a { color: var(--text-soft); text-decoration: none; }
+.site-nav a:hover,
+.site-nav a[aria-current="page"] { color: var(--accent); }
+
+/* ---------- headings ---------- */
+
+h1 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 0.4rem; }
+h2 { font-size: 1.1rem; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; margin: 1.4rem 0 0.4rem; }
+
+.tool-sub {
+  margin: 0 0 1.5rem;
+  color: var(--text-soft);
+  font-size: 0.95rem;
+}
+
+/* ---------- inputs ---------- */
+
+.fields {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.field { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.field label { font-size: 0.85rem; font-weight: 600; }
+
+.field .hint { font-size: 0.75rem; color: var(--text-soft); font-weight: 400; }
+
+.field input,
+.field select,
+textarea {
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  padding: 0.55rem 0.6rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 100%;
+}
+
+.field input:focus,
+.field select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-direction: row;
+}
+
+.field-inline input[type="checkbox"] { width: auto; margin: 0; }
+.field-inline label { font-weight: 400; }
+
+/* ---------- results ---------- */
+
+.results { margin: 1.5rem 0; }
+
+.result-main {
+  padding: 1.1rem 1rem;
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.result-value {
+  display: block;
+  font-size: 2.4rem;
+  line-height: 1.1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.result-label {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.result-grid {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.result-cell {
+  padding: 0.7rem 0.8rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.result-cell .result-value { font-size: 1.4rem; }
+
+/* ---------- the judgement sentence: the actual product ---------- */
+
+.judgement {
+  margin: 1.25rem 0;
+  padding: 0.9rem 1rem;
+  background: var(--judgement-bg);
+  border-left: 4px solid var(--judgement-border);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.95rem;
+}
+
+.judgement strong { display: block; margin-bottom: 0.25rem; }
+
+.warn {
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  background: var(--warn-bg);
+  border-left: 4px solid var(--warn-border);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.9rem;
+}
+
+.warn:empty { display: none; }
+
+/* ---------- honesty box ---------- */
+
+.honesty {
+  margin: 1.5rem 0;
+  padding: 0.8rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.honesty summary { cursor: pointer; font-weight: 600; }
+.honesty ul { margin: 0.7rem 0 0; padding-left: 1.1rem; }
+.honesty li { margin-bottom: 0.4rem; }
+.honesty p:last-child { margin-bottom: 0; }
+
+/* ---------- share ---------- */
+
+.share {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin: 1.25rem 0;
+}
+
+.btn {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.9rem;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn:hover { border-color: var(--accent); }
+.btn.is-copied { color: var(--ok); border-color: var(--ok); }
+
+.share .note { font-size: 0.8rem; color: var(--text-soft); }
+
+/* ---------- figures ---------- */
+
+figure { margin: 1.25rem 0; }
+figure svg { display: block; width: 100%; height: auto; }
+figcaption { margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-soft); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.table-scroll { overflow-x: auto; }
+
+th, td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 600; color: var(--text-soft); }
+
+/* Fully-qualified reference-implementation names are long enough to push the
+ * page sideways on a phone, so they wrap rather than overflow. */
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- footer ---------- */
+
+.site-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.site-footer p { margin: 0.35rem 0; }
+
+/* ---------- desktop ---------- */
+
+@media (min-width: 40rem) {
+  body { padding: 0 1.5rem 4rem; }
+  h1 { font-size: 1.9rem; }
+  .fields { grid-template-columns: 1fr 1fr; gap: 1rem 1.25rem; padding: 1.25rem; }
+  .fields .field-span { grid-column: 1 / -1; }
+  .result-value { font-size: 3rem; }
+  .result-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

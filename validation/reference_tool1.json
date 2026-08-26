@@ -1,0 +1,122 @@
+[
+ {
+  "p1": 0.2,
+  "delta": 0.05,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 2,
+  "statsmodels_n": 1093.7390457661652,
+  "statsmodels_power_at_n": 0.8000009275846596,
+  "evan_miller_n": 1030.2192831104596
+ },
+ {
+  "p1": 0.2,
+  "delta": 0.05,
+  "alpha": 0.05,
+  "power": 0.9,
+  "tails": 2,
+  "statsmodels_n": 1463.7073050295523,
+  "statsmodels_power_at_n": 0.900000095174656,
+  "evan_miller_n": 1390.0766207280597
+ },
+ {
+  "p1": 0.1,
+  "delta": 0.02,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 2,
+  "statsmodels_n": 3840.8474824362734,
+  "statsmodels_power_at_n": 0.8000009510693096,
+  "evan_miller_n": 3622.6163992757115
+ },
+ {
+  "p1": 0.05,
+  "delta": 0.005,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 2,
+  "statsmodels_n": 31233.43794013002,
+  "statsmodels_power_at_n": 0.8000009593904428,
+  "evan_miller_n": 30244.40474805518
+ },
+ {
+  "p1": 0.05,
+  "delta": 0.01,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 2,
+  "statsmodels_n": 8157.731447849275,
+  "statsmodels_power_at_n": 0.8000009560825451,
+  "evan_miller_n": 7663.00027166803
+ },
+ {
+  "p1": 0.05,
+  "delta": 0.01,
+  "alpha": 0.01,
+  "power": 0.9,
+  "tails": 2,
+  "statsmodels_n": 15464.651047663943,
+  "statsmodels_power_at_n": 0.9000000000619607,
+  "evan_miller_n": 14568.806936921617
+ },
+ {
+  "p1": 0.03,
+  "delta": 0.006,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 2,
+  "statsmodels_n": 13913.576627413095,
+  "statsmodels_power_at_n": 0.8000009579335199,
+  "evan_miller_n": 13050.164131331303
+ },
+ {
+  "p1": 0.5,
+  "delta": 0.05,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 2,
+  "statsmodels_n": 1564.6720527749528,
+  "statsmodels_power_at_n": 0.8000009374051488,
+  "evan_miller_n": 1567.4160061574562
+ },
+ {
+  "p1": 0.7,
+  "delta": 0.05,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 2,
+  "statsmodels_n": 1250.716733435614,
+  "statsmodels_power_at_n": 0.8000009316689547,
+  "evan_miller_n": 1334.9990735427787
+ },
+ {
+  "p1": 0.2,
+  "delta": 0.05,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 1,
+  "statsmodels_n": 861.4197775073757,
+  "statsmodels_power_at_n": 0.8,
+  "evan_miller_n": null
+ },
+ {
+  "p1": 0.05,
+  "delta": 0.01,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 1,
+  "statsmodels_n": 6425.721824411097,
+  "statsmodels_power_at_n": 0.8,
+  "evan_miller_n": null
+ },
+ {
+  "p1": 0.02,
+  "delta": 0.002,
+  "alpha": 0.05,
+  "power": 0.8,
+  "tails": 2,
+  "statsmodels_n": 80681.38028240827,
+  "statsmodels_power_at_n": 0.8000009601084573,
+  "evan_miller_n": 78039.0168958696
+ }
+]
