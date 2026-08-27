@@ -1,5 +1,7 @@
 # Experimentation calculators
 
+[![validation](https://github.com/IgorLima-py/experiment-calculators/actions/workflows/validation.yml/badge.svg)](https://github.com/IgorLima-py/experiment-calculators/actions/workflows/validation.yml)
+
 Five free calculators for people who run A/B tests and marketing experiments.
 Every result comes with one plain sentence explaining what it means and what
 would invalidate it, and every formula is cross-checked against a reference
@@ -56,6 +58,17 @@ python reference_tool5.py && node check_tool5.js    # CUPED and delta method
 Python generates reference values from `scipy`, `statsmodels` and `numpy`; Node
 runs the site's own JavaScript against them. **Node is a test runner only** —
 nothing that ships uses it, and there is no `package.json` by design.
+
+```bash
+python -m pip install -r requirements-dev.txt
+```
+
+All of it runs on every push, so the tables in `RESULTS.md` are not a snapshot
+of one machine on one afternoon — the badge above is every reference value
+being re-derived from scipy on a clean runner. The same run checks that the
+published validation page still matches the Markdown it is generated from, and
+that every script the site loads parses, since there is no build step to catch
+a syntax error before a visitor does.
 
 ## Regenerating the built files
 

@@ -1,0 +1,16 @@
+# Development dependencies. Nothing that ships uses any of these: the site is
+# static HTML and JavaScript with no build step and no runtime dependencies.
+#
+# Versions are pinned because validation/RESULTS.md quotes agreement to twelve
+# significant figures against these exact implementations. An unpinned upgrade
+# that changed an algorithm in the fifteenth digit would look like a defect in
+# this repository rather than a change in scipy.
+
+# The reference stack the calculators are checked against.
+scipy==1.17.1
+statsmodels==0.14.6
+numpy>=2.4,<3
+
+# Only for assets/build_og.py, which regenerates the link-preview images.
+# Not needed to run the validation suites.
+Pillow>=11,<13

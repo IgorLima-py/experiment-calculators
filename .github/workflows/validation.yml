@@ -1,0 +1,115 @@
+# Re-derives every reference value from scipy, statsmodels and numpy, then runs
+# the site's own JavaScript against them.
+#
+# The point is not that the tests pass. It is that the numbers in
+# validation/RESULTS.md were not typed in by hand and are not a snapshot of one
+# machine on one afternoon: anyone can watch them being regenerated from the
+# reference implementations on a clean runner.
+#
+# Two jobs, deliberately. The sequential suite regenerates its references by
+# integrating a multivariate normal at up to twelve dimensions and takes
+# minutes; splitting it off means a broken formula elsewhere is visible in
+# about one, while both still gate the badge.
+
+name: validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  numerics:
+    name: Numerics and generated files
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install the reference stack
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Record the versions the numbers below came from
+        run: |
+          python -c "import scipy, statsmodels, numpy, sys; print('python', sys.version.split()[0]); print('scipy', scipy.__version__); print('statsmodels', statsmodels.__version__); print('numpy', numpy.__version__)"
+          node --version
+
+      - name: Distribution primitives
+        working-directory: validation
+        run: python reference_core.py && node check_core.js
+
+      - name: Sample size and duration
+        working-directory: validation
+        run: python reference_tool1.py && node check_tool1.js
+
+      - name: Minimum detectable effect
+        working-directory: validation
+        run: python reference_tool2.py && node check_tool2.js
+
+      - name: Alpha spending at unequal looks
+        working-directory: validation
+        run: python reference_tool3_spending.py && node check_tool3_spending.js
+
+      - name: Geo holdout power
+        working-directory: validation
+        run: python reference_tool4.py && node check_tool4.js
+
+      - name: CUPED and the delta method
+        working-directory: validation
+        run: python reference_tool5.py && node check_tool5.js
+
+      # The validation page is generated from RESULTS.md and committed. Without
+      # this step an edit to the Markdown that nobody rebuilt would leave the
+      # published page quietly claiming something the repository no longer says
+      # - on the one page whose entire job is to be trustworthy.
+      - name: The published validation page still matches its source
+        run: python validation/build_page.py --check
+
+      # Every script the site loads has to parse. There is no build step to
+      # catch a syntax error, so this is the only thing standing between a typo
+      # and a blank calculator.
+      - name: Every shipped script parses
+        run: |
+          for f in assets/*.js; do
+            node --check "$f" || exit 1
+            echo "ok $f"
+          done
+
+  sequential:
+    name: Sequential boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install the reference stack
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      # Four independent routes have to agree: the recursion in the browser, a
+      # multivariate-normal integration in scipy, the tables published between
+      # 1969 and 1979, and a million-run Monte Carlo.
+      - name: Peeking and repeated significance
+        working-directory: validation
+        run: python reference_tool3.py && node check_tool3.js

@@ -35,9 +35,35 @@ ACCENT = (125, 162, 255)
 TEXT = (233, 236, 241)
 SOFT = (162, 170, 184)
 
-FONT_DIR = pathlib.Path("C:/Windows/Fonts")
-BOLD = FONT_DIR / "segoeuib.ttf"
-REGULAR = FONT_DIR / "segoeui.ttf"
+# The committed images were rendered with Segoe UI. The fallbacks keep the
+# script runnable on a machine that does not have it, at the cost of type that
+# sets slightly differently - so regenerate the whole set at once rather than
+# one image, or they will not match each other.
+FONT_CANDIDATES = {
+    "bold": [
+        "C:/Windows/Fonts/segoeuib.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    ],
+    "regular": [
+        "C:/Windows/Fonts/segoeui.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+    ],
+}
+
+
+def find_font(kind):
+    for candidate in FONT_CANDIDATES[kind]:
+        path = pathlib.Path(candidate)
+        if path.exists():
+            return path
+    sys.exit("build_og.py: no %s font found. Tried:\n  %s"
+             % (kind, "\n  ".join(FONT_CANDIDATES[kind])))
+
+
+BOLD = find_font("bold")
+REGULAR = find_font("regular")
 
 FOOTER = "igorlima-py.github.io/experiment-calculators"
 

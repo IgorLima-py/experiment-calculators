@@ -231,6 +231,51 @@ devo acreditar" sem que o leitor precise abrir o `docs/` em português.
 
 ---
 
+# P3 — integração contínua
+
+## P3.1 — A página de validação podia divergir do RESULTS.md em silêncio
+
+**Estado:** FEITO — 2026-08-27.
+
+**Evidência.** `validation/index.html` é gerado do `RESULTS.md` e commitado.
+Nada impedia alguém de editar o Markdown e esquecer de reconstruir, deixando a
+página publicada afirmando algo que o repositório não diz mais — na única
+página cujo trabalho inteiro é ser confiável. O `--check` existia desde o P0.2
+e não rodava sozinho.
+
+Além disso, sem build step não havia nada entre um erro de sintaxe num `.js` e
+uma calculadora em branco para o visitante.
+
+**Correção.** `.github/workflows/validation.yml`, em dois jobs paralelos:
+
+- `numerics` — regenera as referências com scipy/statsmodels/numpy e roda seis
+  suítes, mais `build_page.py --check` e `node --check` em todo `assets/*.js`.
+- `sequential` — a suíte lenta da Tool 3 (integração multivariada até 12
+  dimensões), separada para que uma fórmula quebrada em outro lugar apareça em
+  cerca de um minuto em vez de esperar por ela.
+
+`requirements-dev.txt` fixa as versões, porque o `RESULTS.md` cita concordância
+até a décima segunda casa contra essas implementações exatas.
+
+**Aceite.**
+- Os `check_*.js` saem com código 1 quando discordam. **Provado**: adulterando
+  `reference_core.json` em 1e-6, o `check_core.js` saiu 1; restaurado, saiu 0,
+  e o arquivo voltou com o mesmo sha256.
+- `node --check` passa nos 9 scripts de `assets/`.
+- `python validation/build_page.py --check` passa a partir da raiz.
+- O YAML parseia: 2 jobs, 13 e 5 passos.
+- **NÃO verificado:** o workflow nunca rodou no GitHub — o repo ainda é privado
+  e não há `gh` nesta máquina. Todos os comandos foram rodados localmente; o
+  que falta é o ambiente. O primeiro push dirá. O risco concreto é o
+  `python-version: '3.14'` com as versões fixadas não terem wheel no runner.
+
+**Efeito colateral.** `assets/build_og.py` tinha `C:/Windows/Fonts` chumbado.
+Agora procura numa lista de candidatos por plataforma e falha com mensagem
+clara. As sete imagens saem bit a bit idênticas às anteriores nesta máquina.
+
+
+---
+
 # Fora de escopo (decidido, não esquecido)
 
 - **Nenhuma ferramenta nova.** Cinco é uma suíte; seis é enchimento.
