@@ -86,3 +86,7 @@ The load-bearing ones:
 
 Where a better method exists, the page says so and links to it: GeoLift and
 Trimmed Match for geo tests, always-valid inference for continuous monitoring.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).

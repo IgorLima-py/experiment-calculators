@@ -370,14 +370,12 @@ Duas descobertas da validação, ambas publicadas no `RESULTS.md`:
 - [x] **6.5** Varredura de segredos limpa; links internos conferidos (14 URLs,
       todas 200); usuário do GitHub corrigido para `IgorLima-py`.
 
-**Pendência que é decisão do Igor, não minha:**
+**Decisões do Igor:**
 
-- [ ] **Licença.** Não escolhi por você. Sem `LICENSE`, o padrão legal é
-      "todos os direitos reservados" — ninguém pode reusar, o que para peça
-      de portfólio geralmente não é o que se quer. MIT é o default óbvio.
-      A seção de licença foi **removida** do README para não afirmar o que
-      não existe.
-- [ ] **`git push`** e virar o repo público (GitHub Pages liga junto).
+- [x] **Licença: MIT**, escolhida pelo Igor no fim da sessão. `LICENSE` criado
+      e a seção reposta no README.
+- [ ] **Virar o repo público** — ação manual do Igor; liga o GitHub Pages
+      junto. Nada no código depende disso.
 
 ---
 
