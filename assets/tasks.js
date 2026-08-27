@@ -37,12 +37,41 @@ var Tasks = (function () {
     };
   }
 
+  /*
+   * Lan-DeMets alpha spending for looks at arbitrary information fractions.
+   *
+   * Costlier than `bounds`: each look's critical value is solved against the
+   * recursion over every look before it, so the work grows with the square of
+   * the number of looks. The caller caps the schedule accordingly.
+   *
+   * The spending function is chosen here by name because a function cannot be
+   * carried across the worker boundary by structured clone.
+   */
+  function spending(p) {
+    var spend = p.shape === 'pocock' ? Sequential.spendPocock
+                                     : Sequential.spendOBrienFleming;
+    var bounds = Sequential.spendingBounds(p.fractions, p.alpha, spend);
+    var nominal = [];
+    var cumulative = [];
+    for (var k = 1; k <= bounds.length; k++) {
+      nominal.push(Sequential.nominalAlphaFor(bounds[k - 1]));
+      cumulative.push(Sequential.overallAlphaUneven(bounds.slice(0, k),
+                                                    p.fractions.slice(0, k)));
+    }
+    return {
+      bounds: bounds,
+      nominal: nominal,
+      cumulative: cumulative,
+      total: cumulative[cumulative.length - 1]
+    };
+  }
+
   /* Re-running a whole ratio-metric experiment a few hundred times. */
   function ratio(p) {
     return Cuped.ratioMetricComparison(p);
   }
 
-  return { bounds: bounds, ratio: ratio };
+  return { bounds: bounds, spending: spending, ratio: ratio };
 })();
 
 /* The worker loads this file with importScripts, where `var` at top level does

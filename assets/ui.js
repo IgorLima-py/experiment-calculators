@@ -28,6 +28,11 @@ var UI = (function () {
   /* Strict: anything that is not a finite number falls back to the default. */
   function parseField(raw, field) {
     if (raw === null || raw === undefined || raw === '') return field.def;
+    if (field.text) {
+      var text = String(raw);
+      if (field.values && field.values.indexOf(text) === -1) return field.def;
+      return text;
+    }
     if (field.bool) {
       if (raw === '1' || raw === 'true') return 1;
       if (raw === '0' || raw === 'false') return 0;

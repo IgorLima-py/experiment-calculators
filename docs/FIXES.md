@@ -195,7 +195,7 @@ em 39.
 
 ## P2.1 — Funcionalidade validada e inalcançável
 
-**Estado:** TODO
+**Estado:** FEITO - 2026-08-27. Secao de alpha spending Lan-DeMets na Tool 3: cronograma de fracoes de informacao, escolha da funcao de gasto, tabela de fronteiras e o alpha acumulado gasto ate cada look. Entrou tambem uma validacao propria (regra do CLAUDE.md), `reference_tool3_spending.py` + `check_tool3_spending.js`, com 14 cenarios por duas rotas independentes: pior desacordo 2,9e-4 em z e 0,00006 pp entre o que a fronteira promete gastar e o que ela gasta de fato, medido pelo scipy e nao pela recursao que a escolheu. `UI.attach` passou a aceitar campos de texto.
 
 **Evidência.** `Sequential.spendingBounds` e `Sequential.overallAlphaUneven`
 estão implementados, comentados, validados e no bundle — e nenhuma página os
@@ -210,7 +210,7 @@ espaçadas, e o alpha total gasto bate com o alvo.
 
 ## P2.2 — Docs de sessão em português vão a público
 
-**Estado:** TODO — **decisão tomada pelo Igor em 2026-08-27**
+**Estado:** FEITO - 2026-08-27. `docs/HOW-THIS-WAS-BUILT.md` em ingles, linkado do README: o metodo, a regra de validacao, os cinco defeitos que ela pegou, as decisoes nao obvias e quem fez o que - dito de frente. `docs/STATUS.md` e `docs/PLAN.md` seguem em portugues como docs de trabalho.
 
 **Evidência.** `CLAUDE.md`, `.claude/commands/` e `docs/STATUS.md` estão
 commitados e vão a público com o histórico inteiro. O `STATUS.md` diz, em

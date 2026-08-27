@@ -123,14 +123,53 @@
     </div>
     <p>Both are computed live by the same recursion that produced the headline
     number, at your significance level.</p>
+
+    <h3>When your looks were not evenly spaced</h3>
+
+    <p>Everything above assumes the looks divide the data evenly, and real
+    peeking almost never does — you check on the Monday, again when someone
+    asks on the Thursday, then at the end. Lan-DeMets alpha spending drops that
+    assumption: tell it how much of the data you had seen at each look and it
+    solves for a boundary fitted to that exact schedule. This is the version to
+    use if you are setting the rules <em>before</em> the test rather than
+    counting the cost afterwards.</p>
+
+    <div class="fields">
+      <div class="field field-span">
+        <label for="fractions">Share of the data at each look</label>
+        <input type="text" id="fractions" inputmode="decimal"
+               autocomplete="off" spellcheck="false">
+        <span class="hint">Percent, increasing, up to ten looks. The last one
+        is normally 100 — the end of the test.</span>
+      </div>
+      <div class="field field-span">
+        <label for="shape">How to spend the budget</label>
+        <select id="shape">
+          <option value="obf">O'Brien-Fleming — hoard it for the end</option>
+          <option value="pocock">Pocock — spend it evenly</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="warn" id="uneven-warn"></div>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Look</th><th>Data seen</th><th>Critical z</th><th>Stop if p &lt;</th><th>Budget spent by here</th></tr></thead>
+        <tbody id="uneven-body"></tbody>
+      </table>
+    </div>
+    <p class="sim-status" id="uneven-check"></p>
   </details>
 
   <details class="honesty">
     <summary>What this assumes, and what it does not cover</summary>
     <ul>
-      <li><strong>Equally spaced looks.</strong> The looks are assumed to divide
-      the data evenly. Peeking mostly early is less costly than this says;
-      peeking mostly late is worse.</li>
+      <li><strong>Equally spaced looks</strong>, in the headline figure and the
+      corrected threshold. The looks are assumed to divide the data evenly.
+      Peeking mostly early is less costly than this says; peeking mostly late
+      is worse. If you know your actual schedule, the Lan-DeMets section above
+      solves for it exactly instead of assuming it away.</li>
       <li><strong>You would have stopped at the first significant result.</strong>
       That is the standard model of peeking. If you saw significance and kept
       running anyway, this arithmetic does not describe what you did.</li>
@@ -158,7 +197,9 @@
     <p>The recursion behind this page is checked against a multivariate-normal
     integration in scipy, against the values published by Armitage, McPherson
     &amp; Rowe (1969), Pocock (1977) and O'Brien &amp; Fleming (1979), and
-    against a million-run Monte Carlo — see
+    against a million-run Monte Carlo. The alpha-spending boundaries are
+    checked separately, on the stricter test of whether they actually spend the
+    error they promise — see
     <a href="../validation/index.html">the published comparison</a>.</p>
   </details>
 </main>
@@ -182,9 +223,16 @@
   'use strict';
 
   var SPEC = {
-    looks: { def: 5, min: 1,   max: 50 },
-    alpha: { def: 5, min: 0.1, max: 20 }
+    looks:     { def: 5, min: 1,   max: 50 },
+    alpha:     { def: 5, min: 0.1, max: 20 },
+    fractions: { def: '30, 60, 100', text: true },
+    shape:     { def: 'obf', text: true, values: ['obf', 'pocock'] }
   };
+
+  /* Each look's critical value is solved against the recursion over every look
+   * before it, so the work grows with the square of the schedule. Ten is past
+   * anything a person types by hand and still returns quickly. */
+  var MAX_UNEVEN_LOOKS = 10;
 
   var out = {
     real: document.getElementById('out-real'),
@@ -200,8 +248,49 @@
     barNaive: document.getElementById('sim-bar-naive'),
     barFixed: document.getElementById('sim-bar-fixed'),
     simStatus: document.getElementById('sim-status'),
-    simRun: document.getElementById('sim-run')
+    simRun: document.getElementById('sim-run'),
+    unevenBody: document.getElementById('uneven-body'),
+    unevenWarn: document.getElementById('uneven-warn'),
+    unevenCheck: document.getElementById('uneven-check')
   };
+
+  /*
+   * Read a schedule of information fractions out of whatever the user typed.
+   *
+   * Accepts percentages or fractions and tells them apart by whether anything
+   * exceeds 1, since "0.3, 0.6, 1" and "30, 60, 100" are the same schedule and
+   * both are natural to type. Returns the reason it could not be read rather
+   * than a silent empty list, because a schedule that quietly loses a look
+   * would produce a boundary that is wrong in the safe-looking direction.
+   */
+  function parseFractions(text) {
+    var raw = String(text).split(/[^0-9.]+/)
+      .filter(function (s) { return s !== '' && s !== '.'; })
+      .map(Number)
+      .filter(function (n) { return isFinite(n) && n > 0; });
+
+    if (raw.length < 2) {
+      return { error: 'Give at least two looks, separated by commas.' };
+    }
+    if (raw.length > MAX_UNEVEN_LOOKS) {
+      return { error: 'This handles up to ' + MAX_UNEVEN_LOOKS + ' looks. For ' +
+        'more, the evenly spaced table above is the right tool.' };
+    }
+
+    var scale = Math.max.apply(null, raw) > 1 ? 100 : 1;
+    var fractions = raw.map(function (n) { return n / scale; });
+
+    for (var i = 0; i < fractions.length; i++) {
+      if (fractions[i] > 1) {
+        return { error: 'A look cannot happen after 100% of the data.' };
+      }
+      if (i > 0 && fractions[i] <= fractions[i - 1]) {
+        return { error: 'The looks have to increase: each one sees more data ' +
+          'than the last.' };
+      }
+    }
+    return { fractions: fractions };
+  }
 
   /*
    * The headline number is one recursion and lands immediately. The two
@@ -237,6 +326,57 @@
       }
       out.obfBody.innerHTML = rows;
       readySim();
+    });
+  }
+
+  function renderUneven(v) {
+    var parsed = parseFractions(v.fractions);
+    if (parsed.error) {
+      out.unevenWarn.innerHTML = '<strong>' + parsed.error + '</strong>';
+      out.unevenBody.innerHTML = '';
+      out.unevenCheck.textContent = '';
+      return;
+    }
+
+    var fractions = parsed.fractions;
+    var alpha = v.alpha / 100;
+    var last = fractions[fractions.length - 1];
+
+    out.unevenWarn.innerHTML = last >= 0.999 ? '' :
+      '<strong>Your last look is at ' + UI.percent(last * 100, 0) +
+      ' of the data.</strong> The schedule below therefore stops testing ' +
+      'before the test ends, and never spends the rest of the budget. That is ' +
+      'a legitimate design, but if you also intend to analyse the finished ' +
+      'test, that final look has to be in the list.';
+
+    out.unevenCheck.textContent = 'Solving…';
+
+    Compute.run('spending', {
+      fractions: fractions,
+      alpha: alpha,
+      shape: v.shape
+    }, function (err, s) {
+      if (err) {
+        out.unevenBody.innerHTML = '';
+        out.unevenCheck.textContent = 'Could not solve this schedule.';
+        return;
+      }
+      var rows = '';
+      for (var i = 0; i < fractions.length; i++) {
+        rows += '<tr><td>' + (i + 1) + '</td>' +
+                '<td>' + UI.percent(fractions[i] * 100, 0) + '</td>' +
+                '<td>' + UI.decimal(s.bounds[i], 3) + '</td>' +
+                '<td>' + UI.pValue(s.nominal[i]) + '</td>' +
+                '<td>' + UI.percent(s.cumulative[i] * 100, 2) + '</td></tr>';
+      }
+      out.unevenBody.innerHTML = rows;
+
+      out.unevenCheck.textContent =
+        'Across the whole schedule this spends ' +
+        UI.percent(s.total * 100, 2) + ' against the ' +
+        UI.percent(v.alpha, 1) + ' you asked for — the check that the ' +
+        'boundary does what it claims, run by the same recursion as the ' +
+        'headline number, on your schedule rather than an evenly spaced one.';
     });
   }
 
@@ -277,7 +417,10 @@
     }
 
     window.clearTimeout(slowTimer);
-    slowTimer = window.setTimeout(function () { renderSlow(v); }, 120);
+    slowTimer = window.setTimeout(function () {
+      renderSlow(v);
+      renderUneven(v);
+    }, 120);
   }
 
   /* ---- simulation ---- */

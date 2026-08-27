@@ -292,6 +292,75 @@ capped at 12 looks, and beyond that the recursion is checked against the
 published tables and the Monte Carlo. Each method is used where it is actually
 trustworthy — which is the same standard the tools themselves are held to.
 
+### Lan-DeMets alpha spending, for looks that are not evenly spaced
+
+Reproduce with:
+
+```bash
+python reference_tool3_spending.py && node check_tool3_spending.js
+```
+
+Everything above assumes the looks divide the data evenly. The page also offers
+Lan-DeMets (1983) alpha spending, which drops that assumption: given the
+fraction of the data seen at each look, it solves for a boundary fitted to that
+schedule. The browser does this with the recursion generalised to unequal
+information increments; `reference_tool3_spending.py` solves the same problem
+by integrating the multivariate normal in scipy.
+
+A boundary solver checked only against its own integrator can be
+self-consistently wrong, so three things are compared rather than one: the
+critical values, the error the browser's boundaries **actually** spend as
+measured by scipy, and whether that matches the closed-form spending function
+the boundary was chosen to satisfy.
+
+| Spending | Schedule | Looks | Worst z gap vs scipy | Worst spent-alpha gap vs scipy | Worst gap vs the spending function |
+|---|---|---:|---:|---:|---:|
+| O'Brien-Fleming | equal 3 | 3 | 7.2e-6 | 0.0001 pp | 0.0001 pp |
+| O'Brien-Fleming | equal 5 | 5 | 9.3e-5 | 0.0000 pp | 0.0000 pp |
+| O'Brien-Fleming | page default | 3 | 6.4e-6 | 0.0000 pp | 0.0000 pp |
+| O'Brien-Fleming | late peek | 2 | 4.7e-6 | 0.0000 pp | 0.0000 pp |
+| O'Brien-Fleming | early peek | 3 | 3.6e-6 | 0.0000 pp | 0.0000 pp |
+| O'Brien-Fleming | front loaded | 4 | 1.1e-5 | 0.0000 pp | 0.0000 pp |
+| O'Brien-Fleming | truncated | 3 | 1.4e-5 | 0.0000 pp | 0.0000 pp |
+| Pocock | equal 3 | 3 | 7.1e-6 | 0.0000 pp | 0.0000 pp |
+| Pocock | equal 5 | 5 | 2.9e-4 | 0.0000 pp | 0.0000 pp |
+| Pocock | page default | 3 | 3.3e-5 | 0.0000 pp | 0.0000 pp |
+| Pocock | late peek | 2 | 1.1e-5 | 0.0000 pp | 0.0000 pp |
+| Pocock | early peek | 3 | 1.6e-5 | 0.0000 pp | 0.0000 pp |
+| Pocock | front loaded | 4 | 1.6e-5 | 0.0000 pp | 0.0000 pp |
+| Pocock | truncated | 3 | 3.3e-5 | 0.0000 pp | 0.0000 pp |
+
+The boundaries at the schedule the page opens with, 30% / 60% / 100%:
+
+| Spending | Look | Data seen | Critical z (browser) | Critical z (scipy) | Alpha spent by here |
+|---|---:|---:|---:|---:|---:|
+| O'Brien-Fleming | 1 | 30% | 3.5784 | 3.5784 | 0.035% |
+| O'Brien-Fleming | 2 | 60% | 2.5347 | 2.5347 | 1.140% |
+| O'Brien-Fleming | 3 | 100% | 1.9988 | 1.9988 | 5.000% |
+| Pocock | 1 | 30% | 2.3118 | 2.3118 | 2.079% |
+| Pocock | 2 | 60% | 2.3210 | 2.3210 | 3.543% |
+| Pocock | 3 | 100% | 2.2689 | 2.2689 | 5.000% |
+
+- Worst disagreement on a critical value: **2.9e-4**
+- Worst disagreement on the error actually spent: **0.00006 percentage points**
+- Worst gap between what is spent and what the spending function promises:
+  **0.00006 percentage points**
+
+### These are not the O'Brien-Fleming boundaries above
+
+Worth stating, because the names collide and the numbers are close enough to
+look like a discrepancy. The original O'Brien-Fleming boundary is the shape
+`c_k = C·sqrt(K/k)` with `C` chosen once for a fixed number of equally spaced
+looks; at three looks that is 3.471, 2.454, 2.004, and it is checked against
+the 1979 paper in the table further up. The Lan-DeMets *spending* boundary
+answers a different question — what critical value keeps the cumulative error
+on a continuous schedule — and at the same three looks it is 3.395, 2.407,
+2.015.
+
+They are meant to be close, and are. They are not the same object, and neither
+is a check on the other: this section exists because the spending route needed
+its own independent confirmation.
+
 ## Phase 4 — Geo-holdout power (`tools/geo-holdout.html`)
 
 Reproduce with:
