@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>A/B test sample size &amp; duration</title>
 <meta name="description" content="How many users an A/B test needs and how long it will take, with the assumptions that would invalidate the answer stated up front.">
+<link rel="canonical" href="https://igorlima-py.github.io/experiment-calculators/tools/sample-size.html">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://igorlima-py.github.io/experiment-calculators/tools/sample-size.html">
+<meta property="og:title" content="A/B test sample size &amp; duration">
+<meta property="og:description" content="How many users an A/B test needs and how long it will take, with the assumptions that would invalidate the answer stated up front.">
+<meta property="og:image" content="https://igorlima-py.github.io/experiment-calculators/assets/og/sample-size.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="A/B test sample size &amp; duration">
+<meta name="twitter:description" content="How many users an A/B test needs and how long it will take, with the assumptions that would invalidate the answer stated up front.">
+<meta name="twitter:image" content="https://igorlima-py.github.io/experiment-calculators/assets/og/sample-size.png">
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
@@ -130,7 +143,7 @@
     </ul>
     <p>Cross-checked against
     <code>statsmodels.stats.proportion.samplesize_proportions_2indep_onetail</code>
-    — see <a href="../validation/RESULTS.md">the published comparison</a>.</p>
+    — see <a href="../validation/index.html">the published comparison</a>.</p>
   </details>
 </main>
 
@@ -145,6 +158,7 @@
 
 <script src="../assets/stats.js"></script>
 <script src="../assets/experiments.js"></script>
+<script src="../assets/sequential.js"></script>
 <script src="../assets/ui.js"></script>
 <script>
 (function () {
@@ -201,14 +215,40 @@
       'where the normal approximation behind every calculator of this kind ' +
       'stops being reliable. Use an exact test to plan a test this small.';
 
+    /*
+     * The cost of peeking is computed at this page's own alpha rather than
+     * quoted. A fixed "about 14%" is only true at 5%: the same five looks cost
+     * 3.3% at alpha 1% and 26% at alpha 10%, and a hard-coded figure would have
+     * this page contradicting the peeking checker one click away.
+     *
+     * Looks are capped by the run itself, so a two-day test is never described
+     * as having been checked five times.
+     */
+    var looks = Math.min(5, Math.max(2, days));
+    var inflated = Sequential.alphaInflation(looks, v.alpha / 100);
+
     out.judgement.innerHTML =
       '<strong>What would make this number a lie.</strong>' +
       'It assumes you look at the result once, after day ' + UI.integer(days) +
-      '. If you watch the test daily and stop the moment it looks significant, ' +
-      'the ' + UI.decimal(v.alpha, 1) + '% false-positive rate you think you ' +
-      'have is closer to 14% after five looks. The test did not get more ' +
-      'sensitive; you just gave yourself more chances to be fooled. ' +
-      '<a href="peeking.html">See exactly what peeking cost you →</a>';
+      '. Check it ' + TIMES[looks] + ' along the way and stop the moment one of ' +
+      'those looks is significant, and the ' + UI.decimal(v.alpha, 1) +
+      '% false-positive rate you think you have is really ' +
+      UI.percent(inflated * 100, 1) + '. The test did not get more sensitive; ' +
+      'you just gave yourself ' + COUNT[looks] + ' chances to catch it at a ' +
+      'lucky moment. <a href="' + peekingLink(looks, v.alpha) +
+      '">See exactly what peeking cost you →</a>';
+  }
+
+  var TIMES = { 2: 'twice', 3: 'three times', 4: 'four times', 5: 'five times' };
+  var COUNT = { 2: 'two', 3: 'three', 4: 'four', 5: 'five' };
+
+  /* Deep-link the peeking checker to this page's own numbers, so the two agree
+   * on screen rather than merely not contradicting each other. */
+  function peekingLink(looks, alphaPercent) {
+    var parts = [];
+    if (looks !== 5) parts.push('looks=' + looks);
+    if (alphaPercent !== 5) parts.push('alpha=' + alphaPercent);
+    return 'peeking.html' + (parts.length ? '?' + parts.join('&') : '');
   }
 
   UI.attach(SPEC, render);

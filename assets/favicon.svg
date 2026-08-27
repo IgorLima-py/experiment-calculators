@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Experimentation calculators">
+  <title>Experimentation calculators</title>
+  <!-- A normal density with its right tail filled: the rejection region, which
+       is what every tool in this suite is ultimately arguing about. Solid
+       background so the mark reads on both light and dark browser chrome. -->
+  <rect width="64" height="64" rx="13" fill="#1d4ed8"/>
+  <path d="M40 46 C 38.6 46 37.4 44.6 36.2 41.4 C 34.6 37.2 33.2 30 32 30
+           C 30.8 30 29.4 37.2 27.8 41.4 C 26.6 44.6 25.4 46 24 46 Z"
+        fill="#ffffff" fill-opacity="0.42"/>
+  <path d="M12 46 C 16 46 17.6 40 20 32 C 22.4 24 25.6 16 32 16
+           C 38.4 16 41.6 24 44 32 C 46.4 40 48 46 52 46"
+        fill="none" stroke="#ffffff" stroke-width="4.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="40" y1="14" x2="40" y2="50" stroke="#ffffff" stroke-width="2.6"
+        stroke-linecap="round" stroke-dasharray="4 4.5" opacity="0.85"/>
+</svg>

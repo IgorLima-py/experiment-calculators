@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://igorlima-py.github.io/experiment-calculators/</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://igorlima-py.github.io/experiment-calculators/tools/sample-size.html</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://igorlima-py.github.io/experiment-calculators/tools/mde.html</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://igorlima-py.github.io/experiment-calculators/tools/peeking.html</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://igorlima-py.github.io/experiment-calculators/tools/geo-holdout.html</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://igorlima-py.github.io/experiment-calculators/tools/cuped.html</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://igorlima-py.github.io/experiment-calculators/validation/</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+</urlset>

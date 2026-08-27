@@ -380,6 +380,54 @@ th, td {
 th:first-child, td:first-child { text-align: left; }
 th { font-weight: 600; color: var(--text-soft); }
 
+/* Explicit alignment from the source Markdown, on the generated validation
+ * page, where it overrides the first-column-left default above. */
+.ta-left { text-align: left; }
+.ta-right { text-align: right; }
+.ta-center { text-align: center; }
+
+/* ---------- generated validation page ---------- */
+
+.prose h2 { margin-top: 2.5rem; }
+
+.prose pre {
+  overflow-x: auto;
+  padding: 0.8rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.prose pre code { font-size: inherit; overflow-wrap: normal; }
+
+.prose hr {
+  height: 0;
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.toc {
+  margin: 1.5rem 0 2rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.toc-title {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.toc ol { margin: 0; padding-left: 1.2rem; }
+.toc li { margin-bottom: 0.25rem; }
+
 /* Fully-qualified reference-implementation names are long enough to push the
  * page sideways on a phone, so they wrap rather than overflow. */
 code {
