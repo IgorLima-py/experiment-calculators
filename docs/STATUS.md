@@ -1,74 +1,83 @@
 # Status
 
-*Atualizado em 2026-08-26, fim da sessão de construção.*
+*Atualizado em 2026-08-27, fim da sessão de auditoria.*
 
 ## Onde estamos
 
-**As 6 fases do `docs/PLAN.md` estão concluídas.** As 5 ferramentas do BRIEF
-estão construídas, validadas e commitadas. Licença MIT escolhida pelo Igor e
-adicionada. O Definition of Done do BRIEF fecha, faltando só virar o repo
-público — que é ação manual do Igor.
+As 6 fases do `docs/PLAN.md` já estavam concluídas. Esta sessão fez uma
+**auditoria end-to-end** do que existia, achou três defeitos que teriam ido ao
+ar, e fechou todos os itens levantados. O plano de correções, com evidência
+medida e critério de aceite por item, está em **`docs/FIXES.md`** — todos os
+nove itens estão `FEITO`.
 
-| Fase | Entrega | Validação |
+| Item | O que era | Estado |
 |---|---|---|
-| 0 | `assets/stats.js`, `ui.js`, `style.css` | 546 casos vs scipy |
-| 1 | `tools/sample-size.html` | vs statsmodels: **7.9e-16** |
-| 2 | `tools/mde.html` | vs statsmodels invertido: **1.5e-13** |
-| 3 ⭐ | `tools/peeking.html`, `assets/sequential.js` | **4 rotas**: recursão vs scipy MVN (8.1e-6) vs tabelas de 1969/77/79 vs Monte Carlo de 1M |
-| 4 | `tools/geo-holdout.html`, `assets/geo.js` | vs `scipy.stats.nct` **e** `TTestIndPower`: **3.1e-14** |
-| 5 | `tools/cuped.html`, `assets/cuped.js` | numpy sobre dados idênticos: **1.9e-13**; teoria confirmada por Monte Carlo |
-| 6 | `index.html`, `README.md`, `LICENSE` | 6 suítes passam; 14 URLs 200; varredura de segredos limpa |
+| P0.1 | Frase de julgamento da Tool 1 chumbava "14%" para qualquer alpha | FEITO |
+| P0.2 | Link da validação servia `text/markdown` e baixava arquivo | FEITO |
+| P0.3 | Sem favicon, OG, canonical, robots, 404 | FEITO |
+| P1.1 | Demo de ratio metrics travada em 3 sessões/usuário | FEITO |
+| P1.2 | Tool 3 congelava a thread principal por segundos | FEITO |
+| P1.3 | Links de nav com 22 px no mobile | FEITO |
+| P1.4 | Campo `holdout` exibia número que a conta não usava | FEITO |
+| P2.1 | `spendingBounds` validado e inalcançável pelo usuário | FEITO |
+| P2.2 | Docs de sessão em português indo a público sem enquadramento | FEITO |
+
+O defeito mais sério era o P0.1: a frase de julgamento — que pelo BRIEF é o
+produto inteiro — afirmava 14% em qualquer nível de significância, quando o
+valor real é 3,3% a 1% e 26,0% a 10%. A Tool 3 do próprio site desmentia a
+Tool 1 a um clique de distância.
 
 ## Próximo passo imediato
 
-**Virar o repositório público no GitHub** (`IgorLima-py/experiment-calculators`),
-o que liga o GitHub Pages na conta free. Nada no código depende disso; o site
-é estático e roda em qualquer lugar. Não há mais nada a desenvolver para
-cumprir o BRIEF.
+**Continua sendo virar o repositório público no GitHub**
+(`IgorLima-py/experiment-calculators`), o que liga o GitHub Pages na conta free.
+Nada no código depende disso.
+
+Antes de virar a chave, o item abaixo continua aberto.
 
 ## O que NÃO foi verificado (leia antes de publicar)
 
-Isto não são bugs conhecidos — são lacunas honestas de verificação:
-
-- **Ninguém olhou as páginas com os próprios olhos.** O painel do browser ficou
-  oculto a sessão inteira e todo screenshot falhou. O layout foi conferido
-  medindo `scrollWidth` vs `clientWidth` e lendo o DOM, o que pega overflow
-  horizontal mas **não** pega "está feio", "o contraste está ruim" ou "o
-  gráfico ficou torto". Abrir as 6 páginas e olhar é o primeiro passo
-  recomendado antes de publicar.
-- **Um único motor de browser.** Tudo testado no Chromium do painel. Sem
-  Safari, sem Firefox.
+- **Ninguém olhou as páginas com os próprios olhos. Ainda.** O painel do
+  browser continua oculto e **todo screenshot falhou de novo**, exatamente como
+  na sessão de construção. O que foi verificado nesta sessão, por DOM e CSS
+  computado: nenhuma página tem overflow horizontal a 375 px, nenhum controle
+  interativo abaixo de 24 px, contraste entre 5,0 e 17,8:1 no claro e 6,7 e
+  15,3:1 no escuro, console limpo, todos os links internos resolvem, uma `h1`
+  por página. Isso pega estrutura e acessibilidade; **não** pega "está feio" ou
+  "o gráfico ficou torto". Abrir as 7 páginas e olhar continua sendo o primeiro
+  passo recomendado.
+- **Um único motor de browser.** Tudo em Chromium. Sem Safari, sem Firefox.
 - **O texto em inglês não foi revisado por humano.**
-
-No fim da sessão as 6 páginas foram abertas em abas do painel do Browser para
-o Igor revisar visualmente. Se ele passou os olhos e não reclamou, a primeira
-lacuna acima está fechada na prática — mas **não há registro disso aqui**, e
-a próxima sessão não tem como saber. Na dúvida, abra e olhe:
 
 ```bash
 python serve.py 8000
-# index.html, tools/sample-size.html, tools/mde.html,
-# tools/peeking.html, tools/geo-holdout.html, tools/cuped.html
+# index.html, tools/{sample-size,mde,peeking,geo-holdout,cuped}.html,
+# validation/index.html, 404.html
 ```
 
-## Melhorias possíveis (nenhuma bloqueia)
+## O que mudou na estrutura
 
-- Painel de skewness/winsorização na Tool 5 — cortado deliberadamente; o
-  conteúdo virou texto na lista de equívocos.
-- UI para peeks desigualmente espaçados na Tool 3. O código já existe e
-  funciona (`Sequential.overallAlphaUneven` e `Sequential.spendingBounds`),
-  só não há interface que os exponha.
-- Uma página de validação em HTML, para quem não roda Python.
+- **`validation/index.html`** — a validação agora é uma página do site, gerada
+  de `RESULTS.md` por `validation/build_page.py`. O `.md` segue sendo a fonte
+  da verdade; edite ele e regere. `--check` falha se a página estiver
+  desatualizada.
+- **`assets/og/*.png`** — imagens de link preview, geradas por
+  `assets/build_og.py` (precisa de Pillow, só em desenvolvimento).
+- **`assets/tasks.js` + `compute-worker.js` + `compute.js`** — trabalho pesado
+  fora da thread principal, com fallback síncrono quando o worker não sobe
+  (`file://`). As duas rotas rodam o mesmo código, de propósito.
+- **`docs/HOW-THIS-WAS-BUILT.md`** — em inglês, linkado do README: método,
+  decisões, o que a validação pegou, e o papel do agente dito de frente.
+- **Sétima suíte de validação** — `reference_tool3_spending.py` +
+  `check_tool3_spending.js`, para as fronteiras de alpha spending.
 
 ## Como rodar
 
-O site não precisa de nada além de um servidor de arquivos estáticos.
-
 ```bash
-python serve.py 8000     # servidor sem cache; ver armadilhas abaixo
+python serve.py 8000
 ```
 
-Validação completa (as 6 suítes):
+Validação completa (as **sete** suítes):
 
 ```bash
 cd validation
@@ -76,76 +85,67 @@ python reference_core.py  && node check_core.js
 python reference_tool1.py && node check_tool1.js
 python reference_tool2.py && node check_tool2.js
 python reference_tool3.py && node check_tool3.js   # ~7 min só o reference
+python reference_tool3_spending.py && node check_tool3_spending.js
 python reference_tool4.py && node check_tool4.js
 python reference_tool5.py && node check_tool5.js
 ```
 
+Regerar os dois arquivos gerados:
+
+```bash
+python validation/build_page.py
+python assets/build_og.py
+```
+
 ## Setup numa máquina nova
 
-O **site** não precisa de nada. Só a **validação** precisa:
+O **site** não precisa de nada. Só a validação e os geradores precisam:
 
-- **Python 3** com `numpy`, `scipy==1.17.1`, `statsmodels==0.14.6`.
-- **Node** — nesta máquina foi instalado com
-  `winget install OpenJS.NodeJS.LTS` (v24.19.0). É **só test runner**: a stack
-  travada do CLAUDE.md continua valendo, e nada do que é publicado usa npm.
-  Não existe `package.json`, de propósito.
-- **R não é necessário** — o check quádruplo da Tool 3 substitui
-  `gsDesign`/`ldbounds`, que ficam apenas citados.
+- **Python 3** com `numpy`, `scipy==1.17.1`, `statsmodels==0.14.6`, e
+  **`Pillow`** (só para `build_og.py`).
+- **Node** — só test runner (v24.19.0 aqui). Não existe `package.json`, de
+  propósito.
+- **R não é necessário.**
 
 ## Armadilhas que já custaram tempo
 
-Presas a esta máquina ou ao ambiente de browser do Claude Code:
-
-- **Use `serve.py`, não `python -m http.server`.** O cache do browser servia
-  `.js` antigo e me fez depurar código que não estava mais em disco.
-- **Screenshot exige o painel do browser visível**, senão dá timeout. Medir
-  `scrollWidth` vs `clientWidth` por JS funciona sem isso.
-- **`requestAnimationFrame` não dispara com o painel oculto** — zero frames em
-  3 segundos. Por isso a simulação da Tool 3 cai para `setTimeout` quando
-  `document.hidden`; isso também é melhor para o usuário real, que perderia a
-  simulação ao trocar de aba.
-- **O buffer de console do browser persiste entre navegações.** Erros antigos
-  reaparecem e parecem atuais; confirme com `typeof` antes de sair caçando.
+- **Use `serve.py`, não `python -m http.server`.** Cache do browser servindo
+  `.js` velho.
+- **Screenshot exige o painel do browser visível.** Falhou nas duas sessões.
+  Medir por JS funciona sem isso e foi o que se usou.
+- **`innerText` retorna vazio dentro de um `<details>` fechado.** Custou uma
+  falsa pista nesta sessão: os avisos de validação da Tool 3 pareciam não estar
+  sendo escritos. Use `textContent` para inspecionar conteúdo não renderizado.
+- **Worker tem custo de arranque.** A primeira medição pareceu um bug — o
+  callback "não chegava" — mas era só o tempo de subir o worker e baixar os
+  quatro scripts. Resolvido construindo o worker no load, não na primeira
+  chamada.
+- **Heredoc do bash quebra com apóstrofos** em prosa longa; para arquivos
+  grandes use a ferramenta de escrita.
+- **`print()` do Python no console desta máquina é cp1252** e explode com `α`,
+  `×` etc. O arquivo grava em UTF-8 normalmente; é só o stdout.
+- **`requestAnimationFrame` não dispara com o painel oculto** — por isso a
+  simulação da Tool 3 cai para `setTimeout` quando `document.hidden`.
+- **O buffer de console do browser persiste entre navegações.**
 - **`gh` não está instalado** → API pública do GitHub via `curl`.
-- **Usuário do GitHub é `IgorLima-py`** (o do remote), não o que se deduz do
-  e-mail do commit. Já corrigido em todos os rodapés.
+- **Usuário do GitHub é `IgorLima-py`.**
 
-## O que foi tentado e não funcionou
+## Um erro que vale registrar
 
-- `gh search repos` → comando não existe aqui; resolvido com `curl` +
-  `https://api.github.com/search/repositories`.
-- Um dos 5 agentes de pesquisa (CUPED) morreu com erro de API antes de
-  entregar; retomado pedindo o relatório com o que já tinha coletado.
-- Tolerâncias de validação fixadas otimistas demais (1e-12 em tudo) falharam
-  por motivo errado. Agora cada rotina tem tolerância absoluta **e** relativa
-  separadas, justificadas no `RESULTS.md`.
-- **A integração multivariada do scipy não escala.** A primeira versão do
-  `reference_tool3.py` ia até 50 looks e rodou 20+ min sem retornar valor
-  usável — o algoritmo de Genz é quasi-Monte Carlo e em dimensão alta fica
-  lento *e* impreciso. Limitada a 12 looks; acima disso valem tabela publicada
-  + Monte Carlo, e isso está documentado no `RESULTS.md`.
-- `eval(src + ';Nome')` com `const Nome` colide com o `var Nome` do script.
-  Os `check_*.js` usam eval indireto `(0,eval)(...)` + `global.Nome`.
-- Mensagem de commit com aspas duplas quebra o shell. Usar heredoc
-  (`git commit -F -`).
+Ao revisar as fronteiras de alpha spending, eu afirmei de memória que os
+valores publicados para O'Brien-Fleming a 3 looks eram 3,471 / 2,454 / 2,004 e
+que o código discordava. O código estava certo: aqueles são os valores da
+fronteira **O'Brien-Fleming original** (que o `reference_tool3.py` já valida),
+não os da fronteira de **gasto Lan-DeMets**, que é outro objeto e dá 3,395 /
+2,407 / 2,015. O scipy confirmou o código de forma independente. Está
+documentado no `RESULTS.md` numa seção própria, porque os nomes colidem e os
+números são próximos o bastante para parecerem uma discrepância.
 
-## Defeitos que a validação pegou (o argumento para ela existir)
+A lição é a do projeto: memória não é referência. Só a implementação
+independente decide.
 
-Nenhum foi achado por inspeção; todos por comparação com implementação de
-referência. Estão detalhados no `validation/RESULTS.md`.
+## Melhorias possíveis (nenhuma bloqueia)
 
-1. `tCdf` perdia toda a precisão perto de t=0 com ν grande — a forma
-   `nu/(nu+t²)` arredonda para exatamente 1 e a CDF voltava achatada em 0.5
-   numa vizinhança inteira da origem. Travava o `tQuantile` em 2.4e-7; agora
-   2.5e-12.
-2. `normalQuantile` cancelava o próprio refino de Halley para p perto de 1.
-   Resolvido resolvendo sempre na cauda inferior e espelhando.
-3. **A fórmula fechada de MDE da literatura de cluster trials não entrega o
-   poder que promete** — `(t_α + t_β)·SE` erra até 0,65 ponto percentual, e o
-   erro cresce conforme os graus de liberdade caem, exatamente o regime dos
-   geo testes. Trocada por inversão numérica exata da função de poder; a forma
-   fechada segue publicada ao lado, com a diferença medida.
-4. O parser de dados colados lia o dígito de "Market 1" como receita daquele
-   mercado — média 13 onde a resposta era 53.806. Agora lê do fim da linha e
-   usa a razão mediana entre os dois últimos números para distinguir coluna de
-   pré-período de índice solto.
+- Painel de skewness/winsorização na Tool 5 — cortado deliberadamente.
+- Revisão humana do inglês.
+- Um segundo motor de browser.
