@@ -40,6 +40,17 @@ Isto não são bugs conhecidos — são lacunas honestas de verificação:
   Safari, sem Firefox.
 - **O texto em inglês não foi revisado por humano.**
 
+No fim da sessão as 6 páginas foram abertas em abas do painel do Browser para
+o Igor revisar visualmente. Se ele passou os olhos e não reclamou, a primeira
+lacuna acima está fechada na prática — mas **não há registro disso aqui**, e
+a próxima sessão não tem como saber. Na dúvida, abra e olhe:
+
+```bash
+python serve.py 8000
+# index.html, tools/sample-size.html, tools/mde.html,
+# tools/peeking.html, tools/geo-holdout.html, tools/cuped.html
+```
+
 ## Melhorias possíveis (nenhuma bloqueia)
 
 - Painel de skewness/winsorização na Tool 5 — cortado deliberadamente; o
