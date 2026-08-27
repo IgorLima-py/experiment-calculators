@@ -174,6 +174,8 @@
 
 <script src="../assets/stats.js"></script>
 <script src="../assets/sequential.js"></script>
+<script src="../assets/tasks.js"></script>
+<script src="../assets/compute.js"></script>
 <script src="../assets/ui.js"></script>
 <script>
 (function () {
@@ -201,30 +203,41 @@
     simRun: document.getElementById('sim-run')
   };
 
-  /* Boundary work costs enough at 20+ looks to be felt between keystrokes, so
-   * the headline number lands immediately and the thresholds follow once the
-   * input has settled. */
+  /*
+   * The headline number is one recursion and lands immediately. The two
+   * boundary searches are a few dozen more, which at 50 looks is seconds of
+   * arithmetic, so they are debounced past the keystroke and then handed to a
+   * worker. Compute falls back to this thread when a worker cannot be built
+   * (opening the file from disk, for one), so the page still works there - it
+   * just blocks while it does.
+   */
   var slowTimer = null;
   var current = { looks: 5, alpha: 0.05, pocock: null };
 
   function renderSlow(v) {
     var alpha = v.alpha / 100;
-    var pocockZ = Sequential.pocockBound(v.looks, alpha);
-    var pocockP = Sequential.nominalAlphaFor(pocockZ);
-    current.pocock = pocockP;
-    out.pocock.textContent = 'p < ' + UI.decimal(pocockP, 4);
+    Compute.run('bounds', { looks: v.looks, alpha: alpha }, function (err, b) {
+      if (err) {
+        out.pocock.textContent = '--';
+        out.obfBody.innerHTML = '';
+        out.simStatus.textContent = 'Could not compute the corrected ' +
+          'thresholds in this browser.';
+        return;
+      }
+      current.pocock = b.pocockP;
+      out.pocock.textContent = 'p < ' + UI.decimal(b.pocockP, 4);
 
-    var obf = Sequential.obrienFlemingBounds(v.looks, alpha);
-    var rows = '';
-    for (var i = 0; i < v.looks; i++) {
-      rows += '<tr><td>' + (i + 1) + '</td>' +
-              '<td>' + UI.decimal(pocockZ, 3) + '</td>' +
-              '<td>' + UI.pValue(pocockP) + '</td>' +
-              '<td>' + UI.decimal(obf[i], 3) + '</td>' +
-              '<td>' + UI.pValue(Sequential.nominalAlphaFor(obf[i])) + '</td></tr>';
-    }
-    out.obfBody.innerHTML = rows;
-    resetSim();
+      var rows = '';
+      for (var i = 0; i < v.looks; i++) {
+        rows += '<tr><td>' + (i + 1) + '</td>' +
+                '<td>' + UI.decimal(b.pocockZ, 3) + '</td>' +
+                '<td>' + UI.pValue(b.pocockP) + '</td>' +
+                '<td>' + UI.decimal(b.obf[i], 3) + '</td>' +
+                '<td>' + UI.pValue(b.obfP[i]) + '</td></tr>';
+      }
+      out.obfBody.innerHTML = rows;
+      readySim();
+    });
   }
 
   function render(v) {
@@ -241,6 +254,8 @@
     out.pocock.textContent = '…';
     out.simAlpha.textContent = UI.percent(v.alpha, 1);
     out.simLooks.textContent = UI.integer(v.looks);
+    current.pocock = null;
+    resetSim(true);
 
     if (v.looks === 1) {
       out.judgement.innerHTML =
@@ -288,15 +303,24 @@
     return window.requestAnimationFrame(fn);
   }
 
-  function resetSim() {
+  /* The simulation needs the corrected threshold to have something to compare
+   * against, so it stays disabled, and says why, until the boundary search
+   * comes back. */
+  function resetSim(waiting) {
     if (sim) { sim.cancelled = true; sim = null; }
     out.simNaive.textContent = '—';
     out.simFixed.textContent = '—';
     setBar(out.barNaive, 0);
     setBar(out.barFixed, 0);
-    out.simStatus.textContent = 'Ready.';
-    out.simRun.disabled = false;
+    out.simStatus.textContent = waiting
+      ? 'Working out the corrected threshold…'
+      : 'Ready.';
+    out.simRun.disabled = !!waiting;
     out.simRun.textContent = 'Run 200,000 simulated tests';
+  }
+
+  function readySim() {
+    resetSim(false);
   }
 
   function runSim() {

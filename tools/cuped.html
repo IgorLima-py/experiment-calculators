@@ -155,6 +155,12 @@
       <output id="spread-out">1.00</output>
     </div>
 
+    <div class="control">
+      <label for="sessions">Sessions per user</label>
+      <input type="range" id="sessions" min="2" max="12" step="1">
+      <output id="sessions-out">6</output>
+    </div>
+
     <div class="sim-row">
       <div class="sim-head">
         <span class="sim-name">Naive standard error, sessions treated as independent</span>
@@ -252,14 +258,24 @@
 
 <script src="../assets/stats.js"></script>
 <script src="../assets/cuped.js"></script>
+<script src="../assets/tasks.js"></script>
+<script src="../assets/compute.js"></script>
 <script src="../assets/ui.js"></script>
 <script>
 (function () {
   'use strict';
 
+  /*
+   * Sessions per user is a control rather than a constant because it is the
+   * dominant lever on the whole point of this section. At three sessions each
+   * the naive standard error is only about 1.2x too small, which does not look
+   * like the disaster the text describes; at twelve it is 2.4x. Fixing it at
+   * the low end argued the case badly with correct numbers.
+   */
   var SPEC = {
-    rho:    { def: 0.6, min: 0, max: 0.95 },
-    spread: { def: 1,   min: 0, max: 2 }
+    rho:      { def: 0.6, min: 0, max: 0.95 },
+    spread:   { def: 1,   min: 0, max: 2 },
+    sessions: { def: 6,   min: 2, max: 12 }
   };
 
   var POINTS = 260;
@@ -268,6 +284,7 @@
   var el = {
     rhoOut: document.getElementById('rho-out'),
     spreadOut: document.getElementById('spread-out'),
+    sessionsOut: document.getElementById('sessions-out'),
     reduction: document.getElementById('out-reduction'),
     multiplier: document.getElementById('out-multiplier'),
     days: document.getElementById('out-days'),
@@ -376,23 +393,41 @@
 
   var ratioTimer = null;
 
-  function renderRatio(spread) {
+  function renderRatio(spread, sessions) {
     el.spreadOut.textContent = UI.decimal(spread, 2);
+    el.sessionsOut.textContent = UI.integer(sessions);
     window.clearTimeout(ratioTimer);
     el.ratioStatus.textContent = 'Simulating…';
-    ratioTimer = window.setTimeout(function () { runRatio(spread); }, 90);
+    ratioTimer = window.setTimeout(function () {
+      runRatio(spread, sessions);
+    }, 90);
   }
 
-  function runRatio(spread) {
-    var result = Cuped.ratioMetricComparison({
+  /*
+   * Three hundred replications of a twelve-thousand-session experiment is a
+   * second or two of arithmetic, and it reruns every time a slider settles.
+   * Off the main thread it is a progress message; on it, the sliders would
+   * stutter under the user's finger.
+   */
+  function runRatio(spread, sessions) {
+    Compute.run('ratio', {
       users: USERS,
       spread: spread,
-      meanSessions: 3,
+      meanSessions: sessions,
       baseRate: 0.12,
       reps: 300,
       seed: 20260826
+    }, function (err, result) {
+      if (err) {
+        el.ratioStatus.textContent = 'Could not run the simulation in this ' +
+          'browser.';
+        return;
+      }
+      showRatio(spread, sessions, result);
     });
+  }
 
+  function showRatio(spread, sessions, result) {
     var scale = Math.max(result.naiveSe, result.deltaSe, result.trueSe) * 1.15;
     var show = function (node, bar, value) {
       node.textContent = UI.decimal(value * 100, 3) + ' pp';
@@ -430,13 +465,16 @@
         'wrong — you simply counted ' + UI.integer(result.meanSessions) +
         ' independent observations when you had ' + UI.integer(USERS) + '. ' +
         'The delta method lands on ' + UI.decimal(result.deltaSe * 100, 3) +
-        ' pp against a true ' + UI.decimal(result.trueSe * 100, 3) + ' pp.';
+        ' pp against a true ' + UI.decimal(result.trueSe * 100, 3) + ' pp. ' +
+        'Drag the sessions slider: the more sessions each user brings, the ' +
+        'less the naive count of them has to do with how much information you ' +
+        'actually have.';
     }
   }
 
   function render(v) {
     renderCuped(v.rho);
-    renderRatio(v.spread);
+    renderRatio(v.spread, v.sessions);
   }
 
   UI.attach(SPEC, render);

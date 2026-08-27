@@ -113,7 +113,7 @@ Slack ou no LinkedIn, isso renderiza como URL pelada.
 
 ## P1.1 — A demo de ratio metrics se subestima
 
-**Estado:** TODO
+**Estado:** FEITO - 2026-08-27. Slider de sessoes por usuario (2 a 12, default 6), na URL. Subestimacao no default subiu de 1,19x para 1,30x e vai a 1,58x em 12 sessoes. A simulacao passou a rodar no worker do P1.2.
 
 **Evidência.** No default a página mostra o SE naive subestimando o ruído em
 1.19×, enquanto o texto promete que "you get confident about effects that are
@@ -137,7 +137,7 @@ a posição; a validação da Tool 5 continua passando.
 
 ## P1.2 — A Tool 3 congela a thread principal
 
-**Estado:** TODO
+**Estado:** FEITO - 2026-08-27. `assets/tasks.js` (as tarefas), `assets/compute-worker.js` (o worker) e `assets/compute.js` (despacho com fallback sincrono e descarte de respostas superadas). Medido com looks=50: numero principal imediato, fronteiras em 2,5 s, **pior travamento da thread principal 0 ms**, tecla respondida em 35 ms durante o calculo. Worker e fallback produzem valores identicos bit a bit, e batem com Pocock K=5 = 0,0158 da tabela publicada. O worker passou a ser construido no load, nao na primeira chamada, senao a espera do arranque aparecia na tela.
 
 **Evidência.** `pocockBound(50)` + `obrienFlemingBounds(50)` custaram entre
 1,3 s e 7,6 s neste desktop conforme o estado do JIT e a carga da máquina — as
@@ -163,7 +163,7 @@ botão da simulação desabilitado até as fronteiras chegarem.
 
 ## P1.3 — Alvos de toque abaixo do mínimo no mobile
 
-**Estado:** TODO
+**Estado:** FEITO - 2026-08-27. `.site-nav a` com `min-height: 28px`. A 375 px nao ha mais nenhum controle abaixo de 24 px. Links inline em frase ficam como estao: a 2.5.8 os isenta.
 
 **Evidência.** A 375 px os links da navegação medem 22 px de altura, abaixo do
 mínimo de 24 px do WCAG 2.2 (2.5.8), e são a navegação principal. Contraste
@@ -177,7 +177,7 @@ sem quebrar o layout de duas linhas no mobile.
 
 ## P1.4 — Campo que mostra um número que a conta não usa
 
-**Estado:** TODO
+**Estado:** FEITO - 2026-08-27. `UI.attach` ganhou um terceiro argumento `normalise` para restricoes entre campos; a geo usa. `?holdout=400` com 40 mercados agora deixa campo, URL e resultado todos em 39.
 
 **Evidência.** Em `tools/geo-holdout.html` o `render` faz
 `Math.min(v.holdout, v.geos - 1)`, mas o valor não clampado continua no estado e

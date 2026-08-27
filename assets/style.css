@@ -79,7 +79,16 @@ a:hover { text-decoration: none; }
   font-size: 0.85rem;
 }
 
-.site-nav a { color: var(--text-soft); text-decoration: none; }
+/* WCAG 2.2 (2.5.8) asks for 24px of target on anything that is not a link
+ * inline in a sentence. The labels alone come out at 22 on a phone, and this
+ * is the primary navigation, so the box is grown rather than the type. */
+.site-nav a {
+  color: var(--text-soft);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+}
 .site-nav a:hover,
 .site-nav a[aria-current="page"] { color: var(--accent); }
 

@@ -116,12 +116,22 @@ var UI = (function () {
    * The value used for the calculation is clamped; the box is only corrected on
    * blur.
    */
-  function attach(spec, render) {
+  /*
+   * `normalise` is for constraints between fields, which the per-field min and
+   * max cannot express - a geo holdout can never exceed the markets available.
+   * It runs on the collected values before anything is rendered or written, so
+   * the result, the URL and the value corrected into the box on blur are all
+   * the same number. Without it a field can sit there showing a figure the
+   * calculation is not using.
+   */
+  function attach(spec, render, normalise) {
     var values = read(spec);
+    if (normalise) normalise(values);
     syncInputs(spec, values);
 
     function update() {
       values = collect(spec, values);
+      if (normalise) normalise(values);
       render(values);
       write(spec, values);
     }

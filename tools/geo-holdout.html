@@ -282,8 +282,15 @@
       '</svg>';
   }
 
+  /* You cannot hold out more markets than you have, and at least one has to
+   * keep spending. Enforced on the state rather than at the point of use, so
+   * the field, the URL and the answer never disagree. */
+  function normalise(v) {
+    v.holdout = Math.min(Math.max(1, v.holdout), v.geos - 1);
+  }
+
   function render(v) {
-    var holdout = Math.min(v.holdout, v.geos - 1);
+    var holdout = v.holdout;
     var treated = v.geos - holdout;
     var cv = v.cv / 100;
     var lift = v.lift / 100;
@@ -368,7 +375,7 @@
       'your own history before the budget moves.';
   }
 
-  var getValues = UI.attach(SPEC, render);
+  var getValues = UI.attach(SPEC, render, normalise);
   UI.initCopyButton('copy');
 
   document.getElementById('use-paste').addEventListener('click', function () {
