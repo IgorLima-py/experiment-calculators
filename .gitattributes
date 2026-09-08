@@ -1,0 +1,21 @@
+# Fim de linha normalizado.
+#
+# Nenhum dos 23 repositórios do Igor tinha este arquivo, e o preço aparece na hora de comparar:
+# um `.claude/commands/oi.md` em CRLF e o template em LF são byte a byte diferentes mesmo com
+# conteúdo idêntico, e o relatório de "quem está desatualizado" acusa 100% das linhas.
+* text=auto eol=lf
+
+# PowerShell 5.1 do Windows quer CRLF, e o arquivo é UTF-8 **com BOM** — sem BOM ele lê acento
+# errado. O `eol=crlf` cuida da metade que o git controla.
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binário: nunca normalizar.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.xlsx binary
+*.zip binary
