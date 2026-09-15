@@ -12,7 +12,11 @@ e sem me perguntar nada:
    a. **Se a abertura já injetou um bloco `docs/PROXIMO.md pede:`**, use-o. Ele veio do hook
       `SessionStart` e não custou chamada de ferramenta nenhuma — não releia o arquivo. **Ele
       é o ponteiro de antes do `git pull`**: numa máquina atrasada, pode ser a fatia velha. O
-      passo 1 confere isso.
+      passo 1 confere isso. **O bloco traz também a linha `perfil x tabela`**, com o ponteiro
+      conferido contra a tabela de perfis do `docs/ROADMAP.md`. Se ela disser `NAO BATE`, o
+      ponteiro está errado e **a tabela ganha**: nos passos c e d, compare a sessão com o que a
+      tabela diz, e ponha isso como a primeira coisa da resposta. Se disser `NAO CONSEGUI
+      CONFERIR`, repita com essas palavras, na linha do Perfil.
    b. **Se não houver bloco**, leia você mesmo o `docs/PROXIMO.md`. Se ele não existir, este
       projeto não tem ponteiro: pule o passo 0 inteiro e não invente perfil.
    c. **Modelo.** O modelo desta sessão está no seu prompt de sistema. Compare com o `modelo:`
