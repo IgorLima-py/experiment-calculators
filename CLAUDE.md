@@ -24,6 +24,7 @@ de julgamento sobre o que o número significa e o que o invalidaria.
   Conversa com o Igor e docs de sessão (`docs/STATUS.md`, `docs/PLAN.md`) em português.
 - O planejamento mais amplo do portfólio mora em repositório privado separado.
   **Nada de lá é citado ou copiado para cá.**
+- **Texto formal que outra pessoa vai ler** (e-mail, proposta, README, descrição de PR) passa pela skill `humanize` antes de sair, e sai como rascunho: quem envia é o Igor.
 
 ## O que roda onde
 
