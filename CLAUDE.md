@@ -26,6 +26,11 @@ de julgamento sobre o que o número significa e o que o invalidaria.
   **Nada de lá é citado ou copiado para cá.**
 - **Texto formal que outra pessoa vai ler** (e-mail, proposta, README, descrição de PR) passa pela skill `humanize` antes de sair, e sai como rascunho: quem envia é o Igor.
 
+A linha de contrato da bateria, sozinha e na coluna zero (quem lê é o hook de push do
+plugin `playbook`, o subagente `bateria` e o `/tchau`):
+
+bateria: node validation\check_core.js && node validation\check_tool1.js && node validation\check_tool2.js && node validation\check_tool3.js && node validation\check_tool3_spending.js && node validation\check_tool4.js && node validation\check_tool5.js
+
 ## O que roda onde
 
 Qualquer máquina — é site estático (testar local com `python -m http.server` serve).
