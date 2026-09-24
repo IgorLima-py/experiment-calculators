@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Peeking checker</title>
-<meta name="description" content="You checked your A/B test before it finished. This works out what that actually did to your false-positive rate, and what threshold you should have used instead.">
+<meta name="description" content="You checked your A/B test before it finished. This works out what that did to your false-positive rate, and what threshold you should have used instead.">
 <link rel="canonical" href="https://igorlima-py.github.io/experiment-calculators/tools/peeking.html">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://igorlima-py.github.io/experiment-calculators/tools/peeking.html">
 <meta property="og:title" content="Peeking checker">
-<meta property="og:description" content="You checked your A/B test before it finished. This works out what that actually did to your false-positive rate, and what threshold you should have used instead.">
+<meta property="og:description" content="You checked your A/B test before it finished. This works out what that did to your false-positive rate, and what threshold you should have used instead.">
 <meta property="og:image" content="https://igorlima-py.github.io/experiment-calculators/assets/og/peeking.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Peeking checker">
-<meta name="twitter:description" content="You checked your A/B test before it finished. This works out what that actually did to your false-positive rate, and what threshold you should have used instead.">
+<meta name="twitter:description" content="You checked your A/B test before it finished. This works out what that did to your false-positive rate, and what threshold you should have used instead.">
 <meta name="twitter:image" content="https://igorlima-py.github.io/experiment-calculators/assets/og/peeking.png">
 <link rel="stylesheet" href="../assets/style.css">
 </head>
@@ -37,7 +37,7 @@
 <main>
   <h1>Peeking checker</h1>
   <p class="tool-sub">You checked the results before the test finished. Everyone
-  does. This is what it cost you — and the threshold that would have bought it
+  does. This is what it cost you, and the threshold that would have bought it
   back.</p>
 
   <div class="fields">
@@ -80,7 +80,7 @@
   <h2>Watch it happen</h2>
   <p>Numbers from a formula are easy to disbelieve, so here is the same claim
   as an experiment. Below, thousands of A/B tests are simulated in your browser
-  in which <strong>the variant is identical to the control</strong> — every
+  in which <strong>the variant is identical to the control</strong>. Every
   significant result is a false positive by construction. One run peeks the way
   you did; the other applies the corrected threshold.</p>
 
@@ -105,7 +105,7 @@
 
   <div class="share">
     <button type="button" class="btn" id="copy">Copy link</button>
-    <span class="note">Inputs live in the URL — send this link to a colleague.</span>
+    <span class="note">Inputs live in the URL. Send this link to a colleague.</span>
   </div>
 
   <details class="honesty">
@@ -113,8 +113,8 @@
     <p>A constant corrected threshold (Pocock) is the easiest to act on, but it
     is strict at the final look, which is where most of the information is.
     O'Brien-Fleming spends almost nothing early and nearly the full budget at
-    the end — the usual choice when you want the option to stop early without
-    paying much for it.</p>
+    the end (the usual choice when you want the option to stop early without
+    paying much for it).</p>
     <div class="table-scroll">
       <table id="obf-table">
         <thead><tr><th>Look</th><th>Pocock z</th><th>Pocock p</th><th>O'Brien-Fleming z</th><th>O'Brien-Fleming p</th></tr></thead>
@@ -127,7 +127,7 @@
     <h3>When your looks were not evenly spaced</h3>
 
     <p>Everything above assumes the looks divide the data evenly, and real
-    peeking almost never does — you check on the Monday, again when someone
+    peeking almost never does: you check on the Monday, again when someone
     asks on the Thursday, then at the end. Lan-DeMets alpha spending drops that
     assumption: tell it how much of the data you had seen at each look and it
     solves for a boundary fitted to that exact schedule. This is the version to
@@ -140,13 +140,13 @@
         <input type="text" id="fractions" inputmode="decimal"
                autocomplete="off" spellcheck="false">
         <span class="hint">Percent, increasing, up to ten looks. The last one
-        is normally 100 — the end of the test.</span>
+        is normally 100 (the end of the test).</span>
       </div>
       <div class="field field-span">
         <label for="shape">How to spend the budget</label>
         <select id="shape">
-          <option value="obf">O'Brien-Fleming — hoard it for the end</option>
-          <option value="pocock">Pocock — spend it evenly</option>
+          <option value="obf">O'Brien-Fleming: hoard it for the end</option>
+          <option value="pocock">Pocock: spend it evenly</option>
         </select>
       </div>
     </div>
@@ -174,21 +174,21 @@
       That is the standard model of peeking. If you saw significance and kept
       running anyway, this arithmetic does not describe what you did.</li>
       <li><strong>A two-sided z-test on accruing, independent data</strong>, with
-      the normal approximation — the same footing as the
+      the normal approximation, the same footing as the
       <a href="sample-size.html">sample size calculator</a>.</li>
       <li><strong>This is retrospective.</strong> It tells you what looking has
       already cost. It cannot rescue a test you have already stopped: a result
       that only cleared 0.05 is not made valid by reading this page.</li>
       <li><strong>The prospective fix is a different tool.</strong> If you want
       to monitor continuously and stop whenever you like, you need
-      always-valid inference — mixture SPRT or confidence sequences — set up
+      always-valid inference (mixture SPRT or confidence sequences) set up
       before the test starts. That is what
       <a href="https://docs.statsig.com/experiments-plus/sequential-testing">Statsig</a>,
       <a href="https://www.optimizely.com/insights/blog/statistics-for-the-internet-age-the-story-behind-optimizelys-new-stats-engine/">Optimizely</a>
       and <a href="https://docs.growthbook.io/statistics/sequential">GrowthBook</a>
       run internally. Platforms with batched daily data, like
       <a href="https://engineering.atspotify.com/2023/03/choosing-sequential-testing-framework-comparisons-and-discussions">Spotify</a>,
-      tend to choose group-sequential methods instead — which is the family
+      tend to choose group-sequential methods instead, which is the family
       this page belongs to, and why discrete looks are the right model here.</li>
       <li><strong>Not covered:</strong> futility stopping, several metrics at
       once, unequal information between looks in the headline figure, and
@@ -198,8 +198,8 @@
     integration in scipy, against the values published by Armitage, McPherson
     &amp; Rowe (1969), Pocock (1977) and O'Brien &amp; Fleming (1979), and
     against a million-run Monte Carlo. The alpha-spending boundaries are
-    checked separately, on the stricter test of whether they actually spend the
-    error they promise — see
+    checked separately, on the stricter test of whether they spend the
+    error they promise. See
     <a href="../validation/index.html">the published comparison</a>.</p>
   </details>
 </main>
@@ -374,7 +374,7 @@
       out.unevenCheck.textContent =
         'Across the whole schedule this spends ' +
         UI.percent(s.total * 100, 2) + ' against the ' +
-        UI.percent(v.alpha, 1) + ' you asked for — the check that the ' +
+        UI.percent(v.alpha, 1) + ' you asked for, the check that the ' +
         'boundary does what it claims, run by the same recursion as the ' +
         'headline number, on your schedule rather than an evenly spaced one.';
     });
@@ -408,7 +408,7 @@
         '<strong>You looked ' + UI.integer(v.looks) + ' times.</strong>' +
         'Your real chance of calling a dead change a winner is ' +
         UI.percent(real * 100, 1) + ', not ' + UI.percent(v.alpha, 1) +
-        ' — you are ' + UI.decimal(factor, 1) + '× more likely to have been ' +
+        '. You are ' + UI.decimal(factor, 1) + '× more likely to have been ' +
         'fooled than you believed. The test did not get less reliable because ' +
         'the data changed; it got less reliable because you gave yourself ' +
         UI.integer(v.looks) + ' chances to catch it at a lucky moment. ' +

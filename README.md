@@ -5,7 +5,7 @@
 Five free calculators for people who run A/B tests and marketing experiments.
 Every result comes with one plain sentence explaining what it means and what
 would invalidate it, and every formula is cross-checked against a reference
-implementation with [the comparison published](validation/RESULTS.md) — also
+implementation with [the comparison published](validation/RESULTS.md), also
 rendered as [a page on the site](validation/index.html).
 
 [How this was built](docs/HOW-THIS-WAS-BUILT.md) covers the method, the
@@ -19,7 +19,7 @@ dependencies, no tracking, no email form in front of anything.
 | Tool | What it answers |
 |---|---|
 | [Sample size & duration](tools/sample-size.html) | How many users a test needs, and how long that takes at your traffic |
-| [Minimum detectable effect](tools/mde.html) | The smallest lift your traffic can detect — and whether to run the test at all |
+| [Minimum detectable effect](tools/mde.html) | The smallest lift your traffic can detect, and whether to run the test at all |
 | [Peeking checker](tools/peeking.html) | What checking early did to your false-positive rate, and the threshold that fixes it |
 | [Geo holdout power](tools/geo-holdout.html) | How many markets to hold out of an incrementality test |
 | [CUPED & ratio metrics](tools/cuped.html) | Why session-level metrics need different maths, and how to buy traffic you don't have |
@@ -56,7 +56,7 @@ python reference_tool5.py && node check_tool5.js    # CUPED and delta method
 ```
 
 Python generates reference values from `scipy`, `statsmodels` and `numpy`; Node
-runs the site's own JavaScript against them. **Node is a test runner only** —
+runs the site's own JavaScript against them. Node is a test runner only:
 nothing that ships uses it, and there is no `package.json` by design.
 
 ```bash
@@ -64,7 +64,7 @@ python -m pip install -r requirements-dev.txt
 ```
 
 All of it runs on every push, so the tables in `RESULTS.md` are not a snapshot
-of one machine on one afternoon — the badge above is every reference value
+of one machine on one afternoon. The badge above is every reference value
 being re-derived from scipy on a clean runner. The same run checks that the
 published validation page still matches the Markdown it is generated from, and
 that every script the site loads parses, since there is no build step to catch
@@ -73,7 +73,7 @@ a syntax error before a visitor does.
 ## Regenerating the built files
 
 Two files in the repository are generated. Both are committed, and both are
-built by hand — the site itself is still plain static files with no build step.
+built by hand. The site itself is still plain static files with no build step.
 
 ```bash
 python validation/build_page.py    # validation/index.html, from RESULTS.md
@@ -94,8 +94,8 @@ integration in scipy, the tables published by Armitage, McPherson & Rowe
 Carlo. Worst disagreement between the browser code and scipy: 8.1e-6.
 
 Its alpha-spending boundaries, for looks that are not evenly spaced, are
-checked on the stricter question of whether a boundary actually spends the
-error it promises — measured by scipy rather than by the recursion that chose
+checked on the stricter question of whether a boundary really spends the
+error it promises, as measured by scipy rather than by the recursion that chose
 it. Worst gap between promised and spent: 0.00006 percentage points.
 
 Full results, including the defects this process caught and the places where
@@ -115,7 +115,7 @@ The load-bearing ones:
   model of peeking: that you would have stopped at the first significant
   result. The headline figure and the corrected threshold assume equally spaced
   looks; the Lan-DeMets alpha-spending section drops that assumption and solves
-  for the schedule you actually had. It is retrospective — it cannot rescue a
+  for the schedule you actually had. It is retrospective: it cannot rescue a
   test you have already stopped.
 - **Tool 4** treats markets as independent units in a two-sample t-test, in the
   Hayes & Bennett cluster-trial tradition, with exact noncentral-t power. It

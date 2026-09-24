@@ -37,7 +37,7 @@
 <main>
   <h1>CUPED &amp; ratio metrics</h1>
   <p class="tool-sub">Not a calculator. Two things that go wrong once your
-  metric stops being a simple conversion rate — and one technique that is worth
+  metric stops being a simple conversion rate, and one technique that is worth
   more than most of the experiments you will run this quarter.</p>
 
   <h2>1. Variance reduction: buying traffic you do not have</h2>
@@ -84,13 +84,13 @@
     <figure>
       <div id="scatter"></div>
       <figcaption>Each point is a user: their pre-period value against their
-      value during the experiment. The line is θ — how much of today the past
+      value during the experiment. The line is θ: how much of today the past
       already explains.</figcaption>
     </figure>
 
     <figure>
       <div id="densities"></div>
-      <figcaption>What that does to the thing you actually care about: the
+      <figcaption>What that does to the thing you care about: the
       spread of the measured difference between your two arms. Narrower means
       you can see smaller effects with the same traffic.</figcaption>
     </figure>
@@ -103,14 +103,14 @@
     Three conditions, and violating the last one is how people get burned. The
     covariate has to exist, which rules out users who are new. It has to be
     correlated, and how strongly is a property of your metric that you do not
-    get to choose. And it must be measured <em>before</em> randomisation — use
+    get to choose. And it must be measured <em>before</em> randomisation. Use
     an in-experiment covariate and the whole argument collapses, because the
     treatment can move it. The original paper reports exactly that: a covariate
     measured during the experiment reversed the sign of a known-positive effect
     and reported the reversal with a tight confidence interval.
   </div>
 
-  <h3>What it is actually worth, on real metrics</h3>
+  <h3>What it is worth, on real metrics</h3>
 
   <p>The numbers people quote for CUPED come from Bing, in the paper that
   introduced it, and they are worth knowing because they are so uneven:</p>
@@ -137,7 +137,7 @@
   <strong>you randomised users and then measured sessions</strong>.</p>
 
   <p>Conversion rate per session, revenue per order, click-through per
-  pageview — all of these are ratios whose denominator is not the thing you
+  pageview: all of these are ratios whose denominator is not the thing you
   randomised. Sessions from one user are not independent of each other: a user
   who converts once tends to convert again. The textbook standard error assumes
   every session is a fresh, independent draw. It is not, so the standard error
@@ -145,7 +145,7 @@
   there.</p>
 
   <p>The fix is the delta method: write the metric as a ratio of
-  <em>per-user</em> averages, so the unit of analysis is the unit you actually
+  <em>per-user</em> averages, so the unit of analysis is the unit you
   randomised, and propagate the variance through the ratio.</p>
 
   <div class="sim">
@@ -192,19 +192,19 @@
   <ul>
     <li><strong>"Revenue per user needs the delta method."</strong> Usually not.
     If you randomised users and you are measuring a per-user average, every
-    observation is one user and they are independent — an ordinary t-test is
+    observation is one user and they are independent: an ordinary t-test is
     structurally correct. The delta method is about the analysis unit differing
     from the randomisation unit, not about the metric being money.</li>
     <li><strong>"Revenue is too skewed for a t-test."</strong> The central limit
     theorem still applies to the mean of skewed data, just slowly. The usual
     rule of thumb asks for roughly 355 × (skewness)² observations per arm before
     the normal approximation is comfortable. Winsorising the tail helps the
-    variance and biases the estimate toward zero — and your outliers are often
+    variance and biases the estimate toward zero, and your outliers are often
     your best customers, so think before you trim them.</li>
     <li><strong>"CUPED is regression adjustment magic."</strong> It is
     regression adjustment, and there is no magic in it: the gain is exactly ρ²
     and nothing else. It is equivalent to ANCOVA on the pre-period covariate.</li>
-    <li><strong>"Estimate θ separately for each arm."</strong> No — pool it. A
+    <li><strong>"Estimate θ separately for each arm."</strong> No. Pool it. A
     per-arm θ is fitted partly to the treatment effect itself, which biases the
     result.</li>
   </ul>
@@ -219,17 +219,17 @@
     <ul>
       <li>Deng, Xu, Kohavi &amp; Walker, <a href="https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf">Improving
       the Sensitivity of Online Controlled Experiments by Utilizing
-      Pre-Experiment Data</a> (WSDM 2013) — the CUPED paper. Source of the
+      Pre-Experiment Data</a> (WSDM 2013): the CUPED paper. Source of the
       formulas, the Bing figures and the in-experiment-covariate warning.</li>
       <li>Deng, Knoblich &amp; Lu, <a href="https://arxiv.org/abs/1803.06336">Applying
-      the Delta Method in Metric Analytics</a> (KDD 2018) — the ratio-metric
+      the Delta Method in Metric Analytics</a> (KDD 2018): the ratio-metric
       variance and the rewrite that makes it work.</li>
       <li>Kohavi, Tang &amp; Xu, <em>Trustworthy Online Controlled
-      Experiments</em> (2020), chapters 14, 17 and 18 — randomisation units,
+      Experiments</em> (2020), chapters 14, 17 and 18: randomisation units,
       skewed metrics, variance reduction.</li>
       <li>Microsoft's experimentation platform,
       <a href="https://www.microsoft.com/en-us/research/group/experimentation-platform-exp/articles/deep-dive-into-variance-reduction/">Deep
-      Dive Into Variance Reduction</a> — source of the effective traffic
+      Dive Into Variance Reduction</a>: source of the effective traffic
       multiplier framing, and honest that gains vary enormously by product.</li>
       <li>Xie &amp; Aurisset, <a href="https://dl.acm.org/doi/10.1145/2939672.2939733">Improving
       the Sensitivity of Online Controlled Experiments: Case Studies at
@@ -240,9 +240,9 @@
     alternative, bootstrap standard errors, and how to handle users with no
     pre-period at all beyond noting that an indicator variable is the usual
     answer.</p>
-    <p>Both simulations are checked against theory — the variance reduction
+    <p>Both simulations are checked against theory (the variance reduction
     against 1 − ρ², the delta-method standard error against a Monte Carlo of
-    the same experiment — in
+    the same experiment) in
     <a href="../validation/index.html">the published comparison</a>.</p>
   </details>
 </main>
@@ -454,7 +454,7 @@
         'needed, and knowing when it is not matters as much as knowing when ' +
         'it is. Both still sit a hair under the simulated truth, because the ' +
         'number of sessions is random too and only the delta method has any ' +
-        'machinery for that — with identical users there is barely anything ' +
+        'machinery for that: with identical users there is barely anything ' +
         'for it to do. Now drag the slider right: real users are not identical.';
     } else {
       el.ratioJudgement.innerHTML =
@@ -462,13 +462,13 @@
         UI.decimal(understatement, 1) + '×.</strong>' +
         'Every confidence interval you build from it is that much too narrow, ' +
         'and every p-value that much too small. Nothing about the data looks ' +
-        'wrong — you simply counted ' + UI.integer(result.meanSessions) +
+        'wrong: you simply counted ' + UI.integer(result.meanSessions) +
         ' independent observations when you had ' + UI.integer(USERS) + '. ' +
         'The delta method lands on ' + UI.decimal(result.deltaSe * 100, 3) +
         ' pp against a true ' + UI.decimal(result.trueSe * 100, 3) + ' pp. ' +
         'Drag the sessions slider: the more sessions each user brings, the ' +
         'less the naive count of them has to do with how much information you ' +
-        'actually have.';
+        'have.';
     }
   }
 

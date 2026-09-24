@@ -44,7 +44,7 @@
     <div class="field">
       <label for="geos">Markets available</label>
       <input type="number" id="geos" step="1" min="4" max="500" inputmode="numeric">
-      <span class="hint">DMAs, cities, states — whatever you can split on.</span>
+      <span class="hint">DMAs, cities, states: whatever you can split on.</span>
     </div>
 
     <div class="field">
@@ -114,14 +114,14 @@
   <figure>
     <div id="curve"></div>
     <figcaption>Detectable lift against holdout size, for your markets and
-    variation. The curve bottoms out at an even split — holding out a small
+    variation. The curve bottoms out at an even split. Holding out a small
     handful of markets is the expensive end, and the cost rises steeply.</figcaption>
   </figure>
 
   <details class="honesty">
     <summary>Don't know your between-market variation? Paste your numbers.</summary>
     <p>One market per line, with the figures at the end: the metric you plan to
-    measure — revenue, orders, signups — over a period the length of your test,
+    measure (revenue, orders, signups) over a period the length of your test,
     then optionally the same market over an equally long earlier period, which
     gives the correlation. Market names go first and are ignored, digits and
     all. Nothing leaves your browser.</p>
@@ -132,7 +132,7 @@
 
   <div class="share">
     <button type="button" class="btn" id="copy">Copy link</button>
-    <span class="note">Inputs live in the URL — send this link to a colleague.</span>
+    <span class="note">Inputs live in the URL: send this link to a colleague.</span>
   </div>
 
   <details class="honesty">
@@ -147,7 +147,7 @@
       storm, one competitor launch in either group and the comparison is
       measuring that instead.</li>
       <li><strong>Market-level metrics are skewed.</strong> Raw DMA revenue is
-      heavy-tailed — a handful of markets dominate. That is why the honest input
+      heavy-tailed: a handful of markets dominate. That is why the honest input
       is the variation of a <em>pre-period-adjusted</em> metric, not of raw
       totals, and why one whale market can still distort the result. Stratify by
       size when you assign groups.</li>
@@ -165,12 +165,12 @@
       the true effect.</li>
       <li><strong>Not covered:</strong> synthetic control and matched-market
       designs, unequal market sizes as an explicit weight, staggered rollouts,
-      and any channel you cannot actually split geographically — SEO, podcast,
+      and any channel you cannot split geographically: SEO, podcast,
       PR.</li>
     </ul>
     <p>Power uses the noncentral t distribution, checked against
-    <code>scipy.stats.nct</code> and <code>statsmodels TTestIndPower</code> —
-    see <a href="../validation/index.html">the published comparison</a>.</p>
+    <code>scipy.stats.nct</code> and <code>statsmodels TTestIndPower</code>.
+    See <a href="../validation/index.html">the published comparison</a>.</p>
   </details>
 </main>
 
@@ -311,7 +311,7 @@
     var warnings = [];
     if (holdout < 5) {
       warnings.push('<strong>A holdout of ' + holdout + ' markets is too few.</strong> ' +
-        'With this many units a single local shock — one storm, one promotion — ' +
+        'With this many units a single local shock (one storm, one promotion) ' +
         'moves the whole group, and there are not enough degrees of freedom to ' +
         'tell that apart from your campaign. Trimmed Match puts the floor at ' +
         'about ten matched pairs for the same reason.');
@@ -336,7 +336,7 @@
       warnings.push('<strong>Variation of ' + UI.percent(v.cv, 0) + ' looks ' +
         'like raw market totals.</strong> Market sizes are heavy-tailed, so raw ' +
         'variation is huge and makes any test look impossible. Use a ' +
-        'pre-period-adjusted metric — each market against its own past — or set ' +
+        'pre-period-adjusted metric (each market against its own past) or set ' +
         'the correlation field above.');
     }
     out.warn.innerHTML = warnings.join('<br><br>');
@@ -352,7 +352,7 @@
         ' lift you are expecting, at ' + UI.percent(pw * 100, 0) + ' power.';
     } else if (smallest !== null) {
       verdict = 'That is not enough to see the ' + UI.percent(v.lift, 1) +
-        ' lift you are expecting — you would have ' + UI.percent(pw * 100, 0) +
+        ' lift you are expecting: you would have ' + UI.percent(pw * 100, 0) +
         ' power, not ' + UI.percent(v.power, 0) + '. Holding out ' +
         UI.integer(smallest) + ' markets instead would get you there.';
     } else {
@@ -368,11 +368,11 @@
       ' markets, the smallest lift you could detect is ' +
       UI.percent(mde * 100, 1) + '. ' + verdict +
       ' All of it assumes your markets do not leak into each other and that ' +
-      'nothing but your campaign changed between the groups. Geo targeting is ' +
-      'commonly only 55–80% accurate, and every bit of leakage pushes the ' +
-      'measured effect toward zero — so a real win can still come back looking ' +
-      'like nothing. Treat this as the design-stage estimate and run GeoLift on ' +
-      'your own history before the budget moves.';
+      'nothing but your campaign changed between the groups. IP-based geo ' +
+      'targeting is commonly cited as only 55–80% accurate, and every bit of ' +
+      'leakage pushes the measured effect toward zero. A real win can still ' +
+      'come back looking like nothing. Treat this as the design-stage estimate ' +
+      'and run GeoLift on your own history before the budget moves.';
   }
 
   var getValues = UI.attach(SPEC, render, normalise);

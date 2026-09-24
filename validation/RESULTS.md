@@ -10,7 +10,7 @@ Reproduce any table below by running the named script.
 
 ---
 
-## Phase 0 — Numeric primitives (`assets/stats.js`)
+## Phase 0: Numeric primitives (`assets/stats.js`)
 
 Reproduce with:
 
@@ -20,7 +20,7 @@ python reference_core.py && node check_core.js
 
 `reference_core.py` writes 546 reference values straight from scipy;
 `check_core.js` evaluates `assets/stats.js` on the same inputs. Node is only a
-test runner — the site itself ships as plain HTML and JS with no dependencies
+test runner: the site itself ships as plain HTML and JS with no dependencies
 and no build step.
 
 | Routine | Cases | Worst abs err | Worst rel err (ref > 1e-6) | Tolerance abs / rel | Worst case | Status |
@@ -34,7 +34,7 @@ and no build step.
 Two error measures are reported because either one alone flatters the result.
 Absolute error is what a probability is actually used for; relative error is
 the honest measure in the tails, but only where the reference is large enough
-for the ratio to mean anything — a 1e-9 relative miss on a probability of 1e-12
+for the ratio to mean anything: a 1e-9 relative miss on a probability of 1e-12
 is noise, not an error.
 
 ### What the tolerances mean
@@ -54,7 +54,7 @@ to a round number that would hide a defect. Two are worth naming:
 
 ### Two defects this check caught
 
-Both were found by the harness, not by inspection — which is the argument for
+Both were found by the harness, not by inspection, which is the argument for
 having it.
 
 1. **`tCdf` lost all precision near t = 0 for large nu.** The textbook single
@@ -70,7 +70,7 @@ having it.
 
 ---
 
-## Phase 1 — A/B sample size & duration (`tools/sample-size.html`)
+## Phase 1: A/B sample size & duration (`tools/sample-size.html`)
 
 Reproduce with:
 
@@ -110,13 +110,13 @@ than approximation.
 
 His tool is the one most practitioners check against, so the gap deserves an
 explanation rather than a shrug. It is **not** a continuity correction and
-**not** Cohen's h — both were tested and neither reproduces it.
+**not** Cohen's h: both were tested and neither reproduces it.
 
 The whole difference is the variance convention under the null hypothesis.
 This tool pools at p̄ = (p₁+p₂)/2, matching statsmodels; Evan Miller puts both
 arms at the baseline rate p₁. Since the null standard error is the larger of
 the two under a pooled convention, his formula asks for roughly 6% fewer users
-at typical baselines. Neither is wrong — they answer slightly different
+at typical baselines. Neither is wrong. They answer slightly different
 questions about what "no effect" means. The consequence is worth stating
 plainly: at his defaults, `power_proportions_2indep` puts the power of his
 1,030 users at **0.776**, not 0.80.
@@ -130,10 +130,10 @@ p > 0.5 to 1 − p while leaving the effect unmirrored.
 closed-form sample size ignores the possibility that a two-sided test rejects
 in the direction opposite the true effect; the power calculation counts it. The
 round trip therefore differs by under 1e-6 in power. This is a property of the
-textbook formula, not of the implementation — statsmodels behaves identically,
+textbook formula, not of the implementation: statsmodels behaves identically,
 which is why both functions match it to machine precision.
 
-## Phase 2 — Minimum detectable effect (`tools/mde.html`)
+## Phase 2: Minimum detectable effect (`tools/mde.html`)
 
 Reproduce with:
 
@@ -143,7 +143,7 @@ python reference_tool2.py && node check_tool2.js
 
 Checked two ways, because agreeing with one implementation proves less than
 agreeing with two derived differently. The first column inverts statsmodels'
-own sample-size function numerically — that is the value the tool must match.
+own sample-size function numerically: that is the value the tool must match.
 The second is Cohen's h via `NormalIndPower`, back-transformed to a difference
 in rates; it is an arcsine-stabilised approximation rather than the same
 formula, so it is *expected* to differ.
@@ -188,7 +188,7 @@ denominator, so there is no algebraic inverse. The common shortcut is to drop
 it from the variance and invert what remains, which produces a number that
 looks right and is not. The tool bisects the real function instead.
 
-## Phase 3 — Peeking / sequential checker (`tools/peeking.html`)
+## Phase 3: Peeking / sequential checker (`tools/peeking.html`)
 
 Reproduce with:
 
@@ -200,7 +200,7 @@ This is the tool the suite exists for, so it is checked four ways. Each is
 independent of the others: they share no code, and two of them predate this
 repository by decades.
 
-1. **The Armitage-McPherson recursion**, in `assets/sequential.js` — the code
+1. **The Armitage-McPherson recursion**, in `assets/sequential.js`: the code
    that actually runs in the browser. It integrates the sub-density of the
    running sum forward one look at a time, and the mass falling outside each
    boundary is the error spent there.
@@ -246,7 +246,7 @@ repository by decades.
 The last column is there because Bonferroni is the correction people reach for
 by instinct. It is valid but wasteful: at five looks it demands p < 0.010 where
 the exact answer is p < 0.0158, throwing away real power for no gain in
-protection. The looks are strongly correlated — they share most of their data —
+protection. The looks are strongly correlated (they share most of their data),
 and Bonferroni assumes they are not.
 
 ### O'Brien-Fleming boundaries (overall alpha 5%)
@@ -290,7 +290,7 @@ over twenty minutes without returning a usable figure. Rather than publish a
 number from a method operating outside its comfortable range, the comparison is
 capped at 12 looks, and beyond that the recursion is checked against the
 published tables and the Monte Carlo. Each method is used where it is actually
-trustworthy — which is the same standard the tools themselves are held to.
+trustworthy, which is the same standard the tools themselves are held to.
 
 ### Lan-DeMets alpha spending, for looks that are not evenly spaced
 
@@ -353,15 +353,15 @@ look like a discrepancy. The original O'Brien-Fleming boundary is the shape
 `c_k = C·sqrt(K/k)` with `C` chosen once for a fixed number of equally spaced
 looks; at three looks that is 3.471, 2.454, 2.004, and it is checked against
 the 1979 paper in the table further up. The Lan-DeMets *spending* boundary
-answers a different question — what critical value keeps the cumulative error
-on a continuous schedule — and at the same three looks it is 3.395, 2.407,
+answers a different question: what critical value keeps the cumulative error
+on a continuous schedule. At the same three looks it is 3.395, 2.407,
 2.015.
 
 They are meant to be close, and are. They are not the same object, and neither
 is a check on the other: this section exists because the spending route needed
 its own independent confirmation.
 
-## Phase 4 — Geo-holdout power (`tools/geo-holdout.html`)
+## Phase 4: Geo-holdout power (`tools/geo-holdout.html`)
 
 Reproduce with:
 
@@ -398,7 +398,7 @@ Worst absolute error against either reference: **3.1e-14**.
 
 Cluster-trial guidance, Hayes & Bennett included, states the detectable effect
 as (t₁₋α/₂ + t₁₋β) × SE. That closed form is what this tool's
-`mdeClosedForm` computes, and it matches scipy to **1.6e-14** — it is
+`mdeClosedForm` computes, and it matches scipy to **1.6e-14**. It is
 faithfully implemented. It is also, quietly, not the inverse of noncentral-t
 power: adding two central-t quantiles is an approximation.
 
@@ -423,8 +423,8 @@ function and report the power it actually delivers.
 - Worst power error of the shipped, exactly inverted effect: **7.2e-12**
 - Worst power error of the textbook closed form: **0.65 percentage points**
 
-The gap grows as the degrees of freedom fall — 0.01 points at 208 df, 0.65
-points at 6 df — which is precisely the regime geo tests operate in. Half a
+The gap grows as the degrees of freedom fall (0.01 points at 208 df, 0.65
+points at 6 df), which is precisely the regime geo tests operate in. Half a
 percentage point of power is a small error and nobody would notice it. That is
 the reason to fix it rather than to tolerate it: it is checkable from outside,
 and a calculator that is quietly off is worse than no calculator. So the tool
@@ -446,12 +446,12 @@ Twenty-five lognormal markets with a correlated earlier period, pasted as
 That fixture is deliberately hostile, and it caught a real defect. The first
 parser read numbers from the start of each line and so consumed the `1` in
 `Market 1` as the market's revenue, returning a mean of 13 where the answer was
-53,806 — a wrong number with no outward sign of being wrong. Market names
+53,806, a wrong number with no outward sign of being wrong. Market names
 containing digits are the norm, not an edge case. The parser now reads from the
 end of the line and uses the median ratio between the last two numbers to tell
 a genuine pre-period column from a stray index.
 
-## Phase 5 — CUPED & ratio metrics (`tools/cuped.html`)
+## Phase 5: CUPED & ratio metrics (`tools/cuped.html`)
 
 Reproduce with:
 
@@ -465,7 +465,7 @@ to be right. Two kinds of check, and the distinction matters:
 - **Implementation.** Fixed datasets are generated in numpy and written out, so
   the browser code and numpy run the same formulas over identical numbers. Any
   disagreement is a coding error.
-- **Theory.** Large Monte Carlo runs confirm the formulas describe reality —
+- **Theory.** Large Monte Carlo runs confirm the formulas describe reality:
   that CUPED removes the share of variance it promises, and that the
   delta-method standard error is the one that actually obtains.
 
@@ -501,7 +501,7 @@ to be right. Two kinds of check, and the distinction matters:
 ### Which standard error is the real one?
 
 800 users, the whole experiment re-run 4,000 times. "Truth" is the standard
-deviation of the metric across those runs — what the noise actually is.
+deviation of the metric across those runs: what the noise actually is.
 
 | User spread | Naive | Delta method | Truth | Truth ± | Naive understates by |
 |---:|---:|---:|---:|---:|---:|
@@ -512,8 +512,8 @@ deviation of the metric across those runs — what the noise actually is.
 
 This table is the argument the page is making, in one place. The top row is the
 honest half: when every user has the same conversion propensity, sessions
-really are independent and the naive standard error is correct — the delta
-method agrees with it and there is nothing to fix. As users start to differ,
+really are independent and the naive standard error is correct. The delta
+method agrees with it, and there is nothing to fix. As users start to differ,
 the naive figure stays where it is while the real noise grows away from it,
 until at the bottom row it is understating the noise by 41%. The delta method
 tracks the truth the whole way, within 1.14%.
@@ -526,5 +526,5 @@ the failure is silent.
 - CUPED formula vs numpy on identical data: **1.9e-13**
 - Ratio standard errors vs numpy on identical data: **4.4e-15**
 - Measured CUPED reduction vs ρ²: **0.44 percentage points** at n = 200,000
-  (sampling noise, not bias — it falls as n grows)
+  (sampling noise, not bias: it falls as n grows)
 - Delta-method standard error vs simulated truth: **1.14%**

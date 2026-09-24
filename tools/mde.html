@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Minimum detectable effect</title>
-<meta name="description" content="The smallest lift your A/B test could actually detect with the traffic and time you have — and whether it is worth running at all.">
+<meta name="description" content="The smallest lift your A/B test could detect with the traffic and time you have, and whether it is worth running at all.">
 <link rel="canonical" href="https://igorlima-py.github.io/experiment-calculators/tools/mde.html">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://igorlima-py.github.io/experiment-calculators/tools/mde.html">
 <meta property="og:title" content="Minimum detectable effect">
-<meta property="og:description" content="The smallest lift your A/B test could actually detect with the traffic and time you have — and whether it is worth running at all.">
+<meta property="og:description" content="The smallest lift your A/B test could detect with the traffic and time you have, and whether it is worth running at all.">
 <meta property="og:image" content="https://igorlima-py.github.io/experiment-calculators/assets/og/mde.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Minimum detectable effect">
-<meta name="twitter:description" content="The smallest lift your A/B test could actually detect with the traffic and time you have — and whether it is worth running at all.">
+<meta name="twitter:description" content="The smallest lift your A/B test could detect with the traffic and time you have, and whether it is worth running at all.">
 <meta name="twitter:image" content="https://igorlima-py.github.io/experiment-calculators/assets/og/mde.png">
 <link rel="stylesheet" href="../assets/style.css">
 </head>
@@ -37,7 +37,7 @@
 <main>
   <h1>Minimum detectable effect</h1>
   <p class="tool-sub">You have the traffic you have. This is the smallest lift
-  it can actually detect — and the number that tells you whether to run the
+  it can detect, and the number that tells you whether to run the
   test at all.</p>
 
   <div class="fields">
@@ -107,7 +107,7 @@
 
   <div class="share">
     <button type="button" class="btn" id="copy">Copy link</button>
-    <span class="note">Inputs live in the URL — send this link to a colleague.</span>
+    <span class="note">Inputs live in the URL. Send this link to a colleague.</span>
   </div>
 
   <details class="honesty">
@@ -116,11 +116,11 @@
       <li><strong>A detectable effect is not a visibility cliff.</strong> This
       is the most common way to misread the number. At 80% power, an effect
       exactly equal to the figure above has an 80% chance of reaching
-      significance — not a certainty. Smaller effects are not invisible either;
+      significance, not a certainty. Smaller effects are not invisible either;
       they are just detected less than 80% of the time. The number is a
       reliability threshold, not a threshold of existence.</li>
       <li><strong>Normal approximation to the binomial</strong>, pooled variance
-      under the null, no continuity correction — the same conventions as the
+      under the null, no continuity correction, the same conventions as the
       <a href="sample-size.html">sample size calculator</a>, since this is its
       exact inverse.</li>
       <li><strong>An even 50/50 split</strong> and steady traffic for the whole
@@ -132,7 +132,7 @@
       that varies by day of week.</li>
     </ul>
     <p>Solved by bisection against the sample-size formula and round-tripped
-    against it — see <a href="../validation/index.html">the published
+    against it. See <a href="../validation/index.html">the published
     comparison</a>.</p>
   </details>
 </main>
@@ -230,7 +230,7 @@
       UI.percent(relative, 1) + ' or larger. ' + verdict +
       ' If the effect you realistically expect is smaller than this, do not ' +
       'run the test: you will get an inconclusive result and file it as a ' +
-      'failure, when what you actually ran was a test too small to see the ' +
+      'failure, when what you ran was a test too small to see the ' +
       'answer. Find more traffic, run longer, or test something bolder.';
   }
 

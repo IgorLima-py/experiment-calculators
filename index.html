@@ -34,8 +34,8 @@
   them tell you what the number means, and none of them tell you what would make
   it a lie. These do both.</p>
 
-  <p>Every result on this site comes with one plain sentence explaining what it
-  actually means and — the part that matters — what would invalidate it. The
+  <p>Every result on this site comes with one plain sentence on what it means
+  and, more importantly, what would invalidate it. The
   arithmetic is the easy half. Knowing that your sample size assumes you never
   looked at the results early, and that looking five times turns your 5%
   false-positive rate into 14%, is the half that decides whether the number was
@@ -50,8 +50,8 @@
 
     <a class="tool-card" href="tools/mde.html">
       <span class="tool-name">Minimum detectable effect</span>
-      <span class="tool-desc">The smallest lift your traffic can actually
-      detect — and whether the test is worth running at all.</span>
+      <span class="tool-desc">The smallest lift your traffic can detect,
+      and whether the test is worth running at all.</span>
     </a>
 
     <a class="tool-card" href="tools/peeking.html">
@@ -80,8 +80,8 @@
 
   <p>Because you do not have to. A calculator that is subtly wrong is worse
   than no calculator: it is publicly checkable and permanently embarrassing.
-  So every formula here is cross-checked against a reference implementation —
-  statsmodels, scipy, numpy — and
+  So every formula here is cross-checked against a reference implementation
+  (statsmodels, scipy, numpy), and
   <a href="validation/index.html">the comparison is published</a>, including
   the places where implementations legitimately disagree and why.</p>
 
@@ -93,18 +93,17 @@
     large degrees of freedom, because the textbook form of the identity rounds
     to exactly 1.</li>
     <li>The detectable-effect formula that cluster-trial guidance publishes does
-    not deliver the power it claims — it is out by up to two thirds of a
+    not deliver the power it claims: it is out by up to two thirds of a
     percentage point, worst exactly where geo tests operate. This site inverts
     the exact function instead and shows both.</li>
     <li>A data parser read the digit in "Market 1" as that market's revenue,
     returning a mean of 13 where the answer was 53,806.</li>
   </ul>
 
-  <p>It also explains where widely used tools disagree rather than pretending
-  they do not. Evan Miller's sample size calculator returns about 6% fewer
-  users than this one; the reason is the variance convention under the null
-  hypothesis, it is not a continuity correction and not Cohen's h, and both are
-  defensible.
+  <p>It also explains where widely used tools disagree. Evan Miller's sample
+  size calculator returns about 6% fewer users than this one. The reason is the
+  variance convention under the null hypothesis (not a continuity correction,
+  and not Cohen's h), and both conventions are defensible.
   <a href="validation/index.html">The comparison is in the open.</a></p>
 
   <h2>What this is</h2>
@@ -115,9 +114,8 @@
   working for as long as browsers do.</p>
 
   <p>Every tool states its statistical assumptions and what it does not cover.
-  Where a better method exists — GeoLift for geo tests, always-valid inference
-  for continuous monitoring — the page says so and links to it, rather than
-  letting you believe this was the last word.</p>
+  Where a better method exists (GeoLift for geo tests, always-valid inference
+  for continuous monitoring), the page says so and links to it.</p>
 </main>
 
 <footer class="site-footer">
