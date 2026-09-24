@@ -1,6 +1,27 @@
 # Status
 
-*Atualizado em 2026-08-27, fim da sessão de auditoria.*
+*Atualizado em 2026-09-24: publicado (sessão C3 do carreira-ai).*
+
+## 24/09/2026: no ar
+
+- **Público desde 24/09**, com Pages na `main`:
+  https://igorlima-py.github.io/experiment-calculators/ . As 7 páginas (home, 5
+  ferramentas, validação) responderam `200` sem autenticação.
+- **CI verde pela primeira vez.** O `setup-python` com `cache: pip` procurava
+  `requirements.txt`; ganhou `cache-dependency-path: requirements-dev.txt` (commit
+  `9506889`). Os dois jobs passam em ~1m40s.
+- **Alguém olhou as páginas.** As 5, em viewport de celular (375 px): sem overflow
+  horizontal, sem erro no console, frase de julgamento renderizada em todas. A
+  simulação do peeking, rodada direto no console, deu 14,16% (a página diz 14,2%)
+  e 5,1% com o limiar corrigido.
+- **Humanize no texto público** (commit `90811bc`): travessão como conector e
+  "actually" de enchimento saíram; nenhum número, link ou código mudou. A frase de
+  julgamento do geo-holdout passou a dizer "IP-based geo targeting is commonly cited
+  as", igual à caixa de honestidade da mesma página.
+- **Não é bug, é o painel de preview:** num painel que não pinta, o
+  `requestAnimationFrame` não dispara nenhum frame e a simulação fica em
+  "Running…". Num navegador de verdade não acontece.
+
 
 > **A próxima sessão pode ser em outra máquina.** A seção "Setup numa máquina
 > nova" abaixo é obrigatória antes de rodar qualquer coisa. O site em si não
