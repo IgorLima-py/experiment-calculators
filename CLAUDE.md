@@ -25,6 +25,10 @@ de julgamento sobre o que o número significa e o que o invalidaria.
 - O planejamento mais amplo do portfólio mora em repositório privado separado.
   **Nada de lá é citado ou copiado para cá.**
 - **Texto formal que outra pessoa vai ler** (e-mail, proposta, README, descrição de PR) passa pela skill `humanize` antes de sair, e sai como rascunho: quem envia é o Igor.
+- **Zero requisição a outro domínio no site publicado.** Nenhuma fonte, script ou analytics
+  de fora: o README promete "no dependencies, no tracking". Fonte, se houver, é
+  auto-hospedada em `assets/`. Medir uso é pelo Search Console (meta tag), que não roda
+  nada no navegador de quem visita.
 
 A linha de contrato da bateria, sozinha e na coluna zero (quem lê é o hook de push do
 plugin `playbook`, o subagente `bateria` e o `/tchau`):
@@ -37,19 +41,12 @@ Qualquer máquina — é site estático (testar local com `python -m http.server
 Sessão na nuvem funciona bem. GitHub Pages só liga quando o repo virar público
 (conta free) — desenvolve privado, o Igor vira a chave quando estiver pronto.
 
-## A primeira sessão — planejamento (antes de qualquer código)
+## O plano
 
-Esta pasta ainda não tem plano. A primeira sessão de trabalho:
-
-1. Lê `BRIEF.md` inteiro — ele é o escopo de partida, não o plano.
-2. **Pesquisa na internet, a fundo** — a seção "Open questions for the planning
-   session" do brief é o roteiro: censo das calculadoras existentes e suas lacunas,
-   implementações de referência para validação, método sequencial do Tool 3,
-   referências canônicas de CUPED/delta method, padrões de UX de URL compartilhável.
-3. Escreve `docs/PLAN.md` (plano completo, ferramenta por ferramenta, com ordem e
-   estimativas) e `docs/REFERENCES.md` (tudo que achou, com links e o que cada
-   fonte vale).
-4. Mostra o plano ao Igor e **só começa a executar depois do OK dele.**
+A v1 (`BRIEF.md` + `docs/PLAN.md`) está no ar desde 24/09/2026. A v2 mora em
+`docs/ROADMAP.md` (a fila, uma fatia por sessão, com o `verificar:` de cada uma) e o
+`docs/PROXIMO.md` aponta a próxima fatia. `docs/DESVIOS.md` registra quando o perfil
+planejado errou.
 
 ## Ao abrir a sessão
 
