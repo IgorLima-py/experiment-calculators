@@ -261,6 +261,7 @@
 <script src="../assets/tasks.js"></script>
 <script src="../assets/compute.js"></script>
 <script src="../assets/ui.js"></script>
+<script src="../assets/judgement.js"></script>
 <script>
 (function () {
   'use strict';
@@ -437,7 +438,6 @@
     show(el.seDelta, el.barDelta, result.deltaSe);
     show(el.seTrue, el.barTrue, result.trueSe);
 
-    var understatement = result.trueSe / result.naiveSe;
     el.ratioStatus.textContent =
       UI.integer(USERS) + ' users, ' + UI.integer(result.meanSessions) +
       ' sessions between them, a ' + UI.percent(result.meanRatio * 100, 1) +
@@ -445,31 +445,7 @@
       ' times. The simulated truth is itself an estimate, good to about ±' +
       UI.decimal(result.trueSeUncertainty * 100, 3) + ' pp.';
 
-    if (spread < 0.05) {
-      el.ratioJudgement.innerHTML =
-        '<strong>At zero, there is nothing to correct.</strong>' +
-        'Every user has the same conversion propensity, so sessions really ' +
-        'are independent draws and the two formulas agree with each other. ' +
-        'This is the honest half of the lesson: the correction is not always ' +
-        'needed, and knowing when it is not matters as much as knowing when ' +
-        'it is. Both still sit a hair under the simulated truth, because the ' +
-        'number of sessions is random too and only the delta method has any ' +
-        'machinery for that: with identical users there is barely anything ' +
-        'for it to do. Now drag the slider right: real users are not identical.';
-    } else {
-      el.ratioJudgement.innerHTML =
-        '<strong>The naive standard error is understating the noise by ' +
-        UI.decimal(understatement, 1) + '×.</strong>' +
-        'Every confidence interval you build from it is that much too narrow, ' +
-        'and every p-value that much too small. Nothing about the data looks ' +
-        'wrong: you simply counted ' + UI.integer(result.meanSessions) +
-        ' independent observations when you had ' + UI.integer(USERS) + '. ' +
-        'The delta method lands on ' + UI.decimal(result.deltaSe * 100, 3) +
-        ' pp against a true ' + UI.decimal(result.trueSe * 100, 3) + ' pp. ' +
-        'Drag the sessions slider: the more sessions each user brings, the ' +
-        'less the naive count of them has to do with how much information you ' +
-        'have.';
-    }
+    el.ratioJudgement.innerHTML = Judgement.ratioMetric(spread, result, USERS);
   }
 
   function render(v) {

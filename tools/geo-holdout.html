@@ -186,6 +186,7 @@
 <script src="../assets/stats.js"></script>
 <script src="../assets/geo.js"></script>
 <script src="../assets/ui.js"></script>
+<script src="../assets/judgement.js"></script>
 <script>
 (function () {
   'use strict';
@@ -346,33 +347,15 @@
       return;
     }
 
-    var verdict;
-    if (pw >= target) {
-      verdict = 'That is enough to see the ' + UI.percent(v.lift, 1) +
-        ' lift you are expecting, at ' + UI.percent(pw * 100, 0) + ' power.';
-    } else if (smallest !== null) {
-      verdict = 'That is not enough to see the ' + UI.percent(v.lift, 1) +
-        ' lift you are expecting: you would have ' + UI.percent(pw * 100, 0) +
-        ' power, not ' + UI.percent(v.power, 0) + '. Holding out ' +
-        UI.integer(smallest) + ' markets instead would get you there.';
-    } else {
-      verdict = 'No holdout size reaches ' + UI.percent(v.power, 0) +
-        ' power for a ' + UI.percent(v.lift, 1) + ' lift with this many ' +
-        'markets and this much variation between them. Either the effect has ' +
-        'to be bigger, or the test cannot answer the question.';
-    }
-
-    out.judgement.innerHTML =
-      '<strong>What would make this number a lie.</strong>' +
-      'Holding out ' + UI.integer(holdout) + ' of ' + UI.integer(v.geos) +
-      ' markets, the smallest lift you could detect is ' +
-      UI.percent(mde * 100, 1) + '. ' + verdict +
-      ' All of it assumes your markets do not leak into each other and that ' +
-      'nothing but your campaign changed between the groups. IP-based geo ' +
-      'targeting is commonly cited as only 55–80% accurate, and every bit of ' +
-      'leakage pushes the measured effect toward zero. A real win can still ' +
-      'come back looking like nothing. Treat this as the design-stage estimate ' +
-      'and run GeoLift on your own history before the budget moves.';
+    out.judgement.innerHTML = Judgement.geoHoldout({
+      holdout: holdout,
+      geos: v.geos,
+      mde: mde,
+      power: pw,
+      smallest: smallest,
+      liftPercent: v.lift,
+      powerPercent: v.power
+    });
   }
 
   var getValues = UI.attach(SPEC, render, normalise);

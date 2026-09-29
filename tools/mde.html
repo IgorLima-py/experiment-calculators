@@ -149,6 +149,7 @@
 <script src="../assets/stats.js"></script>
 <script src="../assets/experiments.js"></script>
 <script src="../assets/ui.js"></script>
+<script src="../assets/judgement.js"></script>
 <script>
 (function () {
   'use strict';
@@ -209,29 +210,7 @@
       'normal approximation behind every calculator of this kind stops ' +
       'being reliable.';
 
-    var verdict;
-    if (relative >= 100) {
-      verdict = 'That is not a test, it is a formality. The variant would ' +
-        'have to convert ' + UI.decimal(1 + relative / 100, 1) + '× the ' +
-        'control rate before this setup could call the result reliable, and ' +
-        'no real change does that.';
-    } else if (relative >= 20) {
-      verdict = 'That is a big effect to demand. Very few honest changes move ' +
-        'a conversion rate by ' + UI.percent(relative, 0) + '. If yours is a ' +
-        'copy tweak or a button colour, this test cannot answer your question.';
-    } else {
-      verdict = 'That is within reach of a substantial change, though still ' +
-        'well above what most single tweaks deliver.';
-    }
-
-    out.judgement.innerHTML =
-      '<strong>Read this before you run it.</strong>' +
-      'In ' + UI.integer(v.days) + ' days you can only detect a lift of ' +
-      UI.percent(relative, 1) + ' or larger. ' + verdict +
-      ' If the effect you realistically expect is smaller than this, do not ' +
-      'run the test: you will get an inconclusive result and file it as a ' +
-      'failure, when what you ran was a test too small to see the ' +
-      'answer. Find more traffic, run longer, or test something bolder.';
+    out.judgement.innerHTML = Judgement.mde(v.days, relative);
   }
 
   UI.attach(SPEC, render);

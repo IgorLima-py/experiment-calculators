@@ -218,6 +218,7 @@
 <script src="../assets/tasks.js"></script>
 <script src="../assets/compute.js"></script>
 <script src="../assets/ui.js"></script>
+<script src="../assets/judgement.js"></script>
 <script>
 (function () {
   'use strict';
@@ -397,24 +398,7 @@
     current.pocock = null;
     resetSim(true);
 
-    if (v.looks === 1) {
-      out.judgement.innerHTML =
-        '<strong>One look is not peeking.</strong>' +
-        'A single test at the end is exactly what the ' +
-        UI.percent(v.alpha, 1) + ' level is designed for, so nothing is ' +
-        'inflated. Come back if you check again before the planned end.';
-    } else {
-      out.judgement.innerHTML =
-        '<strong>You looked ' + UI.integer(v.looks) + ' times.</strong>' +
-        'Your real chance of calling a dead change a winner is ' +
-        UI.percent(real * 100, 1) + ', not ' + UI.percent(v.alpha, 1) +
-        '. You are ' + UI.decimal(factor, 1) + '× more likely to have been ' +
-        'fooled than you believed. The test did not get less reliable because ' +
-        'the data changed; it got less reliable because you gave yourself ' +
-        UI.integer(v.looks) + ' chances to catch it at a lucky moment. ' +
-        'This assumes your looks were evenly spaced and that you would have ' +
-        'stopped at the first significant result.';
-    }
+    out.judgement.innerHTML = Judgement.peeking(v.looks, v.alpha, real);
 
     window.clearTimeout(slowTimer);
     slowTimer = window.setTimeout(function () {
