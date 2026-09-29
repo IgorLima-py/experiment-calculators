@@ -5,6 +5,8 @@
 ## 29/09/2026: C1 — frases testadas e guarda do site
 
 **Bateria:** `bateria 9: 9/0/0`, medida comando a comando no fim da sessão.
+No `/tchau`, a trava deu verde para este código, e a segunda opinião (subagente
+Opus, contexto limpo, diff desde `1f91afd`) não teve achado. O ponteiro avançou para a C2.
 
 **O que foi feito:**
 
