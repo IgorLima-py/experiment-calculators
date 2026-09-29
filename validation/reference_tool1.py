@@ -1,7 +1,7 @@
 """Reference sample sizes for tool 1, from statsmodels plus a verbatim port of
 Evan Miller's formula.
 
-Run this, then `node check_tool1.js`. Pinned: statsmodels 1.14.6 / scipy 1.17.1
+Run this, then `node check_tool1.js`. Pinned: statsmodels 0.14.6 / scipy 1.17.1
 (see README.md).
 """
 import json
