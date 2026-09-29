@@ -2,11 +2,12 @@
 
 [![validation](https://github.com/IgorLima-py/experiment-calculators/actions/workflows/validation.yml/badge.svg)](https://github.com/IgorLima-py/experiment-calculators/actions/workflows/validation.yml)
 
-Five free calculators for people who run A/B tests and marketing experiments.
-Every result comes with one plain sentence explaining what it means and what
-would invalidate it, and every formula is cross-checked against a reference
-implementation with [the comparison published](validation/RESULTS.md), also
-rendered as [a page on the site](validation/index.html).
+Four free calculators and an interactive explainer for people who run A/B tests
+and marketing experiments. Every result comes with one plain sentence
+explaining what it means and what would invalidate it, and every formula is
+cross-checked against a reference implementation with
+[the comparison published](validation/RESULTS.md), also rendered as
+[a page on the site](validation/index.html).
 
 [How this was built](docs/HOW-THIS-WAS-BUILT.md) covers the method, the
 decisions that were not obvious, and what the validation caught.

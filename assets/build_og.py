@@ -69,8 +69,8 @@ FOOTER = "igorlima-py.github.io/experiment-calculators"
 
 PAGES = [
     ("home", "Calculators are a commodity. Judgement is not.",
-     "Five free A/B testing calculators. Every result comes with the caveat "
-     "that would invalidate it."),
+     "Four free A/B testing calculators and an explainer. Every result comes "
+     "with the caveat that would invalidate it."),
     ("sample-size", "A/B test sample size & duration",
      "How many users a test needs, how long that takes at your traffic, and "
      "what peeking early would cost you."),
