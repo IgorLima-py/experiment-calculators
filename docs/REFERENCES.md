@@ -286,3 +286,66 @@ conferir antes de citar publicamente.
   independentes + tabelas publicadas = critério de aceite do JS.
 - PDF do paper CUPED salvo em cache local da sessão de pesquisa (link público
   acima é estável).
+
+## 8. Pesquisa da v2 (27/09/2026) — concorrência de novo e candidatas
+
+*Feita por um subagente para o `/360`; a mesma legenda (✅ aberto, 🔎 só snippet). É a
+base das decisões do bloco 5 do `docs/ROADMAP.md`.*
+
+### As lacunas da v1 continuam abertas
+
+- **Corretor de peeking grátis: não achado.**
+  - ✅ **Zetyra** (https://zetyra.com/calculators/gsd) tem OBF/Pocock validado contra
+    gsDesign e rpact, mas só no plano Pro, a US$ 99/mês (https://zetyra.com/about).
+  - ✅ **SlateGitOrg/alwaysvalid** (https://github.com/SlateGitOrg/alwaysvalid) é mSPRT
+    estático e grátis, criado em 11/09/2026, com 0 estrelas: sem adoção.
+- **Calculadora de poder para teste geo: não achada.**
+  - ✅ O "Geo Lift Test Calculator" da **MetricGate**
+    (https://metricgate.com/calculator/geo-lift-test/) é DiD post-hoc sobre dados enviados,
+    não poder.
+  - ✅ A **Bell Statistics** (https://bellstatistics.com/calculators) vende consultoria de
+    geo e não tem calculadora de geo.
+- **Explicador interativo de CUPED: não achado grátis.**
+  - ✅ A **Zetyra** tem CUPED, só no Pro e em enquadramento clínico.
+- **Validação publicada: fechada em parte.**
+  - ✅ A **Bell Statistics** diz checar cada conta contra valores do R numa suíte
+    automática.
+  - ✅ A **r-statistics.co**
+    (https://r-statistics.co/tools/multiple-testing-correction.html) diz bater com o
+    `p.adjust()`, só para múltiplas comparações.
+  - Nenhuma das duas é comprovadamente nova: a Bell existia em 2023, pelo Wayback.
+  - **O site não afirma que ninguém mais valida**, então nada a corrigir. O que é falso é o
+    "none of them" sobre julgamento, que a C1 corrige.
+
+### Candidatas a ferramenta, em ordem (lacuna × validável × cabe na stack)
+
+1. **Erro tipo M/S (winner's curse): sem ferramenta web grátis.**
+   - ✅ Só existe o pacote R retrodesign (https://github.com/andytimm/retrodesign).
+   - Referência: a forma fechada de Gelman & Carlin (2014) mais Monte Carlo.
+   - Entrou na C2.
+2. **iROAS com IC a partir de teste geo: sem ferramenta web grátis.**
+   - 🔎 Só existe o pacote R do Google (https://github.com/google/GeoexperimentsResearch).
+   - 🔎 Sinal de demanda: https://support.google.com/google-ads/answer/14102986.
+   - Entrou na C3a.
+3. **Leitura pós-teste:** o recurso básico está saturado (Convert, Kameleoon 🔎), mas
+   significância + IC + frase de julgamento + SRM automático junto não existe. Referência:
+   `proportions_ztest`, `confint_proportions_2indep`. Entrou na C2.
+4. **Tamanho de amostra para métrica contínua:**
+   - 🔎 Existe calculadora Welch genérica grátis (statskingdom).
+   - ✅ Com enquadramento de experimentação, só pago: https://analytics-toolkit.com/sample-size-calculator.
+   - Entrou na C4a.
+5. **A/B/n (Bonferroni/Dunnett):**
+   - 🔎 Há Dunnett post-hoc (metricgate, statscalculators), mas planejador não.
+   - Referência para leitura: `scipy.stats.dunnett` (SciPy ≥ 1.11).
+   - Entrou na C4b, só com Bonferroni.
+6. **Prior do MMM a partir do teste geo: sem ferramenta web.**
+   - ✅ Doc do Meridian:
+     https://developers.google.com/meridian/docs/advanced-modeling/roi-priors-and-calibration.
+   - 🔎 Demanda: https://pymc-labs.com/blog-posts/mmm_roas_lift.
+   - Entrou na C3b.
+7. **Fora, por estarem saturados:**
+   - SRM avulso: mais de 10 ferramentas grátis, entre elas https://www.lukasvermeer.nl/srm/;
+   - A/B bayesiano: mais de 8 ferramentas;
+   - Holm/BH;
+   - não-inferioridade;
+   - efeito de cluster (ICC), fora por ser nicho estreito.

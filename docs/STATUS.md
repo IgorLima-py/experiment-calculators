@@ -1,6 +1,86 @@
 # Status
 
-*Atualizado em 2026-09-24: publicado (sessão C3 do carreira-ai).*
+*Atualizado em 2026-09-29: roadmap da v2 desenhado pelo `/360`. Próxima fatia: C1.*
+
+## 27–29/09/2026: `/360` — a v2 tem roadmap
+
+**Bateria:** `bateria 7: 7/0/0`, rodada na abertura de 27/09. Esta sessão não mexeu em
+código (só `docs/` e `CLAUDE.md`), então não rodou de novo.
+
+**O que foi feito:**
+
+- **`docs/ROADMAP.md`**: 9 fatias, C1 → C6, cada uma com `sai:`, `verificar:` e prompt de
+  abertura pronto; o bloco 5 guarda as 19 decisões da entrevista. **`docs/PROXIMO.md`**
+  aponta a C1 (`dificil`, opus/high). **`docs/DESVIOS.md`** criado vazio.
+- **`CLAUDE.md`**: regra nova, "zero requisição a outro domínio no site publicado"; a seção
+  velha "A primeira sessão — planejamento" virou um ponteiro para o roadmap.
+- **Pesquisa de 27/09** registrada em `docs/REFERENCES.md` §8 (concorrência de novo e
+  candidatas a ferramenta).
+- `AGENTS.md` apagado a pedido do Igor. Tinha aparecido sem commit em 28/09, cópia idêntica do
+  `CLAUDE.md`, criado por alguma ferramenta que não é o Claude Code.
+
+**A avaliação brutal (auditoria do código + olho no site publicado):**
+
+- **Bom de verdade:** a matemática. Sete suítes, CI re-derivando tudo do scipy, três defeitos
+  pegos e publicados. Peeking, poder geo e CUPED interativo seguem sem concorrente grátis.
+- **Fraco:**
+  1. a suíte só planeja, não lê resultado;
+  2. a frase de julgamento (o produto) não tem teste, e já saiu errada uma vez;
+  3. visual genérico: tema escuro estilo GitHub, landing sem imagem, e a simulação do peeking
+     escondida atrás de um clique;
+  4. só taxa de conversão, 50/50 e dois braços;
+  5. a página do CUPED ensina e não aplica;
+  6. ferramenta nova exige editar 5+ arquivos duplicados à mão;
+  7. invisível: About vazio, e o `HOW-THIS-WAS-BUILT` não é linkado do site;
+  8. duas frases falsas no index: "Five free calculators", sendo a Tool 5 explicador, e o
+     absoluto "none of them".
+- **O MMM se conecta:** o artigo público do `mmm-meridian-vs-robyn` diz que MMM é o que se
+  calibra com teste geo; a ponte é a C3b.
+
+**O que falhou, e por quê:**
+
+- **Screenshot em branco** assim que o painel do browser ficou oculto (a armadilha de sempre).
+  Com o painel visível, o site publicado fotografou normal: landing e peeking. As fatias
+  visuais (C5a/C5b) ficaram presas à Karen por isso.
+- **O arquivo de plano do plan mode foi negado:** o `/360` declara
+  `disallowed-tools: Write`. O plano saiu no chat e foi aprovado pelo `ExitPlanMode`.
+- **Um dos dois verificadores do passe adversarial morreu pelo limite semanal de uso**
+  (reinicia 29/09, 11h), mas já tinha entregado o relatório inteiro antes. Nada se perdeu.
+
+**Medições (para não refazer):**
+
+- **Peso por página em 27/09**, HTML + CSS + JS + SVG da própria origem, sem compressão:
+  index 17,0 KB · peeking 67,5 · geo-holdout 57,3 · cuped 66,3. É a referência do teto de
+  +100 KB da C5a/C5b.
+- **Upstream do impeccable:** `LICENSE` com 10.766 bytes e `NOTICE.md` com 503 bytes, no
+  github.com/pbakaus/impeccable. A pasta local tem 2,2 MB (51 arquivos, v4.3.1).
+
+**Preso a esta máquina (Karen-v2):**
+
+- **Falta o stack de referência:** tem Python 3.14.3 e numpy, mas não tem **scipy nem
+  statsmodels**. A bateria passa porque só roda os checks em Node contra os JSON commitados.
+  Antes da C2: `python -m pip install -r requirements-dev.txt`.
+- **O `gh` agora está instalado** (2.98.0). A nota antiga lá embaixo dizia que não.
+- **O impeccable** está no nível de usuário (`~/.claude/skills/impeccable`), com o binário
+  em `~/.impeccable/bin/0.1.5`. Ele entra no projeto só no começo da C5a.
+
+**O que só o Igor faz:**
+
+- **Search Console:** criar a propriedade de prefixo de URL
+  `https://igorlima-py.github.io/experiment-calculators/` e ter o token de verificação em mãos
+  para a C1.
+- **About do GitHub:** continua vazio. O rascunho que passou pela `humanize` e o comando:
+
+  ```bash
+  gh repo edit IgorLima-py/experiment-calculators --description "Five free calculators for A/B tests and marketing experiments: sample size, minimum detectable effect, peeking, geo holdout and CUPED. Each result comes with one plain sentence on what it means and what would invalidate it. Every formula is checked against scipy, statsmodels and numpy on every push." --homepage "https://igorlima-py.github.io/experiment-calculators/" --add-topic ab-testing,experimentation,statistics,sample-size,power-analysis,cuped,sequential-testing,alpha-spending,geo-experiments,incrementality,vanilla-javascript,github-pages
+  ```
+
+  Atenção: esse texto diz "five calculators", e a C1 corrige exatamente isso no index. Se
+  aplicar agora, revise no C6.
+
+**Próximo passo concreto:** abrir a **C1 — frases testadas e guarda do site** numa sessão
+nova, em opus/high. O prompt de abertura está no `docs/ROADMAP.md`, e a primeira coisa que
+ele faz é pedir o token do Search Console.
 
 ## 24/09/2026: no ar
 
@@ -54,19 +134,8 @@ Tool 1 a um clique de distância.
 
 ## Próximo passo imediato
 
-**Abra <https://github.com/IgorLima-py/experiment-calculators/actions> e veja o
-resultado do workflow `validation` disparado por este push. Ele nunca rodou —
-foi escrito e testado só localmente.**
-
-Se falhar, o suspeito número um é o `python-version: '3.14'` em
-`.github/workflows/validation.yml` combinado com as versões fixadas do
-`requirements-dev.txt`: se `scipy==1.17.1` não tiver wheel para 3.14 no runner
-Linux, o passo "Install the reference stack" quebra. A correção é baixar para
-`'3.13'` no workflow — as tolerâncias do `RESULTS.md` não dependem da versão do
-Python, só das versões de scipy/statsmodels, que continuam fixadas.
-
-**Depois disso: virar o repositório público**, o que liga o GitHub Pages na
-conta free. Nada no código depende disso.
+*(Superado: o workflow rodou verde e o repositório é público desde 24/09. O próximo
+passo agora é a C1 do `docs/ROADMAP.md`; ver a seção de 27–29/09 no topo.)*
 
 ## O que NÃO foi verificado
 
@@ -79,7 +148,7 @@ conta free. Nada no código depende disso.
   console limpo, todos os links internos resolvem, uma `h1` por página. Isso
   pega estrutura e acessibilidade; **não** pega "está feio" nem "o gráfico
   ficou torto".
-- **O workflow do GitHub Actions nunca rodou.** Ver próximo passo.
+- ~~O workflow do GitHub Actions nunca rodou.~~ Rodou verde em 24/09.
 - **As imagens de OG nunca foram desdobradas de verdade** por Slack/LinkedIn —
   só dá para testar depois de público.
 - **Um único motor de browser.** Tudo em Chromium. Sem Safari, sem Firefox.
@@ -200,8 +269,8 @@ python -m pip install -r requirements-dev.txt
 
 ### Preso a esta máquina (não vale noutra)
 
-- `gh` **não** está instalado aqui; a API pública do GitHub foi usada via
-  `curl`. Noutra máquina, prefira o `gh` se existir.
+- `gh` agora está instalado aqui (2.98.0, conferido em 27/09); antes a API
+  pública do GitHub era usada via `curl`.
 - O `serve.py` na porta 8000 pode estar ocupado por outra sessão **nesta**
   máquina; noutra, `python serve.py 8000` sobe limpo.
 - O console é cp1252 **aqui**; noutra máquina o `print()` com acento
