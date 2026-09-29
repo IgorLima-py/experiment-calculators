@@ -15,7 +15,8 @@
  *   4. no page loads anything from another domain (the README promises no
  *      dependencies and no tracking);
  *   5. every validation/check_*.js is on the `bateria:` line of CLAUDE.md and
- *      in the CI workflow, and everything on that line exists.
+ *      in the CI workflow, and everything on that line exists;
+ *   6. the Search Console verification tag is still on the home page.
  *
  * Usage: node check_site.js
  */
@@ -234,6 +235,15 @@ for (const page of ['index.html', '404.html']) {
   }
   check('Every check on the bateria line and in CI (' + checks.length + ' of them)', problems);
 }
+
+/* ---- 6. the Search Console tag stays ---- */
+
+/* Usage is measured through Search Console because it runs nothing in the
+ * visitor's browser. Google re-checks the tag, and deleting it quietly
+ * un-verifies the property. */
+check('The Search Console verification tag is on the home page',
+  /<meta name="google-site-verification" content="[^"]+">/.test(html['index.html']) ? [] :
+    ['index.html has no google-site-verification meta tag']);
 
 /* ---- report ---- */
 
