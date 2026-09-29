@@ -44,21 +44,20 @@
   depois que a tag estiver no ar.
 - O docstring de `reference_tool1.py` dizia "statsmodels 1.14.6"; agora diz 0.14.6.
 
-**O que ficou para o Igor:**
+**Fechado depois do handoff, na mesma sessão:**
 
-1. **Revisar e dar o push para a `main`.** Nada foi enviado: o texto público novo (index, README,
-   404, `validation/README.md`) sai como rascunho, e o push publica o site. Os commits estão no
-   branch `claude/playbook-oi-34b0ed`.
-2. **Depois do deploy do Pages**, clicar em **Verificar** no Search Console. A aba ficou aberta
-   no Chrome, no diálogo de verificação, em Tag HTML. Se fechou, é "Termine a verificação" na
-   página inicial do Search Console.
-3. **O About do GitHub:** o rascunho da seção de 27–29/09 abaixo ainda diz "Five free
-   calculators". Troque por "Four free calculators and an interactive explainer" antes de
-   aplicar.
-
-**Não mexido, de propósito:** com MDE de 1,5% a Tool 2 diz "still well above what most single
-tweaks deliver", o que soa estranho para um efeito tão pequeno. Corrigir pede um limiar novo com
-origem medida, e a C1 era a fatia que não muda palavra. Vale olhar na C4a, que mexe na Tool 2.
+- O Igor deu o push para a `main`. O Pages publicou, e a tag está no ar (`curl` + `grep -c` = 1).
+- **Search Console verificado** pelo método Tag HTML, clicando pelo Chrome do Igor. O Google
+  re-checa a tag, e tirá-la desfaz a verificação: o `check_site.js` ganhou a 11ª checagem para
+  isso (sabotagem: sem a tag, sai 1).
+- **About do GitHub atualizado** (`gh repo edit`): "Four free calculators for A/B tests and
+  marketing experiments (...) and an interactive CUPED explainer". Topics e homepage já estavam.
+- **A frase da Tool 2 com MDE de 1,5% não foi mudada.** A pesquisa mostrou que ela não está
+  errada a 1,5%: o Qubit dá 90% dos efeitos abaixo de 1,2%. Ela só fica falsa abaixo de ~1%, e os
+  cortes de 20% e 100% não têm fonte. As fontes medem receita, não conversão; o registro está na
+  seção da C4a do `docs/ROADMAP.md`.
+- Ainda não submetido: o `sitemap.xml` no Search Console. É um clique em Sitemaps e fica
+  para a C6 (SEO).
 
 **Armadilhas desta sessão:**
 
@@ -70,7 +69,7 @@ origem medida, e a C1 era a fatia que não muda palavra. Vale olhar na C4a, que 
 - O erro de `importScripts` do worker no console é de navegar para outra página no meio do
   carregamento, e fica no buffer entre navegações.
 
-**Próximo passo concreto:** o push (item 1 acima) e, numa sessão nova em opus/high com plan
+**Próximo passo concreto:** numa sessão nova em opus/high com plan
 mode, a **C2 — leitura do teste**. O prompt de abertura está no `docs/ROADMAP.md`, e a primeira
 coisa dele é conferir o scipy e o statsmodels: esta máquina não tinha os dois em 27/09.
 

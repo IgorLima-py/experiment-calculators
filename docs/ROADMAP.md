@@ -252,6 +252,15 @@ fixa; a função da frase e os casos; casos de casamento de momentos no `referen
 
 **persona:** quem leva a suíte além da taxa de conversão: receita por usuário e ticket médio,
 planejados e lidos com o mesmo rigor.
+**também, da C1 (29/09):** os cortes de 20% e 100% do veredito da Tool 2 não têm fonte, e a
+frase de menos de 20% ("well above what most single tweaks deliver") fica falsa com MDE abaixo de
+~1%. Pesquisa de 29/09, lida por subagente: Browne & Jones 2017 (Qubit, ~6.700 testes,
+https://gwern.net/doc/economics/advertising/2017-browne.pdf) dá 90% dos efeitos abaixo de 1,2%,
+mas em receita por visitante, não em conversão; Georgiev 2018 e 2022 (analytics-toolkit.com) dão
+58% dos efeitos entre −3% e +10% e mediana dos vencedores de 6–7,5%, com viés de seleção;
+Kohavi, Deng & Vermeer 2022 chamam 10% de "large" para um teste só, sem distribuição. Não há
+distribuição publicada de lift em taxa de conversão. Se a C4a mexer nos cortes, cite isto e as
+ressalvas na página.
 **entra:** `assets/experiments.js`, `assets/stats.js` (a t não-central já existe);
 `tools/sample-size.html`, `tools/mde.html`, `tools/readout.html`; `assets/judgement.js`;
 `validation/reference_tool1.py`, `reference_tool2.py`, `reference_tool6.py` e os checks;
