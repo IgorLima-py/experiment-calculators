@@ -6,16 +6,16 @@
 > Quem lê: o hook de abertura do plugin `playbook` (`sessao-abre.ps1`), e o `/oi` quando não há hook.
 > Quem escreve: o `/tchau`, ao avançar o ponteiro, e o `/360`, ao desenhar o roadmap.
 
-chat: C1
-titulo: frases testadas e guarda do site
+chat: C2
+titulo: leitura do teste
 perfil: dificil
 modelo: opus
 esforco: high
 forma: sessao
 maquina: qualquer
-plan-mode: nao
-persona: quem tira a frase de julgamento de dentro do HTML e a põe sob teste, sem mudar uma palavra do que as ferramentas dizem hoje
-objetivo: assets/judgement.js + check_judgement.js + check_site.js na bateria (9/0/0), as duas frases falsas do index corrigidas, meta tag do Search Console
+plan-mode: sim
+persona: estatístico que escreve a leitura de resultado que ninguém faz de graça: o número, o intervalo, e o que invalida os dois
+objetivo: tools/readout.html com lift, IC, p, SRM checado antes e erro tipo M; reference_tool6.py + check_tool6.js; a ferramenta em todo lugar que o check_site.js cobra; bateria 10/0/0
 
 <!--
 `modelo:` e `esforco:` são SEMPRE re-resolvidos pelo /tchau a partir da tabela de perfis do

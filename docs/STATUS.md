@@ -1,6 +1,78 @@
 # Status
 
-*Atualizado em 2026-09-29: roadmap da v2 desenhado pelo `/360`. Próxima fatia: C1.*
+*Atualizado em 2026-09-29: C1 fechada. Próxima fatia: C2.*
+
+## 29/09/2026: C1 — frases testadas e guarda do site
+
+**Bateria:** `bateria 9: 9/0/0`, medida comando a comando no fim da sessão.
+
+**O que foi feito:**
+
+- **`assets/judgement.js`:** as frases de julgamento das cinco páginas saíram do HTML. Agora
+  há uma função pura por ferramenta, que recebe números e devolve o HTML da frase. Nenhuma
+  palavra mudou:
+  - antes de editar, capturei 19 URLs (defaults e parâmetros que forçam cada ramo). O
+    `innerText` e o HTML da `.judgement` deram o mesmo hash antes e depois, nas 19;
+  - o Node reproduz as 19 frases byte a byte.
+- **`validation/check_judgement.js`:** 24 casos.
+  - Texto fixado nos defaults das cinco ferramentas.
+  - Um caso por ramo, e os limites de 20%, 100% e spread 0,05.
+  - O número de peeking da Tool 1 comparado com o do peeking checker a 1%, 5% e 10%.
+- **`validation/check_site.js`:** 10 checagens.
+  - Toda ferramenta no nav, na home, no 404, no sitemap, na tabela do README e no `PAGES` do
+    `build_og.py`.
+  - As imagens de prévia existem, e os 100 `src`/`href` locais resolvem.
+  - Nada carrega de outro domínio (a regra do `CLAUDE.md`, que não estava na fatia).
+  - Todo `check_*.js` está na linha `bateria:` e no workflow.
+- **Os dois checks novos** entraram na linha `bateria:` e no workflow, no job `numerics`.
+- **Sabotagem com `;`:** saem ≠ 0 e o sha256 dos restaurados bate, nos três casos:
+  - trocar "55–80%" por "55–85%" faz o `check_judgement` sair com 1;
+  - tirar o CUPED do `sitemap.xml` faz o `check_site` sair com 1;
+  - recolocar o bug de agosto ("14.2%" fixo no Tool 1) quebra 5 dos 24 casos.
+- **Frases falsas corrigidas, com a prosa passando pela `humanize` e o `conferir.py` saindo 0:**
+  - "five calculators" virou "four free calculators and an interactive explainer" no index
+    (3 meta), no README, no 404 e na `assets/og/home.png`. A imagem foi regerada, e as outras
+    seis saíram idênticas byte a byte;
+  - "none of them" virou "only a few warn you when it might be a lie", citando o ABTestGuide;
+  - "fifty free calculators" não tinha origem (vinha da tese do `BRIEF.md`) e virou "There
+    are free A/B test calculators everywhere".
+- **`validation/README.md` reescrito:** documenta os pares `reference_*.py`/`check_*.js` e os
+  dois checks novos, e diz que os `verify_*.py` ficam só como registro.
+- **Search Console:** criei a propriedade de prefixo de URL
+  `https://igorlima-py.github.io/experiment-calculators/` pelo Chrome do Igor. A meta tag está
+  no `index.html` (`grep -c` = 1). **Ainda não verificada:** o Google só consegue verificar
+  depois que a tag estiver no ar.
+- O docstring de `reference_tool1.py` dizia "statsmodels 1.14.6"; agora diz 0.14.6.
+
+**O que ficou para o Igor:**
+
+1. **Revisar e dar o push para a `main`.** Nada foi enviado: o texto público novo (index, README,
+   404, `validation/README.md`) sai como rascunho, e o push publica o site. Os commits estão no
+   branch `claude/playbook-oi-34b0ed`.
+2. **Depois do deploy do Pages**, clicar em **Verificar** no Search Console. A aba ficou aberta
+   no Chrome, no diálogo de verificação, em Tag HTML. Se fechou, é "Termine a verificação" na
+   página inicial do Search Console.
+3. **O About do GitHub:** o rascunho da seção de 27–29/09 abaixo ainda diz "Five free
+   calculators". Troque por "Four free calculators and an interactive explainer" antes de
+   aplicar.
+
+**Não mexido, de propósito:** com MDE de 1,5% a Tool 2 diz "still well above what most single
+tweaks deliver", o que soa estranho para um efeito tão pequeno. Corrigir pede um limiar novo com
+origem medida, e a C1 era a fatia que não muda palavra. Vale olhar na C4a, que mexe na Tool 2.
+
+**Armadilhas desta sessão:**
+
+- O `innerWidth` dá 0 com o painel do browser oculto, e aí toda página "tem overflow".
+  Emulando 375 px (`resize_window` mobile), a home não tem.
+- Remover os `<script>` antes de medir o `textContent` deixa um `\n` por tag. Uma tag nova
+  muda o hash sem mudar o texto: foram 3310 contra 3309 caracteres, exatamente o `\n`. Compare
+  pelo `innerText` e pelo HTML da frase.
+- O erro de `importScripts` do worker no console é de navegar para outra página no meio do
+  carregamento, e fica no buffer entre navegações.
+
+**Próximo passo concreto:** o push (item 1 acima) e, numa sessão nova em opus/high com plan
+mode, a **C2 — leitura do teste**. O prompt de abertura está no `docs/ROADMAP.md`, e a primeira
+coisa dele é conferir o scipy e o statsmodels: esta máquina não tinha os dois em 27/09.
 
 ## 27–29/09/2026: `/360` — a v2 tem roadmap
 
