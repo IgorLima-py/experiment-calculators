@@ -74,6 +74,19 @@ jobs:
         working-directory: validation
         run: python reference_tool5.py && node check_tool5.js
 
+      # The sentence under each result is what the site is for, and it has
+      # shipped wrong before. The steps above check the arithmetic; this one
+      # checks the words built from it.
+      - name: Judgement sentences
+        working-directory: validation
+        run: node check_judgement.js
+
+      # A tool missing from the nav, the sitemap or this workflow still works;
+      # it just cannot be found, or is never tested. Nothing else would notice.
+      - name: Every tool linked from everywhere, every check run
+        working-directory: validation
+        run: node check_site.js
+
       # The validation page is generated from RESULTS.md and committed. Without
       # this step an edit to the Markdown that nobody rebuilt would leave the
       # published page quietly claiming something the repository no longer says
