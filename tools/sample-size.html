@@ -113,6 +113,9 @@
 
   <div class="judgement" id="judgement"></div>
 
+  <p><a id="readout-link" href="readout.html">Test finished? Read your result
+  against this plan →</a></p>
+
   <div class="share">
     <button type="button" class="btn" id="copy">Copy link</button>
     <span class="note">Inputs live in the URL. Send this link to a colleague.</span>
@@ -181,10 +184,21 @@
     days: document.getElementById('out-days'),
     rates: document.getElementById('out-rates'),
     warn: document.getElementById('warn'),
-    judgement: document.getElementById('judgement')
+    judgement: document.getElementById('judgement'),
+    readout: document.getElementById('readout-link')
   };
 
+  /* The readout needs the effect this test was planned for, as a relative
+   * lift, to say how much a significant result is likely exaggerating. */
+  function readoutLink(v) {
+    var relative = v.rel === 1 ? v.mde : v.mde / v.base * 100;
+    var parts = ['mde=' + Number(relative.toFixed(4))];
+    if (v.alpha !== 5) parts.push('alpha=' + v.alpha);
+    return 'readout.html?' + parts.join('&');
+  }
+
   function render(v) {
+    out.readout.href = readoutLink(v);
     var p1 = v.base / 100;
     var delta = Experiments.absoluteEffect(p1, v.mde / 100, v.rel === 1);
     var p2 = p1 + delta;

@@ -87,7 +87,9 @@ var UI = (function () {
       if (el.type === 'checkbox') {
         el.checked = !!values[key];
       } else {
-        el.value = String(values[key]);
+        /* A field whose default is null is optional: left empty, it means
+         * "not given", and it has to show as empty rather than as "null". */
+        el.value = values[key] === null ? '' : String(values[key]);
       }
     }
   }

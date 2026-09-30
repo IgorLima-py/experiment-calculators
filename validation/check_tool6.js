@@ -99,6 +99,20 @@ for (const c of ref.type_m) {
   typeMRows.push({ c, rd, sigmas });
 }
 
+/* The page's composition: Readout.analyse takes the planned lift on the
+ * observed control rate and the standard error from the data. */
+const plannedRows = [];
+for (const c of ref.planned) {
+  const a = Readout.analyse({ na: c.na, ca: c.ca, nb: c.nb, cb: c.cb, split: 0.5,
+                              alpha: c.alpha, mde: c.mde });
+  compare('Planned effect on the observed control rate (relative)', a.typeM.effect, c.effect, true);
+  compare('Standard error of the difference (relative)', a.typeM.se, c.se, true);
+  compare('Power', a.typeM.power, c.power, false);
+  compare('Exaggeration vs the closed form in scipy (relative)',
+          a.typeM.exaggeration, c.exaggeration, true);
+  plannedRows.push({ c, a });
+}
+
 /* Gelman & Carlin print these rounded, and their exaggeration comes from a
  * 10,000-draw simulation (retrodesign's default), so it can sit a rounding
  * step away: their 1.12 at 80% power is 1.1252 in closed form. The check is
@@ -143,6 +157,14 @@ for (const { c, rd, sigmas } of typeMRows) {
   console.log(`| ${c.lambda} | ${pct(c.alpha, 0)}% | ${rd.power.toFixed(4)} | ` +
     `${rd.typeS.toFixed(4)} | ${rd.exaggeration.toFixed(4)} | ` +
     `${c.mc_exaggeration.toFixed(4)} | ${sigmas.toFixed(1)} |`);
+}
+console.log('');
+console.log('| Control | Variant | Planned lift | α | Effect (pp) | Standard error (pp) | Power | Exaggeration |');
+console.log('|---|---|---:|---:|---:|---:|---:|---:|');
+for (const { c, a } of plannedRows) {
+  console.log(`| ${n(c.ca)} / ${n(c.na)} | ${n(c.cb)} / ${n(c.nb)} | ${pct(c.mde, 0)}% | ` +
+    `${pct(c.alpha, 0)}% | ${pct(a.typeM.effect, 3)} | ${pct(a.typeM.se, 3)} | ` +
+    `${a.typeM.power.toFixed(4)} | ${a.typeM.exaggeration.toFixed(4)} |`);
 }
 console.log('');
 console.log('| Gelman & Carlin (2014) | They print | This tool |');

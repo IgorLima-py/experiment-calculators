@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A/B test result readout</title>
+<meta name="description" content="Read a finished A/B test: lift with a confidence interval, the p-value, a sample ratio mismatch check first, and how much a significant result is likely exaggerating.">
+<link rel="canonical" href="https://igorlima-py.github.io/experiment-calculators/tools/readout.html">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://igorlima-py.github.io/experiment-calculators/tools/readout.html">
+<meta property="og:title" content="A/B test result readout">
+<meta property="og:description" content="Read a finished A/B test: lift with a confidence interval, the p-value, a sample ratio mismatch check first, and how much a significant result is likely exaggerating.">
+<meta property="og:image" content="https://igorlima-py.github.io/experiment-calculators/assets/og/readout.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="A/B test result readout">
+<meta name="twitter:description" content="Read a finished A/B test: lift with a confidence interval, the p-value, a sample ratio mismatch check first, and how much a significant result is likely exaggerating.">
+<meta name="twitter:image" content="https://igorlima-py.github.io/experiment-calculators/assets/og/readout.png">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-header">
+  <a class="home" href="../index.html">Experimentation calculators</a>
+  <nav class="site-nav">
+    <a href="sample-size.html">Sample size</a>
+    <a href="mde.html">Detectable effect</a>
+    <a href="peeking.html">Peeking checker</a>
+    <a href="readout.html" aria-current="page">Test readout</a>
+    <a href="geo-holdout.html">Geo holdout</a>
+    <a href="cuped.html">CUPED &amp; ratio metrics</a>
+  </nav>
+</header>
+
+<main>
+  <h1>A/B test result readout</h1>
+  <p class="tool-sub">Your test is finished. What it found, how sure you can be,
+  and whether the traffic split came out the way you planned.</p>
+
+  <div class="fields">
+    <div class="field">
+      <label for="na">Control: users</label>
+      <input type="number" id="na" step="1" min="1" inputmode="numeric">
+    </div>
+
+    <div class="field">
+      <label for="ca">Control: conversions</label>
+      <input type="number" id="ca" step="1" min="0" inputmode="numeric">
+    </div>
+
+    <div class="field">
+      <label for="nb">Variant: users</label>
+      <input type="number" id="nb" step="1" min="1" inputmode="numeric">
+    </div>
+
+    <div class="field">
+      <label for="cb">Variant: conversions</label>
+      <input type="number" id="cb" step="1" min="0" inputmode="numeric">
+    </div>
+
+    <div class="field">
+      <label for="split">Planned share in control</label>
+      <input type="number" id="split" step="1" min="1" max="99" inputmode="decimal">
+      <span class="hint">Percent. 50 for an even split, 90 for a 90/10 holdout.</span>
+    </div>
+
+    <div class="field">
+      <label for="alpha">Significance level</label>
+      <input type="number" id="alpha" step="0.01" min="0.01" max="50" inputmode="decimal">
+      <span class="hint">Percent. The one you planned with. 5 is conventional.</span>
+    </div>
+
+    <div class="field field-span">
+      <label for="mde">Lift you planned to detect</label>
+      <input type="number" id="mde" step="0.1" min="0" inputmode="decimal" placeholder="Optional">
+      <span class="hint">Relative lift in percent, from your
+      <a href="sample-size.html">sample-size plan</a>. Leave it empty if you had
+      none. The observed lift is never used here, on purpose.</span>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="result-main">
+      <span class="result-value" id="out-rel">--</span>
+      <span class="result-label">relative lift, variant over control</span>
+      <span class="result-label" id="out-srm"></span>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <span class="result-value" id="out-rates">--</span>
+        <span class="result-label">conversion, control → variant</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-diff">--</span>
+        <span class="result-label">difference</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-p">--</span>
+        <span class="result-label">p-value, two-sided</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-ci">--</span>
+        <span class="result-label" id="out-ci-label">interval for the difference</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-ci-rel">--</span>
+        <span class="result-label" id="out-ci-rel-label">interval for the relative lift</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-m">--</span>
+        <span class="result-label" id="out-m-label">exaggeration if significant</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn" id="warn"></div>
+
+  <div class="judgement" id="judgement"></div>
+
+  <div class="share">
+    <button type="button" class="btn" id="copy">Copy link</button>
+    <span class="note">Inputs live in the URL. Send this link to a colleague.</span>
+  </div>
+
+  <details class="honesty">
+    <summary>What this assumes, and what it does not cover</summary>
+    <ul>
+      <li><strong>The traffic split is checked first.</strong> A chi-square
+      test of the users in each arm against the split you planned, with no
+      continuity correction. Below p = 0.001 the page does not read the lift at
+      all. Eppo and GrowthBook use the same threshold; Microsoft's
+      experimentation team uses a stricter 0.0005, and Lukas Vermeer's retired
+      checker a looser 0.01.</li>
+      <li><strong>Normal approximation.</strong> The p-value is the standard
+      two-proportion z-test with the variance pooled under the null, the same
+      number a chi-square test on the 2×2 table gives. With fewer than 10
+      conversions (or non-conversions) in an arm it stops being reliable, and
+      the page warns you.</li>
+      <li><strong>The interval for the difference is Newcombe's</strong>, built
+      from the two Wilson intervals. It keeps its coverage when a rate is near
+      zero or an arm is small, where the textbook Wald interval does not. At
+      large samples the two agree to the second decimal.</li>
+      <li><strong>The interval for the relative lift</strong> comes from the log
+      of the ratio of the two rates, so it is not symmetric around the lift,
+      and it needs at least one conversion in each arm.</li>
+      <li><strong>The exaggeration ratio (type M error)</strong> is Gelman and
+      Carlin's: if the true lift were the one you planned for, how much a
+      significant estimate would overstate it on average. It uses your planned
+      lift on the observed control rate and the standard error from your data,
+      never the lift you observed. Power computed from the observed lift is a
+      restatement of the p-value and tells you nothing new.</li>
+      <li><strong>Two-sided only, one metric, one look.</strong> Checking the
+      result along the way (see the <a href="peeking.html">peeking
+      checker</a>) or choosing the best of several metrics afterwards makes
+      every number here look better than it is.</li>
+      <li><strong>Not covered:</strong> revenue and other continuous metrics,
+      more than two variants, sequential or always-valid designs, CUPED-adjusted
+      estimates, and users who are not independent of each other.</li>
+    </ul>
+    <p>Cross-checked against <code>statsmodels</code>
+    (<code>proportions_ztest</code>, <code>confint_proportions_2indep</code>),
+    <code>scipy.stats.chisquare</code>, and a Monte Carlo for the exaggeration
+    ratio. See <a href="../validation/index.html">the published comparison</a>.</p>
+  </details>
+</main>
+
+<footer class="site-footer">
+  <p>Part of a small suite of experimentation calculators. Every result comes
+  with the caveat that would invalidate it, and every formula is checked against
+  a reference implementation.</p>
+  <p>Built by <a href="https://github.com/IgorLima-py">Igor Lima</a>.</p>
+</footer>
+
+</div>
+
+<script src="../assets/stats.js"></script>
+<script src="../assets/sequential.js"></script>
+<script src="../assets/readout.js"></script>
+<script src="../assets/ui.js"></script>
+<script src="../assets/judgement.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* Defaults: a test the size the sample size page plans at its own defaults
+   * (5% baseline, 10% lift, about 31,000 users an arm), which came out ahead. */
+  var SPEC = {
+    na:    { def: 31500, min: 1, max: 1e10 },
+    ca:    { def: 1575,  min: 0, max: 1e10 },
+    nb:    { def: 31500, min: 1, max: 1e10 },
+    cb:    { def: 1740,  min: 0, max: 1e10 },
+    split: { def: 50,    min: 1, max: 99 },
+    alpha: { def: 5,     min: 0.01, max: 50 },
+    mde:   { def: null,  min: 0, max: 100000 }
+  };
+
+  var ids = ['rel', 'srm', 'rates', 'diff', 'p', 'ci', 'ci-label', 'ci-rel',
+             'ci-rel-label', 'm', 'm-label'];
+  var out = {};
+  ids.forEach(function (id) { out[id] = document.getElementById('out-' + id); });
+  var warn = document.getElementById('warn');
+  var judgement = document.getElementById('judgement');
+
+  var INVALID = {
+    counts: 'Users and conversions are counts of people: whole numbers, none ' +
+      'of them negative.',
+    empty: 'Each arm needs at least one user.',
+    conversions: 'An arm cannot have more conversions than users.',
+    degenerate: 'Nobody converted in either arm, or everybody did, so there is ' +
+      'no difference to read.'
+  };
+
+  function signed(x, digits, unit) {
+    if (!isFinite(x)) return '--';
+    return (x > 0 ? '+' : '') + UI.decimal(x, digits) + unit;
+  }
+
+  function range(ci, scale, digits, unit) {
+    if (!ci) return '--';
+    return signed(ci.lo * scale, digits, '') + ' to ' + signed(ci.hi * scale, digits, unit);
+  }
+
+  function blank() {
+    ['rel', 'rates', 'diff', 'p', 'ci', 'ci-rel', 'm'].forEach(function (id) {
+      out[id].textContent = '--';
+    });
+    out.srm.textContent = '';
+    out['ci-label'].textContent = 'interval for the difference';
+    out['ci-rel-label'].textContent = 'interval for the relative lift';
+    out['m-label'].textContent = 'exaggeration if significant';
+  }
+
+  function render(v) {
+    var r = Readout.analyse({
+      na: v.na, ca: v.ca, nb: v.nb, cb: v.cb,
+      split: v.split / 100, alpha: v.alpha / 100,
+      mde: v.mde === null ? null : v.mde / 100
+    });
+
+    blank();
+    if (r.invalid) {
+      warn.innerHTML = INVALID[r.invalid];
+      judgement.innerHTML = '';
+      return;
+    }
+
+    out.srm.textContent = 'Traffic split: ' +
+      UI.percent(r.srm.observedShareA * 100, 1) + ' in control against ' +
+      UI.percent(r.srm.plannedShareA * 100, 1) + ' planned (mismatch test p = ' +
+      UI.pValue(r.srm.p) + ')';
+
+    /* A mismatched split voids the comparison: the lift is not shown, only
+     * the verdict on the split. */
+    if (r.srm.flagged) {
+      warn.innerHTML = '';
+      judgement.innerHTML = Judgement.readout(r);
+      return;
+    }
+
+    var level = UI.percent((1 - r.alpha) * 100, 0);
+    out.rel.textContent = signed(r.relative * 100, 1, '%');
+    out.rates.textContent = UI.percent(r.rateA * 100, 2) + ' → ' +
+      UI.percent(r.rateB * 100, 2);
+    out.diff.textContent = signed(r.diff * 100, 2, ' pp');
+    out.p.textContent = UI.pValue(r.p);
+    out.ci.textContent = range(r.ciDiff, 100, 2, ' pp');
+    out['ci-label'].textContent = level + ' interval for the difference';
+    out['ci-rel'].textContent = range(r.ciRelative, 100, 1, '%');
+    out['ci-rel-label'].textContent = level + ' interval for the relative lift';
+
+    if (r.typeM) {
+      out.m.textContent = UI.decimal(r.typeM.exaggeration, 1) + '×';
+      out['m-label'].textContent = 'exaggeration if significant, at ' +
+        UI.percent(r.typeM.power * 100, 0) + ' power for a ' +
+        UI.percent(v.mde, 1) + ' lift';
+    } else {
+      out['m-label'].textContent = 'exaggeration if significant: enter the ' +
+        'lift you planned';
+    }
+
+    warn.innerHTML = r.countsOk ? '' :
+      '<strong>Treat this reading as indicative.</strong> One arm has fewer ' +
+      'than 10 conversions, or fewer than 10 users who did not convert. That ' +
+      'is where the normal approximation behind this page stops being ' +
+      'reliable. Use Fisher\'s exact test for a test this small.';
+
+    judgement.innerHTML = Judgement.readout(r);
+  }
+
+  UI.attach(SPEC, render);
+  UI.initCopyButton('copy');
+})();
+</script>
+</body>
+</html>

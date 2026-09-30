@@ -127,10 +127,31 @@ published = [
      "power": 0.05, "type_s": 0.46},
 ]
 
+# The page's own composition: the planned relative lift taken on the observed
+# control rate, against the unpooled standard error of the observed
+# difference. (control users, conversions, variant users, conversions,
+# planned relative lift, alpha)
+PLANNED = [
+    (31500, 1575, 31500, 1740, 0.10, 0.05),
+    (4000, 200, 4000, 245, 0.10, 0.05),   # the underpowered example on the page
+    (4000, 200, 4000, 230, 0.10, 0.05),
+    (20000, 1000, 20000, 1100, 0.05, 0.01),
+]
+
+planned = []
+for na, ca, nb, cb, mde, alpha in PLANNED:
+    pa, pb = ca / na, cb / nb
+    effect = pa * mde
+    se = math.sqrt(pa * (1 - pa) / na + pb * (1 - pb) / nb)
+    power, type_s, m = closed_form(effect / se, alpha)
+    planned.append({"na": na, "ca": ca, "nb": nb, "cb": cb, "mde": mde,
+                    "alpha": alpha, "effect": effect, "se": se,
+                    "power": power, "type_s": type_s, "exaggeration": m})
+
 out = os.path.join(HERE, "reference_tool6.json")
 with open(out, "w", encoding="utf-8") as fh:
-    json.dump({"readouts": readouts, "type_m": type_m, "published": published},
-              fh, indent=1)
+    json.dump({"readouts": readouts, "type_m": type_m, "published": published,
+               "planned": planned}, fh, indent=1)
 
 print("wrote", out,
       f"({len(readouts)} readouts, {len(type_m)} type M cases, {DRAWS:,} draws each)")
