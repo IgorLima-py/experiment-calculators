@@ -806,6 +806,93 @@ GeoLift (synthetic control) and time-based regression use each market's full
 history and remain the better methods when that history is available. The page
 says so.
 
+### Handing the result to a mix model
+
+The page writes what the test measured in the two forms the open-source
+marketing mix models take it, as of **Meridian v2.1.0** (release tag and PyPI,
+read on 2026-09-30) and **Robyn v3.12.0** (the latest release tag; `main`
+carries an unreleased 3.12.1). `check_tool7.js` fails if the page's prose, its
+code and this section stop quoting the same two tags.
+
+**Meridian** takes a lognormal prior on each channel's ROI. The page gives it
+the iROAS as its mean and the iROAS's standard error (the fit's, scaled like
+the estimate) as its standard deviation. Matching those two moments has a
+closed form:
+
+  σ² = ln(1 + (sd / mean)²),  μ = ln(mean) − σ² / 2
+
+It is the same two lines as Meridian's own
+[`lognormal_dist_from_mean_std`](https://github.com/google/meridian/blob/v2.1.0/meridian/model/prior_distribution.py),
+which the page's snippet calls, and the same prior the page prints as
+LogNormal(μ, σ). The reference does not use the closed form. It root-finds on
+`scipy.stats.lognorm`'s own `.std()` / `.mean()` for the shape σ, sets the
+scale so the mean lands on target, and records scipy's mean, standard
+deviation, median and central interval of the result.
+The page's closed form has to land on the same μ and σ, and scipy's moments of
+that distribution have to be the iROAS and standard error it started from.
+
+| Case | Mean (iROAS) | SD (standard error) | μ | σ | Median | Central range | Level |
+|---|---:|---:|---:|---:|---:|---|---:|
+| example | 2.011 | 0.7692 | 0.63 | 0.370 | 1.878 | 1.02 to 3.45 | 90% |
+| few markets | 4.959 | 1.585 | 1.55 | 0.312 | 4.724 | 2.83 to 7.89 | 90% |
+| all US DMAs | 0.9629 | 0.8074 | −0.30 | 0.730 | 0.7378 | 0.177 to 3.08 | 95% |
+| no effect | 0.1663 | 0.1105 | −1.98 | 0.605 | 0.1385 | 0.0512 to 0.374 | 90% |
+| biggest markets held out | 4.560 | 1.856 | 1.44 | 0.392 | 4.223 | 2.56 to 6.98 | 80% |
+| mean 2, cv 0.01 | 2.000 | 0.02000 | 0.69 | 0.010 | 2.000 | 1.97 to 2.03 | 90% |
+| mean 2, cv 0.1 | 2.000 | 0.2000 | 0.69 | 0.100 | 1.990 | 1.69 to 2.34 | 90% |
+| mean 2, cv 0.3 | 2.000 | 0.6000 | 0.65 | 0.294 | 1.916 | 1.18 to 3.10 | 90% |
+| mean 2, cv 0.5 | 2.000 | 1.000 | 0.58 | 0.472 | 1.789 | 0.822 to 3.89 | 90% |
+| mean 2, cv 1 | 2.000 | 2.000 | 0.35 | 0.833 | 1.414 | 0.360 to 5.56 | 90% |
+| mean 2, cv 2 | 2.000 | 4.000 | −0.11 | 1.269 | 0.8944 | 0.111 to 7.21 | 90% |
+| mean 2, cv 5 | 2.000 | 10.00 | −0.94 | 1.805 | 0.3922 | 0.0201 to 7.64 | 90% |
+
+The check also runs the same grid at means of 0.05 and 50 (26 cases in all).
+σ depends only on the coefficient of variation, so those rows repeat the σ
+column above with μ shifted by ln(mean / 2).
+
+Two things the table shows that the page's sentence says out loud:
+
+- **The prior cannot go below zero, and the test's interval can.** In "all US
+  DMAs" the 95% interval for the iROAS runs from −0.63 to 2.55. The prior with
+  the same mean and standard deviation puts its central 95% between 0.18 and
+  3.08. When the test's interval crosses zero, the page quotes the prior's own
+  range next to it.
+- **The noisier the test, the further the median falls below the mean.** At a
+  coefficient of variation of 1 the median is 71% of the mean, at 5 it is 20%.
+  The mean is the test's estimate either way.
+
+When the iROAS is zero or less there is no lognormal to match, and the page
+writes no prior rather than a small positive stand-in.
+
+This is the narrowest prior the test supports.
+Meridian's guide to
+[ROI priors and calibration](https://developers.google.com/meridian/docs/advanced-modeling/roi-priors-and-calibration)
+says translating a test into a prior adds "an additional layer of uncertainty
+beyond just the experiment's standard error". Its `CalibrationBuilder` (since
+2.0.0) widens the prior for a short test, a spend level unlike the channel's
+and a result that has aged, then fits the family by cross-entropy rather than by
+moments ([priors from past experiments](https://developers.google.com/meridian/docs/advanced-modeling/set-custom-priors-past-experiments)). The page makes none of those adjustments and says so.
+
+**Robyn** takes one row of `calibration_input` per experiment. The columns
+and what the page puts in them, from
+[the v3.12.0 demo script](https://github.com/facebookexperimental/Robyn/blob/v3.12.0/demo/demo.R)
+and `check_calibration` in `R/R/checks.R`:
+
+| Column | The page writes | Why |
+|---|---|---|
+| `channel` | a placeholder | must be a name in `paid_media_spends` or `organic_vars` |
+| `liftStartDate`, `liftEndDate` | placeholders | the page never sees dates; Robyn stops if they fall outside the modelling window |
+| `liftAbs` | the incremental revenue (or conversions), the point estimate | "Robyn only accepts point-estimate as calibration input" |
+| `spend` | the spend entered | Robyn warns if it is more than 10% off the channel's spend over those dates |
+| `confidence` | 1 − p, rounded down to three decimals | the demo's suggestion for a frequentist test; Robyn warns below 0.8 and uses it for nothing else |
+| `metric` | a placeholder | must equal `dep_var` |
+| `calibration_scope` | `"immediate"` | the demo's choice for experiments; `"total"` is for another MMM's output |
+
+A test measured in conversions goes to Robyn as conversions, if the model's
+`dep_var` counts conversions. Meridian's ROI is revenue over spend, so the page
+needs a value per conversion before it can write the prior. That value comes
+from the visitor, and the page says so in a fixed sentence.
+
 ### The pasted data
 
 One market per line, ending with its group, its pre-period and its test period.
@@ -826,6 +913,10 @@ default spend and significance level.
 - p-value: **9.0e-13**
 - Incremental revenue, iROAS and their intervals: **7.0e-12** (relative)
 - Within-group pre-period correlation vs numpy on the residuals: **8.9e-16**
+- Lognormal prior, the page's closed form vs scipy's root-find: μ **5.5e-16**,
+  σ **5.0e-13**, central interval **8.4e-15**
+- scipy's mean and standard deviation of that prior vs the iROAS and standard
+  error it was built from: **1.4e-16** and **5.5e-14**
 
 ### What the tolerances mean
 
@@ -836,3 +927,10 @@ default spend and significance level.
   Centring the pre-period, which the page does, changes nothing measurable at
   these sizes (7.1e-12 without it); the check cannot tell the two apart, and
   it is not meant to.
+- **5e-11, relative, on the lognormal prior.** The worst error measured on
+  2026-09-30 was 5.0e-13, on σ in the cases with a coefficient of variation of
+  1%. There scipy's `.std()` forms exp(s²) − 1 without `expm1` and loses
+  digits (5.5e-14 on the standard deviation itself), and the root-find
+  inherits them. The grid stops at 1% for that reason. The page's own prior,
+  built from its regression, is held to the 1e-9 above, since its inputs carry
+  the regression's 7e-12.

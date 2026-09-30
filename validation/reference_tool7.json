@@ -1211,5 +1211,397 @@
    "diff_se": 13581.793159434987
   }
  ],
- "example_text": "market     group    pre      post\nMarket 01  test     99610    103334\nMarket 02  test     70535    81086\nMarket 03  test     41823    43502\nMarket 04  control  142709   149576\nMarket 05  test     59564    62847\nMarket 06  control  42915    44771\nMarket 07  test     9329     10272\nMarket 08  control  93043    98022\nMarket 09  test     28571    31814\nMarket 10  control  38167    39080\nMarket 11  test     142931   148683\nMarket 12  test     50984    56206\nMarket 13  control  118102   118920\nMarket 14  control  131205   130177\nMarket 15  test     75515    78787\nMarket 16  test     34527    39248\nMarket 17  test     66290    72495\nMarket 18  test     23622    26387\nMarket 19  test     82144    89564\nMarket 20  control  14929    14987\nMarket 21  test     190410   204614\nMarket 22  test     88592    102674\nMarket 23  test     72779    76368\nMarket 24  control  25848    27017\nMarket 25  test     67843    68482\nMarket 26  test     31372    31843\nMarket 27  test     49167    54157\nMarket 28  control  180577   198057\nMarket 29  test     122555   131678\nMarket 30  test     41999    45086\nMarket 31  test     201856   214229\nMarket 32  test     49153    53058\nMarket 33  test     42604    46361\nMarket 34  test     36248    38929\nMarket 35  test     56090    56658\nMarket 36  control  75470    74614\nMarket 37  test     86168    92743\nMarket 38  test     51274    54577\nMarket 39  test     124343   135256\nMarket 40  test     29602    32049"
+ "example_text": "market     group    pre      post\nMarket 01  test     99610    103334\nMarket 02  test     70535    81086\nMarket 03  test     41823    43502\nMarket 04  control  142709   149576\nMarket 05  test     59564    62847\nMarket 06  control  42915    44771\nMarket 07  test     9329     10272\nMarket 08  control  93043    98022\nMarket 09  test     28571    31814\nMarket 10  control  38167    39080\nMarket 11  test     142931   148683\nMarket 12  test     50984    56206\nMarket 13  control  118102   118920\nMarket 14  control  131205   130177\nMarket 15  test     75515    78787\nMarket 16  test     34527    39248\nMarket 17  test     66290    72495\nMarket 18  test     23622    26387\nMarket 19  test     82144    89564\nMarket 20  control  14929    14987\nMarket 21  test     190410   204614\nMarket 22  test     88592    102674\nMarket 23  test     72779    76368\nMarket 24  control  25848    27017\nMarket 25  test     67843    68482\nMarket 26  test     31372    31843\nMarket 27  test     49167    54157\nMarket 28  control  180577   198057\nMarket 29  test     122555   131678\nMarket 30  test     41999    45086\nMarket 31  test     201856   214229\nMarket 32  test     49153    53058\nMarket 33  test     42604    46361\nMarket 34  test     36248    38929\nMarket 35  test     56090    56658\nMarket 36  control  75470    74614\nMarket 37  test     86168    92743\nMarket 38  test     51274    54577\nMarket 39  test     124343   135256\nMarket 40  test     29602    32049",
+ "prior_cases": [
+  {
+   "mean_in": 2.0106623075118892,
+   "sd_in": 0.769210538629418,
+   "level": 0.9,
+   "mu": 0.6301698240783209,
+   "sigma": 0.36957908474974643,
+   "scipy_mean": 2.0106623075118892,
+   "scipy_std": 0.769210538629418,
+   "scipy_median": 1.877929469827294,
+   "scipy_interval": [
+    1.0225160709095873,
+    3.448962020233764
+   ],
+   "name": "example"
+  },
+  {
+   "mean_in": 4.95921382882505,
+   "sd_in": 1.5845560923624038,
+   "level": 0.9,
+   "mu": 1.5526423588194653,
+   "sigma": 0.3117847562070573,
+   "scipy_mean": 4.95921382882505,
+   "scipy_std": 1.5845560923624034,
+   "scipy_median": 4.723936039761063,
+   "scipy_interval": [
+    2.828657087776837,
+    7.889104622890926
+   ],
+   "name": "few markets"
+  },
+  {
+   "mean_in": 0.9628645516530915,
+   "sd_in": 0.8074029202660755,
+   "level": 0.95,
+   "mu": -0.30408333983485797,
+   "sigma": 0.7297133824582855,
+   "scipy_mean": 0.9628645516530915,
+   "scipy_std": 0.8074029202660753,
+   "scipy_median": 0.7377993758101785,
+   "scipy_interval": [
+    0.17652455534992406,
+    3.0836951712855467
+   ],
+   "name": "all US DMAs"
+  },
+  {
+   "mean_in": 0.16626935934154194,
+   "sd_in": 0.11045598563851912,
+   "level": 0.9,
+   "mu": -1.9769259994487234,
+   "sigma": 0.6046153163628497,
+   "scipy_mean": 0.16626935934154194,
+   "scipy_std": 0.11045598563851912,
+   "scipy_median": 0.13849431523265338,
+   "scipy_interval": [
+    0.05123001462885447,
+    0.37440308168403985
+   ],
+   "name": "no effect"
+  },
+  {
+   "mean_in": 4.559723229776129,
+   "sd_in": 1.8561768541859804,
+   "level": 0.8,
+   "mu": 1.4405946232080833,
+   "sigma": 0.39157962983701955,
+   "scipy_mean": 4.559723229776129,
+   "scipy_std": 1.8561768541859807,
+   "scipy_median": 4.223206287001493,
+   "scipy_interval": [
+    2.5568221393382218,
+    6.975640216876902
+   ],
+   "name": "biggest markets held out"
+  },
+  {
+   "mean_in": 0.05,
+   "sd_in": 0.0005,
+   "level": 0.9,
+   "mu": -2.9957822710541575,
+   "sigma": 0.009999750013545753,
+   "scipy_mean": 0.05,
+   "scipy_std": 0.0004999999999999725,
+   "scipy_median": 0.04999750018748438,
+   "scipy_interval": [
+    0.04918186130452805,
+    0.05082666574002467
+   ],
+   "name": "mean 0.05, cv 0.01"
+  },
+  {
+   "mean_in": 0.05,
+   "sd_in": 0.005000000000000001,
+   "level": 0.9,
+   "mu": -3.000707438980575,
+   "sigma": 0.0997513451195922,
+   "scipy_mean": 0.05,
+   "scipy_std": 0.005000000000000004,
+   "scipy_median": 0.049751859510499465,
+   "scipy_interval": [
+    0.04222326946471592,
+    0.05862282945239303
+   ],
+   "name": "mean 0.05, cv 0.1"
+  },
+  {
+   "mean_in": 0.05,
+   "sd_in": 0.015,
+   "level": 0.9,
+   "mu": -3.038821121674517,
+   "sigma": 0.29356037920852385,
+   "scipy_mean": 0.05,
+   "scipy_std": 0.015000000000000006,
+   "scipy_median": 0.04789131426105757,
+   "scipy_interval": [
+    0.029549602820679623,
+    0.07761789542721931
+   ],
+   "name": "mean 0.05, cv 0.3"
+  },
+  {
+   "mean_in": 0.05,
+   "sd_in": 0.025,
+   "level": 0.9,
+   "mu": -3.1073040492110957,
+   "sigma": 0.47238072707743883,
+   "scipy_mean": 0.05,
+   "scipy_std": 0.025,
+   "scipy_median": 0.044721359549995794,
+   "scipy_interval": [
+    0.02056219257256942,
+    0.09726589190046102
+   ],
+   "name": "mean 0.05, cv 0.5"
+  },
+  {
+   "mean_in": 0.05,
+   "sd_in": 0.05,
+   "level": 0.9,
+   "mu": -3.3423058638339636,
+   "sigma": 0.8325546111576978,
+   "scipy_mean": 0.05,
+   "scipy_std": 0.05,
+   "scipy_median": 0.035355339059327376,
+   "scipy_interval": [
+    0.008989155832488372,
+    0.13905643903538548
+   ],
+   "name": "mean 0.05, cv 1"
+  },
+  {
+   "mean_in": 0.05,
+   "sd_in": 0.1,
+   "level": 0.9,
+   "mu": -3.800451229771041,
+   "sigma": 1.2686362411795196,
+   "scipy_mean": 0.05,
+   "scipy_std": 0.09999999999999998,
+   "scipy_median": 0.0223606797749979,
+   "scipy_interval": [
+    0.002774812359252746,
+    0.1801923644792505
+   ],
+   "name": "mean 0.05, cv 2"
+  },
+  {
+   "mean_in": 0.05,
+   "sd_in": 0.25,
+   "level": 0.9,
+   "mu": -4.624780542564732,
+   "sigma": 1.8050198165176696,
+   "scipy_mean": 0.05,
+   "scipy_std": 0.24999999999999994,
+   "scipy_median": 0.009805806756909204,
+   "scipy_interval": [
+    0.0005035769967375927,
+    0.19094169665567662
+   ],
+   "name": "mean 0.05, cv 5"
+  },
+  {
+   "mean_in": 2.0,
+   "sd_in": 0.02,
+   "level": 0.9,
+   "mu": 0.6930971830597789,
+   "sigma": 0.009999750013545753,
+   "scipy_mean": 2.0,
+   "scipy_std": 0.0199999999999989,
+   "scipy_median": 1.9999000074993754,
+   "scipy_interval": [
+    1.9672744521811218,
+    2.0330666296009867
+   ],
+   "name": "mean 2, cv 0.01"
+  },
+  {
+   "mean_in": 2.0,
+   "sd_in": 0.2,
+   "level": 0.9,
+   "mu": 0.6881720151333613,
+   "sigma": 0.09975134511959222,
+   "scipy_mean": 2.0,
+   "scipy_std": 0.2000000000000001,
+   "scipy_median": 1.9900743804199785,
+   "scipy_interval": [
+    1.6889307785886367,
+    2.3449131780957213
+   ],
+   "name": "mean 2, cv 0.1"
+  },
+  {
+   "mean_in": 2.0,
+   "sd_in": 0.6,
+   "level": 0.9,
+   "mu": 0.650058332439419,
+   "sigma": 0.29356037920852385,
+   "scipy_mean": 2.0,
+   "scipy_std": 0.6000000000000002,
+   "scipy_median": 1.9156525704423026,
+   "scipy_interval": [
+    1.1819841128271849,
+    3.1047158170887723
+   ],
+   "name": "mean 2, cv 0.3"
+  },
+  {
+   "mean_in": 2.0,
+   "sd_in": 1.0,
+   "level": 0.9,
+   "mu": 0.5815754049028404,
+   "sigma": 0.47238072707743883,
+   "scipy_mean": 2.0,
+   "scipy_std": 1.0,
+   "scipy_median": 1.7888543819998317,
+   "scipy_interval": [
+    0.8224877029027767,
+    3.890635676018441
+   ],
+   "name": "mean 2, cv 0.5"
+  },
+  {
+   "mean_in": 2.0,
+   "sd_in": 2.0,
+   "level": 0.9,
+   "mu": 0.3465735902799726,
+   "sigma": 0.8325546111576978,
+   "scipy_mean": 2.0,
+   "scipy_std": 1.9999999999999998,
+   "scipy_median": 1.414213562373095,
+   "scipy_interval": [
+    0.3595662332995349,
+    5.562257561415419
+   ],
+   "name": "mean 2, cv 1"
+  },
+  {
+   "mean_in": 2.0,
+   "sd_in": 4.0,
+   "level": 0.9,
+   "mu": -0.11157177565710479,
+   "sigma": 1.2686362411795196,
+   "scipy_mean": 2.0,
+   "scipy_std": 3.999999999999999,
+   "scipy_median": 0.894427190999916,
+   "scipy_interval": [
+    0.11099249437010983,
+    7.2076945791700195
+   ],
+   "name": "mean 2, cv 2"
+  },
+  {
+   "mean_in": 2.0,
+   "sd_in": 10.0,
+   "level": 0.9,
+   "mu": -0.9359010884507956,
+   "sigma": 1.8050198165176696,
+   "scipy_mean": 2.0,
+   "scipy_std": 9.999999999999998,
+   "scipy_median": 0.39223227027636814,
+   "scipy_interval": [
+    0.020143079869503706,
+    7.637667866227065
+   ],
+   "name": "mean 2, cv 5"
+  },
+  {
+   "mean_in": 50.0,
+   "sd_in": 0.5,
+   "level": 0.9,
+   "mu": 3.9119730079279798,
+   "sigma": 0.009999750013545753,
+   "scipy_mean": 50.0,
+   "scipy_std": 0.4999999999999725,
+   "scipy_median": 49.997500187484384,
+   "scipy_interval": [
+    49.18186130452805,
+    50.82666574002467
+   ],
+   "name": "mean 50, cv 0.01"
+  },
+  {
+   "mean_in": 50.0,
+   "sd_in": 5.0,
+   "level": 0.9,
+   "mu": 3.907047840001562,
+   "sigma": 0.09975134511959222,
+   "scipy_mean": 50.0,
+   "scipy_std": 5.000000000000002,
+   "scipy_median": 49.75185951049946,
+   "scipy_interval": [
+    42.22326946471591,
+    58.62282945239303
+   ],
+   "name": "mean 50, cv 0.1"
+  },
+  {
+   "mean_in": 50.0,
+   "sd_in": 15.0,
+   "level": 0.9,
+   "mu": 3.8689341573076197,
+   "sigma": 0.29356037920852385,
+   "scipy_mean": 50.0,
+   "scipy_std": 15.000000000000007,
+   "scipy_median": 47.891314261057566,
+   "scipy_interval": [
+    29.54960282067962,
+    77.61789542721931
+   ],
+   "name": "mean 50, cv 0.3"
+  },
+  {
+   "mean_in": 50.0,
+   "sd_in": 25.0,
+   "level": 0.9,
+   "mu": 3.800451229771041,
+   "sigma": 0.47238072707743883,
+   "scipy_mean": 50.0,
+   "scipy_std": 24.999999999999996,
+   "scipy_median": 44.72135954999579,
+   "scipy_interval": [
+    20.562192572569415,
+    97.26589190046101
+   ],
+   "name": "mean 50, cv 0.5"
+  },
+  {
+   "mean_in": 50.0,
+   "sd_in": 50.0,
+   "level": 0.9,
+   "mu": 3.5654494151481733,
+   "sigma": 0.8325546111576978,
+   "scipy_mean": 49.99999999999999,
+   "scipy_std": 49.99999999999999,
+   "scipy_median": 35.35533905932737,
+   "scipy_interval": [
+    8.989155832488372,
+    139.05643903538547
+   ],
+   "name": "mean 50, cv 1"
+  },
+  {
+   "mean_in": 50.0,
+   "sd_in": 100.0,
+   "level": 0.9,
+   "mu": 3.107304049211096,
+   "sigma": 1.2686362411795196,
+   "scipy_mean": 50.0,
+   "scipy_std": 99.99999999999999,
+   "scipy_median": 22.3606797749979,
+   "scipy_interval": [
+    2.774812359252746,
+    180.1923644792505
+   ],
+   "name": "mean 50, cv 2"
+  },
+  {
+   "mean_in": 50.0,
+   "sd_in": 250.0,
+   "level": 0.9,
+   "mu": 2.282974736417405,
+   "sigma": 1.8050198165176696,
+   "scipy_mean": 50.0,
+   "scipy_std": 249.99999999999994,
+   "scipy_median": 9.805806756909204,
+   "scipy_interval": [
+    0.5035769967375927,
+    190.94169665567662
+   ],
+   "name": "mean 50, cv 5"
+  }
+ ]
 }

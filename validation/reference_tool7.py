@@ -36,6 +36,8 @@ import os
 
 import numpy as np
 import statsmodels.api as sm
+from scipy.optimize import brentq
+from scipy.stats import lognorm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -152,15 +154,71 @@ for name, seed, n, n_control, lift, noise, alpha, iroas, imbalanced in DATASETS:
         "diff_se": float(diff.bse[1]),
     })
 
+# ---- the MMM prior: a lognormal with the iROAS as its mean and the iROAS's
+# standard error as its standard deviation ----
+#
+# The page solves this in closed form. The reference does not: it asks
+# scipy.stats.lognorm for the shape whose coefficient of variation is sd/mean
+# (a root-find on scipy's own .std()/.mean(), scale 1), then for the scale
+# that puts the mean where it belongs. So the two routes share nothing but the
+# definition of the distribution.
+
+def lognormal_by_scipy(mean, sd, level):
+    target = sd / mean
+
+    def gap(s):
+        d = lognorm(s=s)
+        return d.std() / d.mean() - target
+
+    sigma = brentq(gap, 1e-6, 10.0, xtol=1e-300, rtol=4 * np.finfo(float).eps,
+                   maxiter=500)
+    scale = mean / lognorm(s=sigma).mean()
+    d = lognorm(s=sigma, scale=scale)
+    tail = (1 - level) / 2
+    return {
+        "mean_in": mean,
+        "sd_in": sd,
+        "level": level,
+        "mu": float(math.log(scale)),
+        "sigma": float(sigma),
+        "scipy_mean": float(d.mean()),
+        "scipy_std": float(d.std()),
+        "scipy_median": float(d.median()),
+        "scipy_interval": [float(d.ppf(tail)), float(d.ppf(1 - tail))],
+    }
+
+
+# One case per data set whose iROAS is above zero, at its own alpha, plus a
+# grid of coefficients of variation from 1% to 500% at three means. Below a
+# coefficient of variation of about 1% scipy's own .std() loses digits (it
+# forms exp(s^2) - 1 without expm1), so the grid stops there.
+prior_cases = []
+for r in rows:
+    if r["iroas"] > 0:
+        se_iroas = r["se"] * r["n_treat"] / r["spend"]
+        case = lognormal_by_scipy(r["iroas"], se_iroas, 1 - r["alpha"])
+        case["name"] = r["name"]
+        prior_cases.append(case)
+for mean in (0.05, 2.0, 50.0):
+    for cv in (0.01, 0.1, 0.3, 0.5, 1.0, 2.0, 5.0):
+        case = lognormal_by_scipy(mean, mean * cv, 0.9)
+        case["name"] = f"mean {mean:g}, cv {cv:g}"
+        prior_cases.append(case)
+
+worst_moment = max(max(abs(c["scipy_mean"] / c["mean_in"] - 1),
+                       abs(c["scipy_std"] / c["sd_in"] - 1)) for c in prior_cases)
+
 example = rows[0]
 ex_treat = np.array([1 if g == "test" else 0 for g in example["groups"]])
 example_text = as_text(ex_treat, np.array(example["pre"]), np.array(example["post"]))
 
 out = os.path.join(HERE, "reference_tool7.json")
 with open(out, "w", encoding="utf-8") as fh:
-    json.dump({"datasets": rows, "example_text": example_text}, fh, indent=1)
+    json.dump({"datasets": rows, "example_text": example_text,
+               "prior_cases": prior_cases}, fh, indent=1)
 
-print("wrote", out, f"({len(rows)} datasets)")
+print("wrote", out, f"({len(rows)} datasets, {len(prior_cases)} prior cases)")
+print(f"lognormal root-find: worst relative miss on the mean or sd {worst_moment:.1e}")
 print()
 hdr = (f"{'dataset':<26} {'n':>4} {'nT':>4} {'a':>5} | {'b':>10} {'se':>9} "
        f"{'p':>7} {'iROAS':>6} {'CI':>15} {'rho':>6} | {'HC1 se':>9} {'WLS b':>10} {'diff se':>9}")

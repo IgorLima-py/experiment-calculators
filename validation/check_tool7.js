@@ -95,6 +95,125 @@ for (const d of ref.datasets) {
           Math.sqrt((1 - d.rho * d.rho) / (1 - 0.9999 * 0.9999)));
 }
 
+/* ---- the MMM prior: moment matching against scipy.stats.lognorm ---- */
+
+/* The reference found each (mu, sigma) by root-finding on scipy's own
+ * lognorm(s, scale).std() / .mean(); here the page's closed form must land on
+ * the same pair, and scipy's mean and standard deviation of that pair must be
+ * the iROAS and standard error it started from. PRIOR_TOL: the worst error
+ * measured on 2026-09-30 was 5.0e-13, on sigma in the cv = 1% cases, where
+ * scipy's .std() forms exp(s^2) - 1 without expm1 and the root-find inherits
+ * the lost digits (5.5e-14 on the standard deviation itself). PRIOR_TOL leaves
+ * two decades, like TOL. The page's own prior is compared at TOL instead: its
+ * inputs carry the regression's 7e-12. */
+const PRIOR_TOL = 5e-11;
+function comparePrior(name, js, py) {
+  const err = Math.abs(js - py) / Math.abs(py);
+  if (!(err <= PRIOR_TOL)) {
+    failed++;
+    console.error(`${name}: js ${js} vs scipy ${py} (relative error ${err})`);
+  }
+  worst[name] = Math.max(worst[name] || 0, err);
+}
+const priorReport = [];
+for (const c of ref.prior_cases) {
+  const p = GeoReadout.lognormalFromMoments(c.mean_in, c.sd_in, c.level);
+  comparePrior('Prior: mu', p.mu, c.mu);
+  comparePrior('Prior: sigma', p.sigma, c.sigma);
+  comparePrior('Prior: median', p.median, c.scipy_median);
+  comparePrior('Prior: interval', p.interval.lo, c.scipy_interval[0]);
+  comparePrior('Prior: interval', p.interval.hi, c.scipy_interval[1]);
+  comparePrior('scipy: lognorm mean is the iROAS', c.scipy_mean, c.mean_in);
+  comparePrior('scipy: lognorm std is the standard error', c.scipy_std, c.sd_in);
+  priorReport.push({ c, p });
+}
+if (ref.prior_cases.length < 20) fail(`Only ${ref.prior_cases.length} prior cases in the reference`);
+
+/* The page's route: the iROAS's standard error is the fit's, scaled like the
+ * estimate, and the prior is built from the two at the page's own level. */
+for (const d of ref.datasets) {
+  const a = GeoReadout.analyse({ rows: toRows(d), spend: d.spend, alpha: d.alpha, plannedRho: null });
+  compare('Page: iROAS standard error', a.seIroas, d.se * d.n_treat / d.spend);
+  const c = ref.prior_cases.find(x => x.name === d.name);
+  if (d.iroas > 0) {
+    if (!c) { fail(`${d.name}: no prior case in the reference`); continue; }
+    compare('Page: prior mu', a.prior.mu, c.mu);
+    compare('Page: prior sigma', a.prior.sigma, c.sigma);
+    compare('Page: prior interval', a.prior.interval.lo, c.scipy_interval[0]);
+    compare('Page: prior interval', a.prior.interval.hi, c.scipy_interval[1]);
+  }
+}
+
+/* No lognormal has a mean at or below zero: no prior, rather than a made-up one. */
+for (const [m, s] of [[0, 1], [-0.4, 0.3], [2, 0], [NaN, 1]]) {
+  if (GeoReadout.lognormalFromMoments(m, s, 0.9) !== null) {
+    fail(`lognormalFromMoments(${m}, ${s}) should be null`);
+  }
+}
+{
+  const d = ref.datasets[0];
+  const falling = toRows(d).map(r => ({ ...r, post: r.group === 'treat' ? r.post - 6000 : r.post }));
+  const a = GeoReadout.analyse({ rows: falling, spend: d.spend, alpha: d.alpha, plannedRho: null });
+  if (!(a.iroas < 0) || a.prior !== null || GeoReadout.meridianSnippet(a) !== null) {
+    fail('A negative iROAS still produced a Meridian prior');
+  }
+  if (GeoReadout.robynSnippet(a) === null) fail('A negative lift should still give a Robyn row');
+}
+
+/* Conversions: the lift stays in conversions, and a return on the spend (and
+ * so a prior) exists only once a value per conversion is given. */
+{
+  const d = ref.datasets[0];
+  const base = { rows: toRows(d), spend: d.spend, alpha: d.alpha, plannedRho: null };
+  const none = GeoReadout.analyse({ ...base, metric: 'conversions', value: null });
+  if (none.iroas !== null || none.prior !== null) fail('Conversions with no value still produced an iROAS');
+  compare('Conversions: incremental stays in conversions', none.incremental, d.incremental);
+  if (!/liftAbs = \d+,\s+# incremental conversions/.test(GeoReadout.robynSnippet(none))) {
+    fail('Conversions with no value should still give a Robyn row in conversions');
+  }
+  const worth = GeoReadout.analyse({ ...base, metric: 'conversions', value: 3.5 });
+  compare('Conversions: iROAS at a value per conversion', worth.iroas, d.iroas * 3.5);
+  compare('Conversions: iROAS standard error', worth.seIroas, d.se * d.n_treat * 3.5 / d.spend);
+  if (GeoReadout.meridianSnippet(worth).indexOf('revenue_per_kpi') === -1) {
+    fail('The Meridian snippet for conversions should name revenue_per_kpi');
+  }
+}
+
+/* The snippets carry the page's numbers, as R and Python read them. */
+{
+  const d = ref.datasets[0];
+  const a = GeoReadout.analyse({ rows: toRows(d), spend: d.spend, alpha: d.alpha, plannedRho: null });
+  const m = GeoReadout.meridianSnippet(a);
+  const want = [`mean = [${d.iroas.toFixed(4)}]`,
+                `std = [${(d.se * d.n_treat / d.spend).toFixed(4)}]`,
+                `loc=${ref.prior_cases[0].mu.toFixed(4)}`,
+                `scale=${ref.prior_cases[0].sigma.toFixed(4)}`,
+                'lognormal_dist_from_mean_std(mean, std)', "media_prior_type='roi'"];
+  for (const w of want) if (m.indexOf(w) === -1) fail(`Meridian snippet lacks "${w}"`);
+  const rb = GeoReadout.robynSnippet(a);
+  const conf = Math.floor((1 - d.p) * 1000) / 1000;
+  const wantR = [`liftAbs = ${Math.round(d.incremental)},`, `spend = ${d.spend},`,
+                 `confidence = ${conf},`, 'calibration_scope = "immediate"'];
+  for (const w of wantR) if (rb.indexOf(w) === -1) fail(`Robyn row lacks "${w}"`);
+  if (conf > 1 - d.p) fail('The Robyn confidence rounds up past 1 - p');
+}
+
+/* The release tags the snippets were written against: the same in the code,
+ * the page's prose and validation/RESULTS.md. */
+{
+  const results = fs.readFileSync(path.join(__dirname, 'RESULTS.md'), 'utf8');
+  const pageHtml = fs.readFileSync(path.join(root, 'tools', 'geo-readout.html'), 'utf8');
+  for (const [name, tag] of [['Meridian', GeoReadout.RELEASES.meridian],
+                             ['Robyn', GeoReadout.RELEASES.robyn]]) {
+    const label = `${name} ${tag}`;
+    if (pageHtml.indexOf(label) === -1) fail(`tools/geo-readout.html does not say "${label}"`);
+    if (results.indexOf(label) === -1) fail(`validation/RESULTS.md does not say "${label}"`);
+    const others = new Set([...(pageHtml + results).matchAll(new RegExp(name + ' (v\\d+\\.\\d+\\.\\d+)', 'g'))]
+      .map(x => x[1]));
+    if (others.size !== 1) fail(`${name} is quoted at more than one release: ${[...others].join(', ')}`);
+  }
+}
+
 /* ---- the parser ---- */
 
 const ex = Geo.parseGroups(ref.example_text);
@@ -200,8 +319,17 @@ for (const { d } of report) {
     `${(1 / Math.sqrt(1 - d.rho * d.rho)).toFixed(1)}× |`);
 }
 console.log('');
+console.log('| Case | Mean (iROAS) | SD (standard error) | μ | σ | Median | Central range | Level |');
+console.log('|---|---:|---:|---:|---:|---:|---|---:|');
+for (const { c, p } of priorReport) {
+  console.log(`| ${c.name} | ${c.mean_in.toPrecision(4)} | ${c.sd_in.toPrecision(4)} | ` +
+    `${r2(p.mu)} | ${p.sigma.toFixed(3)} | ${p.median.toPrecision(4)} | ` +
+    `${p.interval.lo.toPrecision(3)} to ${p.interval.hi.toPrecision(3)} | ${Math.round(c.level * 100)}% |`);
+}
+console.log('');
 for (const k of Object.keys(worst)) {
-  console.log(`Worst error, ${k}: ${worst[k].toExponential(1)} (tolerance ${TOL.toExponential(1)})`);
+  const tol = /^(Prior|scipy)/.test(k) ? PRIOR_TOL : TOL;
+  console.log(`Worst error, ${k}: ${worst[k].toExponential(1)} (tolerance ${tol.toExponential(1)})`);
 }
 console.log('');
 
