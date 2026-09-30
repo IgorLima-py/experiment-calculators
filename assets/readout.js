@@ -47,7 +47,9 @@ var Readout = (function () {
     var eb = total * (1 - splitA);
     var chi2 = (na - ea) * (na - ea) / ea + (nb - eb) * (nb - eb) / eb;
     var p = 2 * Stats.normalCdf(-Math.sqrt(chi2));
-    return { chi2: chi2, p: p, expectedA: ea, expectedB: eb, flagged: p < SRM_ALPHA };
+    return { chi2: chi2, p: p, expectedA: ea, expectedB: eb,
+             plannedShareA: splitA, observedShareA: na / total,
+             flagged: p < SRM_ALPHA };
   }
 
   /*

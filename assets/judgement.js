@@ -171,11 +171,127 @@ var Judgement = (function () {
       'have.';
   }
 
+  /* Percentage points, signed, for an interval the reader compares with 0. */
+  function pp(x) {
+    return UI.decimal(x * 100, 2) + ' pp';
+  }
+
+  function ppRange(ci) {
+    return pp(ci.lo) + ' to ' + pp(ci.hi);
+  }
+
+  /* The assumptions every reading of a p-value rests on, whatever it says. */
+  var ONE_LOOK = 'It holds only if you looked once, at the planned end, and ' +
+    'this was the one metric you meant to judge the test on. Stopping at the ' +
+    'first good-looking day, or picking the best of several metrics, makes the ' +
+    'p-value smaller than it has any right to be.';
+
+  /*
+   * Tool 6. `r` is what Readout.analyse returns. The order of the branches is
+   * the order a result has to be read in: a traffic split that did not come
+   * out as planned voids everything after it, so it is checked first.
+   *
+   * The exaggeration warning turns on at power below 50%, where Gelman &
+   * Carlin (2014) say the problems with the exaggeration ratio start.
+   */
+  function readout(r) {
+    if (r.srm.flagged) {
+      return '<strong>Do not read this result.</strong>' +
+        'You planned ' + UI.percent(r.srm.plannedShareA * 100, 1) +
+        ' of users for the control and got ' +
+        UI.percent(r.srm.observedShareA * 100, 1) + '. A split that far off happens ' +
+        'by chance with probability ' +
+        (r.srm.p < 1e-12 ? 'under one in a trillion' : UI.pValue(r.srm.p)) + ', below the ' +
+        '0.001 this page treats as a sample ratio mismatch. Something between ' +
+        'assignment and logging lost or duplicated users in one arm, and ' +
+        'whatever did it can move the conversion rate too, in either ' +
+        'direction. Find the cause (bots, a redirect, a crash in one variant, ' +
+        'a tracking change mid-test) before you trust any number from this test.';
+    }
+
+    var level = UI.percent((1 - r.alpha) * 100, 0);
+    var interval = 'the ' + level + ' interval runs from ' + ppRange(r.ciDiff);
+
+    if (r.significant !== r.intervalExcludesZero) {
+      return '<strong>On the edge.</strong>' +
+        'The p-value (' + UI.pValue(r.p) + ') and the interval (' +
+        ppRange(r.ciDiff) + ') disagree about whether the difference could ' +
+        'be zero. That only happens right at the threshold, where the two ' +
+        'methods approximate slightly differently. Read it as inconclusive: a ' +
+        'result this close to the line is not one to ship on.';
+    }
+
+    var tm = r.typeM;
+    var planned = tm ? UI.percent(r.mde * 100, 1) : '';
+
+    if (r.significant) {
+      var moved = 'The variant ' + (r.diff > 0 ? 'beat' : 'lost to') +
+        ' the control by ' + pp(Math.abs(r.diff)) + ' (p = ' + UI.pValue(r.p) +
+        '), and ' + interval + '.';
+
+      if (!tm) {
+        return '<strong>What would make this number a lie.</strong>' + moved +
+          ' Enter the lift you planned to detect to see whether the test was ' +
+          'big enough to trust the size of that result: a small test that ' +
+          'comes out significant overstates the effect, and by how much ' +
+          'depends on the effect it was planned for, never on the one it ' +
+          'observed. ' + ONE_LOOK;
+      }
+
+      if (tm.power < 0.5) {
+        var sign = tm.typeS >= 0.01 ?
+          ' There is even a ' + UI.percent(tm.typeS * 100, 0) + ' chance that ' +
+          'a significant result points the wrong way.' : '';
+        return '<strong>Significant, and probably exaggerated.</strong>' +
+          moved + ' But with this much data, a real ' + planned + ' lift ' +
+          'would reach significance only ' + UI.percent(tm.power * 100, 0) +
+          ' of the time, and when it does, the estimate overstates it by ' +
+          UI.decimal(tm.exaggeration, 1) + '× on average.' + sign +
+          ' A test this small only comes out significant when luck adds to ' +
+          'the effect. Treat the lift as the top of a range, not a ' +
+          'measurement, and confirm it before you plan around it.';
+      }
+
+      return '<strong>What would make this number a lie.</strong>' + moved +
+        ' The test had ' + UI.percent(tm.power * 100, 0) + ' power for the ' +
+        planned + ' lift you planned, so a significant estimate of a lift ' +
+        'that size overstates it by only ' + UI.decimal(tm.exaggeration, 1) +
+        '× on average. The interval, not the single number, is what you ' +
+        'learned. ' + ONE_LOOK;
+    }
+
+    var open = '<strong>Inconclusive, not a loss.</strong>' +
+      'The ' + level + ' interval runs from ' + ppRange(r.ciDiff) + ': it ' +
+      'includes no effect at all, and it includes a difference as large as ' +
+      pp(r.ciDiff.hi > -r.ciDiff.lo ? r.ciDiff.hi : r.ciDiff.lo) + '. ';
+
+    if (!tm) {
+      return open + 'A test that cannot tell those apart has not shown the ' +
+        'change does nothing. Enter the lift you planned to detect to see ' +
+        'whether this test ever had a real chance of finding it.';
+    }
+
+    if (tm.power < 0.5) {
+      return open + 'With this much data, a real ' + planned + ' lift would ' +
+        'have reached significance only ' + UI.percent(tm.power * 100, 0) +
+        ' of the time: the test was always more likely to miss it than to ' +
+        'find it. Filing this as "the change does not work" would be a ' +
+        'conclusion the test was never able to reach.';
+    }
+
+    return open + 'The test had ' + UI.percent(tm.power * 100, 0) + ' power ' +
+      'for the ' + planned + ' lift you planned, so a real lift that size ' +
+      'would usually have shown up. That makes it less likely, not ruled out: ' +
+      'the interval is the honest summary of what the data can and cannot ' +
+      'exclude.';
+  }
+
   return {
     sampleSize: sampleSize,
     mde: mde,
     peeking: peeking,
     geoHoldout: geoHoldout,
-    ratioMetric: ratioMetric
+    ratioMetric: ratioMetric,
+    readout: readout
   };
 })();

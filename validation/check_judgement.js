@@ -28,9 +28,9 @@ const path = require('path');
 
 const assets = path.join(__dirname, '..', 'assets');
 const load = f => (0, eval)(fs.readFileSync(path.join(assets, f), 'utf8'));
-['stats.js', 'sequential.js', 'experiments.js', 'geo.js', 'cuped.js', 'ui.js',
- 'judgement.js'].forEach(load);
-const { Experiments, Geo, Cuped, Sequential, UI, Judgement } = global;
+['stats.js', 'sequential.js', 'experiments.js', 'geo.js', 'cuped.js', 'readout.js',
+ 'ui.js', 'judgement.js'].forEach(load);
+const { Experiments, Geo, Cuped, Readout, Sequential, UI, Judgement } = global;
 
 /* ---- the pages' own arithmetic, in the units the inputs are typed in ---- */
 
@@ -92,6 +92,17 @@ function ratio(o) {
   return Judgement.ratioMetric(q.spread, result, USERS);
 }
 
+/* tools/readout.html: users and conversions per arm, the planned share in
+ * control and alpha in percent, the planned relative lift in percent or null. */
+function readoutAnalysis(o) {
+  const q = Object.assign({ na: 31500, ca: 1575, nb: 31500, cb: 1740, split: 50,
+                            alpha: 5, mde: null }, o);
+  return Readout.analyse({ na: q.na, ca: q.ca, nb: q.nb, cb: q.cb,
+                           split: q.split / 100, alpha: q.alpha / 100,
+                           mde: q.mde === null ? null : q.mde / 100 });
+}
+const readout = o => Judgement.readout(readoutAnalysis(o));
+
 /* Tool 1 quotes the peeking checker's headline; they must print the same. */
 const inflation = (looks, alphaPercent) =>
   UI.percent(Sequential.alphaInflation(looks, alphaPercent / 100) * 100, 1);
@@ -140,7 +151,18 @@ const PINNED = {
     'looks wrong: you simply counted 7,200 independent observations when you ' +
     'had 1,200. The delta method lands on 0.558 pp against a true 0.555 pp. ' +
     'Drag the sessions slider: the more sessions each user brings, the less ' +
-    'the naive count of them has to do with how much information you have.'
+    'the naive count of them has to do with how much information you have.',
+  readout:
+    '<strong>What would make this number a lie.</strong>The variant beat the ' +
+    'control by 0.52 pp (p = 0.0032), and the 95% interval runs from 0.18 pp ' +
+    'to 0.87 pp. Enter the lift you planned to detect to see whether the ' +
+    'test was big enough to trust the size of that result: a small test that ' +
+    'comes out significant overstates the effect, and by how much depends on ' +
+    'the effect it was planned for, never on the one it observed. It holds ' +
+    'only if you looked once, at the planned end, and this was the one ' +
+    'metric you meant to judge the test on. Stopping at the first ' +
+    'good-looking day, or picking the best of several metrics, makes the ' +
+    'p-value smaller than it has any right to be.'
 };
 
 /* ---- the table ---- */
@@ -226,7 +248,66 @@ const CASES = [
     lacks: ['understating'] },
   { tool: 5, name: 'boundary: spread 0.05 is the ratio branch',
     html: ratio({ spread: 0.05 }), has: ['understating the noise by'],
-    lacks: ['nothing to correct'] }
+    lacks: ['nothing to correct'] },
+
+  // Tool 6, the readout: the mismatch check comes first and voids the rest;
+  // then the edge, significant with and without a planned effect, and
+  // inconclusive with and without one. The exaggeration warning turns on
+  // below 50% power.
+  { tool: 6, name: 'defaults, pinned', html: readout({}), exact: PINNED.readout },
+  { tool: 6, name: '10,000 × 10,800 on a 50/50 plan is a mismatch, and no lift is read',
+    html: readout({ na: 10000, ca: 500, nb: 10800, cb: 560 }),
+    has: ['Do not read this result.', 'planned 50.0%', 'got 48.1%',
+          '2.9 × 10⁻⁸', 'below the 0.001'],
+    lacks: ['beat', 'interval', 'Inconclusive'] },
+  { tool: 6, name: '90/10 planned and 90/10 observed is not a mismatch',
+    html: readout({ na: 90000, ca: 4500, nb: 10000, cb: 540, split: 90 }),
+    has: ['Inconclusive, not a loss.', 'from -0.05 pp to 0.88 pp'],
+    lacks: ['Do not read'] },
+  { tool: 6, name: 'the same traffic against a 50/50 plan: p underflows to zero',
+    html: readout({ na: 90000, ca: 4500, nb: 10000, cb: 540 }),
+    has: ['Do not read this result.', 'got 90.0%', 'under one in a trillion'],
+    lacks: ['× 10⁰'] },
+  { tool: 6, name: 'on the edge: p under 5% but the interval touches zero',
+    html: readout({ na: 400, ca: 20, nb: 400, cb: 34 }),
+    has: ['On the edge.', 'The p-value (0.0485)', '(-0.00 pp to 7.09 pp)',
+          'Read it as inconclusive'],
+    lacks: ['beat', 'Inconclusive, not a loss'] },
+  { tool: 6, name: 'significant and powered: exaggeration only 1.1×',
+    html: readout({ mde: 10 }),
+    has: ['beat the control by 0.52 pp', '80% power for the 10.0% lift',
+          'only 1.1× on average'],
+    lacks: ['probably exaggerated', 'Enter the lift'] },
+  { tool: 6, name: 'significant and underpowered: exaggerated, sign can flip',
+    html: readout({ na: 4000, ca: 200, nb: 4000, cb: 245, mde: 10 }),
+    has: ['Significant, and probably exaggerated.', 'only 16% of the time',
+          'by 2.5× on average', 'points the wrong way'],
+    lacks: ['What would make'] },
+  { tool: 6, name: 'underpowered but type S negligible: no sign warning',
+    html: readout({ na: 4000, ca: 200, nb: 4000, cb: 245, mde: 15 }),
+    has: ['probably exaggerated', 'a real 15.0% lift'],
+    lacks: ['wrong way'] },
+  { tool: 6, name: 'the exaggeration quoted is the one the page shows',
+    html: readout({ na: 4000, ca: 200, nb: 4000, cb: 245, mde: 10 }),
+    has: ['by ' + UI.decimal(readoutAnalysis({ na: 4000, ca: 200, nb: 4000,
+          cb: 245, mde: 10 }).typeM.exaggeration, 1) + '×'] },
+  { tool: 6, name: 'a significant loss says so',
+    html: readout({ ca: 1740, cb: 1575 }),
+    has: ['The variant lost to the control by 0.52 pp'], lacks: ['beat'] },
+  { tool: 6, name: 'inconclusive, powered',
+    html: readout({ cb: 1640, mde: 10 }),
+    has: ['Inconclusive, not a loss.', '81% power', 'less likely, not ruled out'],
+    lacks: ['always more likely to miss'] },
+  { tool: 6, name: 'inconclusive, underpowered: never able to reach it',
+    html: readout({ na: 4000, ca: 200, nb: 4000, cb: 230, mde: 10 }),
+    has: ['only 17% of the time', 'always more likely to miss it'],
+    lacks: ['less likely, not ruled out'] },
+  { tool: 6, name: 'inconclusive, no planned effect: asks for one',
+    html: readout({ cb: 1640 }),
+    has: ['Inconclusive, not a loss.', 'Enter the lift you planned'],
+    lacks: ['power'] },
+  { tool: 6, name: 'alpha 10% labels a 90% interval',
+    html: readout({ alpha: 10 }), has: ['the 90% interval'] }
 ];
 
 /* ---- run ---- */
