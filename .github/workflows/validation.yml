@@ -74,6 +74,10 @@ jobs:
         working-directory: validation
         run: python reference_tool5.py && node check_tool5.js
 
+      - name: Test readout
+        working-directory: validation
+        run: python reference_tool6.py && node check_tool6.js
+
       # The sentence under each result is what the site is for, and it has
       # shipped wrong before. The steps above check the arithmetic; this one
       # checks the words built from it.

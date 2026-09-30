@@ -144,7 +144,8 @@ for (const { r } of readoutRows) {
   console.log(
     `| ${n(r.ca)} / ${n(r.na)} | ${n(r.cb)} / ${n(r.nb)} | ` +
     `${pct(r.split, 0)}/${pct(1 - r.split, 0)} | ${pct(r.alpha, 0)}% | ` +
-    `${r.srm_p < 1e-4 ? r.srm_p.toExponential(1) : r.srm_p.toFixed(4)} | ` +
+    `${r.srm_p === 0 ? '< 1e-300' :
+       r.srm_p < 1e-4 ? r.srm_p.toExponential(1) : r.srm_p.toFixed(4)} | ` +
     `${r.p.toFixed(4)} | ${interval(r.newcombe[0], r.newcombe[1], 3)} | ` +
     `${interval(r.wald[0], r.wald[1], 3)} | ` +
     `${r.ratio_log ? interval(r.ratio_log[0], r.ratio_log[1], 1) : '—'} | ` +

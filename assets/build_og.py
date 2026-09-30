@@ -69,7 +69,7 @@ FOOTER = "igorlima-py.github.io/experiment-calculators"
 
 PAGES = [
     ("home", "Calculators are a commodity. Judgement is not.",
-     "Four free A/B testing calculators and an explainer. Every result comes "
+     "Five free A/B testing calculators and an explainer. Every result comes "
      "with the caveat that would invalidate it."),
     ("sample-size", "A/B test sample size & duration",
      "How many users a test needs, how long that takes at your traffic, and "
@@ -80,6 +80,9 @@ PAGES = [
     ("peeking", "Peeking checker",
      "You checked the results early. This is what it cost you, the threshold "
      "that fixes it, and 200,000 simulated tests proving it."),
+    ("readout", "A/B test result readout",
+     "What a finished test found, how sure you can be, and whether the "
+     "traffic split came out the way you planned."),
     ("geo-holdout", "Geo holdout power",
      "How many markets to go dark in for an incrementality test, and the "
      "smallest lift that design could honestly detect."),

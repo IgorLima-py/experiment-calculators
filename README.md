@@ -2,7 +2,7 @@
 
 [![validation](https://github.com/IgorLima-py/experiment-calculators/actions/workflows/validation.yml/badge.svg)](https://github.com/IgorLima-py/experiment-calculators/actions/workflows/validation.yml)
 
-Four free calculators and an interactive explainer for people who run A/B tests
+Five free calculators and an interactive explainer for people who run A/B tests
 and marketing experiments. Every result comes with one plain sentence
 explaining what it means and what would invalidate it, and every formula is
 cross-checked against a reference implementation with
@@ -22,6 +22,7 @@ dependencies, no tracking, no email form in front of anything.
 | [Sample size & duration](tools/sample-size.html) | How many users a test needs, and how long that takes at your traffic |
 | [Minimum detectable effect](tools/mde.html) | The smallest lift your traffic can detect, and whether to run the test at all |
 | [Peeking checker](tools/peeking.html) | What checking early did to your false-positive rate, and the threshold that fixes it |
+| [Test readout](tools/readout.html) | What a finished test found: lift with its interval, a traffic-split check first, and how much a significant result is likely exaggerating |
 | [Geo holdout power](tools/geo-holdout.html) | How many markets to hold out of an incrementality test |
 | [CUPED & ratio metrics](tools/cuped.html) | Why session-level metrics need different maths, and how to buy traffic you don't have |
 

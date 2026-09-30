@@ -528,3 +528,169 @@ the failure is silent.
 - Measured CUPED reduction vs ρ²: **0.44 percentage points** at n = 200,000
   (sampling noise, not bias: it falls as n grows)
 - Delta-method standard error vs simulated truth: **1.14%**
+
+---
+
+## Phase 6: Test readout (`tools/readout.html`)
+
+Reproduce with:
+
+```bash
+python reference_tool6.py && node check_tool6.js
+```
+
+The readout does four things, in the order a result has to be read. Each is
+checked against an implementation that shares no code with the page.
+
+1. **Sample ratio mismatch, first.** A chi-square goodness-of-fit test of the
+   users in each arm against the planned split, with no continuity correction.
+   Reference: `scipy.stats.chisquare` with `f_exp` set from the plan.
+2. **The p-value.** A two-sided two-proportion z-test with the variance pooled
+   under the null. Reference: `statsmodels.stats.proportion.proportions_ztest`.
+3. **The intervals.** Newcombe's hybrid score interval for the difference and
+   the log (Katz) interval for the relative lift. Reference:
+   `confint_proportions_2indep` with `method="newcomb"` and
+   `compare="ratio", method="log"`.
+4. **The type M error.** The exaggeration ratio of Gelman & Carlin (2014), in
+   the closed form of Lu, Qiu & Deng (2019). Reference: the same closed form
+   written independently in scipy, a seeded one-million-draw Monte Carlo in
+   numpy, and two figures Gelman & Carlin print.
+
+### Readouts
+
+Differences are variant minus control, in percentage points. The page shows
+Newcombe and the log interval; the Wald and log-adjusted columns are published
+for comparison.
+
+| Control | Variant | Plan | α | SRM p | p-value | Difference, Newcombe (pp) | Difference, Wald (pp) | Relative lift, log (%) | Relative lift, log-adjusted (%) |
+|---|---|---:|---:|---:|---:|---|---|---|---|
+| 1,575 / 31,500 | 1,740 / 31,500 | 50/50 | 5% | 1.0000 | 0.0032 | 0.175 to 0.873 | 0.175 to 0.872 | 3.4 to 18.1 | 3.4 to 18.1 |
+| 500 / 10,000 | 560 / 10,800 | 50/50 | 5% | 2.9e-8 | 0.5440 | -0.415 to 0.783 | -0.413 to 0.783 | -7.8 to 16.6 | -7.8 to 16.6 |
+| 4,500 / 90,000 | 540 / 10,000 | 90/10 | 5% | 1.0000 | 0.0828 | -0.050 to 0.881 | -0.065 to 0.865 | -1.0 to 17.8 | -0.9 to 17.9 |
+| 4,500 / 90,000 | 540 / 10,000 | 50/50 | 5% | < 1e-300 | 0.0828 | -0.050 to 0.881 | -0.065 to 0.865 | -1.0 to 17.8 | -0.9 to 17.9 |
+| 200 / 4,000 | 245 / 4,000 | 50/50 | 5% | 1.0000 | 0.0282 | 0.120 to 2.134 | 0.121 to 2.129 | 2.2 to 46.9 | 2.1 to 46.8 |
+| 5 / 200 | 12 / 200 | 50/50 | 5% | 1.0000 | 0.0827 | -0.596 to 7.930 | -0.439 to 7.439 | -13.9 to 568.7 | -15.0 to 507.7 |
+| 0 / 50 | 6 / 50 | 50/50 | 5% | 1.0000 | 0.0115 | 2.427 to 23.805 | 2.993 to 21.007 | — | — |
+| 350,000 / 500,000 | 351,500 / 500,000 | 50/50 | 5% | 1.0000 | 0.0010 | 0.121 to 0.479 | 0.121 to 0.479 | 0.2 to 0.7 | 0.2 to 0.7 |
+| 1,000 / 20,000 | 1,100 / 20,000 | 50/50 | 1% | 1.0000 | 0.0250 | -0.075 to 1.075 | -0.074 to 1.074 | -1.4 to 22.7 | -1.4 to 22.7 |
+| 1,000 / 20,000 | 1,100 / 20,000 | 50/50 | 10% | 1.0000 | 0.0250 | 0.133 to 0.867 | 0.133 to 0.867 | 2.6 to 18.0 | 2.6 to 18.0 |
+| 600 / 12,000 | 470 / 8,000 | 60/40 | 5% | 1.0000 | 0.0071 | 0.236 to 1.530 | 0.229 to 1.521 | 4.5 to 32.1 | 4.5 to 32.2 |
+| 1,575 / 31,500 | 1,500 / 31,500 | 50/50 | 5% | 1.0000 | 0.1655 | -0.575 to 0.098 | -0.575 to 0.098 | -11.1 to 2.0 | -11.1 to 2.0 |
+
+The second row is the mismatch the page is built to catch: 800 users short on
+a 50/50 plan, p = 2.9 × 10⁻⁸. The third and fourth rows are the same traffic.
+Read against a 90/10 plan there is no mismatch. Read against a 50/50 plan the
+mismatch is so large that scipy's p-value underflows to zero. The plan decides,
+not how uneven the arms look.
+
+### Why p < 0.001 is the mismatch threshold
+
+There is no single standard, so the choice is published with its neighbours:
+
+| Source | Threshold |
+|---|---|
+| [Eppo](https://docs.geteppo.com/statistics/sample-ratio-mismatch/) | 0.001 |
+| [GrowthBook](https://docs.growthbook.io/using/experimenting) (`DEFAULT_SRM_THRESHOLD`) | 0.001 |
+| [Statsig](https://docs.statsig.com/experiments/monitor#srm-thresholds) | alert below 0.001, warning up to 0.01 |
+| [Microsoft's experimentation team](https://www.microsoft.com/en-us/research/articles/diagnosing-sample-ratio-mismatch-in-a-b-testing/) | 0.0005 |
+| [Lukas Vermeer's SRM checker](https://www.lukasvermeer.nl/srm/docs/faq/) (the retired extension) | 0.01 |
+
+This page uses 0.001: two platforms use it as their default, and Statsig uses
+it for its alert. Eppo, GrowthBook and Vermeer all run a chi-square test
+against the planned split with no continuity correction, which is the test
+here. With two arms it has one degree of freedom, and the tail is then exactly
+2Φ(−√χ²), so the page needs no gamma function.
+
+### Why Newcombe and not Wald
+
+At the sample sizes online tests usually have, the two intervals agree to
+within a thousandth of a percentage point (the first row and the large-n row). They
+part ways when an arm is small or a rate is near zero. At 5/200 against 12/200,
+the lower bound is −0.44 pp by Wald and −0.60 pp by Newcombe. At 0/50 against
+6/50, Wald cannot see the zero cell at all: the control's standard error is
+exactly 0. Newcombe (1998) recommends the hybrid score interval over Wald for
+this reason, and it is the default of `confint_proportions_2indep`.
+
+### Why the log interval for the relative lift, and not the default
+
+statsmodels' default for the ratio, `log-adjusted`, adds 0.5 to every count.
+That helps coverage with tiny counts, but it also centres the interval on a
+ratio other than the lift the page reports. The plain log method is centred on
+the reported lift. In the table the two differ by at most 0.1 percentage point
+of relative lift, except at 5/200 against 12/200, where both are too wide to
+act on. Neither exists with zero conversions in an arm.
+
+### Type M: closed form, simulation, and the published figures
+
+For a true effect D measured with standard error s, λ = D/s. The table uses
+s = 1.
+
+| λ = D/s | α | Power | Type S | Exaggeration, this tool | Monte Carlo (10⁶ draws) | Distance, in MC standard errors |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0.25 | 1% | 0.0124 | 0.1906 | 11.6262 | 11.6104 | 1.5 |
+| 0.5 | 1% | 0.0200 | 0.0525 | 5.8720 | 5.8780 | 1.3 |
+| 1 | 1% | 0.0577 | 0.0030 | 3.0029 | 3.0009 | 1.3 |
+| 1.5 | 1% | 0.1410 | 0.0002 | 2.0574 | 2.0579 | 0.6 |
+| 2 | 1% | 0.2824 | 0.0000 | 1.5985 | 1.5989 | 0.8 |
+| 2.8 | 1% | 0.5887 | 0.0000 | 1.2360 | 1.2362 | 0.7 |
+| 4 | 1% | 0.9228 | 0.0000 | 1.0392 | 1.0388 | 1.8 |
+| 0.25 | 5% | 0.0572 | 0.2370 | 9.4205 | 9.4175 | 0.5 |
+| 0.5 | 5% | 0.0791 | 0.0878 | 4.7886 | 4.7842 | 1.6 |
+| 1 | 5% | 0.1701 | 0.0090 | 2.4909 | 2.4904 | 0.4 |
+| 1.5 | 5% | 0.3230 | 0.0008 | 1.7411 | 1.7414 | 0.6 |
+| 2 | 5% | 0.5160 | 0.0001 | 1.3863 | 1.3863 | 0.0 |
+| 2.8 | 5% | 0.7996 | 0.0000 | 1.1252 | 1.1249 | 0.9 |
+| 4 | 5% | 0.9793 | 0.0000 | 1.0127 | 1.0125 | 1.1 |
+| 0.25 | 10% | 0.1106 | 0.2627 | 8.3261 | 8.3307 | 1.0 |
+| 0.5 | 10% | 0.1421 | 0.1125 | 4.2531 | 4.2538 | 0.3 |
+| 1 | 10% | 0.2636 | 0.0155 | 2.2441 | 2.2462 | 2.1 |
+| 1.5 | 10% | 0.4432 | 0.0019 | 1.5943 | 1.5955 | 2.0 |
+| 2 | 10% | 0.6389 | 0.0002 | 1.2931 | 1.2926 | 1.2 |
+| 2.8 | 10% | 0.8760 | 0.0000 | 1.0835 | 1.0839 | 1.4 |
+| 4 | 10% | 0.9907 | 0.0000 | 1.0063 | 1.0064 | 0.3 |
+
+Gelman & Carlin compute the exaggeration by simulation (10,000 draws in their
+`retrodesign`) and print it rounded. The closed form lands within one unit of
+the last digit they print:
+
+| Gelman & Carlin (2014) | They print | This tool |
+|---|---|---|
+| D = 2.8, s = 1 | exaggeration 1.12 | exaggeration 1.125 |
+| D = 0.1, s = 3.3 | exaggeration 77, power 0.05, type S 0.46 | exaggeration 77.2, power 0.050, type S 0.465 |
+
+The page warns below 50% power, where Gelman & Carlin say the problems with
+the exaggeration ratio start. At 50% power a significant estimate overstates
+the truth by about 1.4×; at 80% power, by about 1.1×.
+
+### The effect comes from the plan, never from the data
+
+On the page, D is the relative lift the test was planned to detect, taken on
+the observed control rate, and s is the unpooled standard error of the
+observed difference. The observed lift never enters. Power computed from the
+observed lift is a one-to-one function of the p-value
+([Hoenig & Heisey 2001](https://doi.org/10.1198/000313001300339897)), so it
+cannot say anything the p-value has not already said.
+
+| Control | Variant | Planned lift | α | Effect (pp) | Standard error (pp) | Power | Exaggeration |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 1,575 / 31,500 | 1,740 / 31,500 | 10% | 5% | 0.500 | 0.178 | 0.8025 | 1.1232 |
+| 200 / 4,000 | 245 / 4,000 | 10% | 5% | 0.500 | 0.512 | 0.1642 | 2.5472 |
+| 200 / 4,000 | 230 / 4,000 | 10% | 5% | 0.500 | 0.504 | 0.1680 | 2.5102 |
+| 1,000 / 20,000 | 1,100 / 20,000 | 5% | 1% | 0.250 | 0.223 | 0.0730 | 2.6950 |
+
+The second row is the underpowered example on the page. With 4,000 users an
+arm, the test had 16% power for the 10% lift it was planned around. Its
+significant +22.5% is what that design produces when luck adds to a smaller
+effect.
+
+### Worst disagreements
+
+- SRM p-value vs `scipy.stats.chisquare`: **1.1e-16**
+- p-value vs `proportions_ztest`: **1.1e-16**
+- Newcombe interval vs `confint_proportions_2indep`: **2.1e-17**
+- Relative-lift interval vs the log method: **8.9e-16**
+- Exaggeration vs the closed form in scipy: **2.0e-15** (relative)
+- Exaggeration vs the Monte Carlo: **2.1** of the simulation's own standard
+  errors, against a tolerance of 4
+
+Every closed-form comparison is at double-precision machine epsilon.
