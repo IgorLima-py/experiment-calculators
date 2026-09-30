@@ -33,7 +33,7 @@ Estado: ✅ feito · 🚧 em obras · ⬜ não começou · 🔴 travado
 |---|---|---|---|---|---|---|---|---|
 | 1 | C1 — frases testadas e guarda do site | `dificil` | sessao | ✅ | qualquer | — | — | frase de julgamento errada e ferramenta esquecida no nav ou no sitemap quebram a bateria; as duas frases falsas do index saem do ar |
 | 2 | C2 — leitura do teste | `dificil` | sessao | ✅ | qualquer | C1 | — | quem terminou um teste lê o resultado no site: lift com IC, SRM checado antes, erro tipo M quando faltou poder |
-| 3 | C3a — leitura do teste geo | `dificil` | sessao | ⬜ | qualquer | C1 | — | um teste geo terminado vira receita incremental e iROAS com IC, no mesmo modelo que a Tool 4 usou para desenhá-lo |
+| 3 | C3a — leitura do teste geo | `dificil` | sessao | ✅ | qualquer | C1 | — | um teste geo terminado vira receita incremental e iROAS com IC, no mesmo modelo que a Tool 4 usou para desenhá-lo |
 | 4 | C3b — do teste geo ao prior do MMM | `dificil` | sessao | ⬜ | qualquer | C3a | — | o iROAS vira prior do Meridian e linha de calibração do Robyn; a suíte linka o artigo de MMM |
 | 5 | C4a — métrica contínua | `dificil` | sessao | ⬜ | qualquer | C2 | — | teste de receita por usuário ou ticket médio pode ser planejado (Tools 1–2) e lido (C2) |
 | 6 | C4b — split desigual, A/B/n e CUPED no tamanho de amostra | `dificil` | sessao | ⬜ | qualquer | C4a | — | teste 90/10, com 3+ braços ou com CUPED sai com o tamanho de amostra certo; a página do CUPED passa a conversar com a Tool 1 |

@@ -1,6 +1,117 @@
 # Status
 
-*Atualizado em 2026-09-29: C2 fechada. Próxima fatia: C3a.*
+*Atualizado em 2026-09-29: C3a fechada. Próxima fatia: C3b.*
+
+## 29/09/2026 (madrugada): C3a — leitura do teste geo
+
+**Bateria:** `bateria 60: 60/0/0`, rodada pelo subagente no `/tchau` pela trava. O subagente
+conta 60 testes; na sessão, os 11 checks da linha `bateria:`, rodados um por um, deram 11/0/0.
+
+**Decisões do Igor no plan mode:**
+1. **Estimador:** OLS clássico, `post ~ treat + pre`, EP homocedástico e t com n−3 gl. É o
+   mesmo modelo que a Tool 4 assume no (1−ρ²). O HC1 e o WLS 1/pré (o GBR de Vaver & Koehler)
+   saem só no `RESULTS.md`, como comparação.
+2. **Dados colados no link:** vão no fragmento `#data=`, que o navegador não envia ao servidor.
+   Investimento, α e ρ ficam na query.
+3. **Link Tool 4 → leitura:** leva `alpha` e o `rho` planejado. A frase compara o ρ realizado
+   (correlação parcial dado o grupo) com o planejado, e é esse o ramo "pré-período instável",
+   sem limiar inventado.
+
+**O que foi feito:**
+
+- **`assets/geo-readout.js` (`GeoReadout`):**
+  - ANCOVA por OLS 3×3 com o pré centrado, por Gauss-Jordan com pivô;
+  - `b`, EP, t e p por `Stats.tCdf`, IC por `Stats.tQuantile(1−α/2, n−3)`;
+  - incremental = b·nT e iROAS = incremental ÷ investimento, com os ICs escalados;
+  - lift relativo só pontual; ρ within-group; CV do pré; `noiseFactor` contra o ρ planejado.
+- **`assets/geo.js`:**
+  - a tokenização da Tool 4 virou `tokens()`, e o `check_tool4` segue verde;
+  - `Geo.parseGroups` lê `nome grupo pré pós`. O grupo é uma palavra de um vocabulário fechado
+    (test/treatment/treated/t × control/holdout/h/c) e nunca um dígito;
+  - uma linha não lida vira erro com o número da linha, e é o que acontece com "471,900".
+- **`tools/geo-readout.html`:**
+  - a textarea já vem com o exemplo (`reference_tool7.py`: 40 mercados, 10 no controle, os
+    defaults da Tool 4), com investimento 44000 e α 10;
+  - resultados: iROAS com IC, incremental com IC, p, lift, divisão e ρ;
+  - avisos de holdout < 5 e geos < 10, com os mesmos limiares da Tool 4;
+  - caixa de honestidade com o porquê do OLS, GeoLift/TBR como método melhor, spillover,
+    receita ≠ lucro e o lift sem IC.
+- **`Judgement.geoReadout`:** 7 ramos e 2 acréscimos, com o spillover em todos. São 11 casos
+  novos, e o `check_judgement` tem 49.
+- **Links nos dois sentidos, conferidos clicando:**
+  - `geo-holdout.html?rho=0.7&alpha=5` leva a `geo-readout.html?alpha=5&rho=0.7`;
+  - o link de volta leva a `geo-holdout.html?geos=40&holdout=10&cv=64.9&rho=0.99&alpha=5`.
+- **`assets/ui.js`:** `write` preserva o `location.hash`, com uma linha. Nenhuma outra página
+  usa hash.
+- **`assets/style.css`:** `.fields textarea` em monoespaçada 0,8rem, e só a da leitura geo está
+  dentro de `.fields`.
+- **Validação:**
+  - `reference_tool7.py` + JSON + `check_tool7.js`, com 5 conjuntos contra o OLS do statsmodels;
+  - pior erro de 7,9e-12, com tolerância 1e-9;
+  - o check exige que a textarea da página seja idêntica ao exemplo do JSON e confere os
+    defaults de investimento e α;
+  - segura também a frase da caixa de honestidade sobre o WLS ("from 19% above … to 69% below
+    it", sempre dentro do IC).
+- **`RESULTS.md` Phase 7:**
+  - as tabelas de leitura e OLS × HC1 × WLS × diferença de médias;
+  - a coluna 1/√(1−ρ²), que é a previsão da Tool 4 e bate com o realizado (16,8× contra
+    17,2×). A exceção é o conjunto desbalanceado (7× contra 12×): o desequilíbrio no pré entra
+    na variância da ANCOVA;
+  - `validation/index.html` regerado.
+- **Integração no site:**
+  - nav das 8 páginas e do `build_page.py`, index, 404, sitemap, README, `PAGES`, workflow
+    ("Geo test readout") e a linha `bateria:`, que agora tem 11 checks;
+  - `og/geo-readout.png` é nova e a `home.png` foi regerada; as outras saíram idênticas;
+  - "Five free calculators" virou "Six" no index ×3, no README e no `build_og.py`.
+- **Prosa:** passou pela `humanize`, com o `conferir.py` saindo 0. Saíram dois fechos que
+  repetiam o título e um "revenue, not profit".
+- **Sabotagem com `;`:** gl n−2 e control→treat no parser fazem o `check_tool7` sair 1; o
+  limiar da frase faz o `check_judgement` sair 1. O sha256 dos restaurados bate.
+
+**O que foi tentado e falhou:**
+
+- **Sabotar tirando o centramento do pré não quebra nada.** Sem centrar o erro é 7,1e-12, e
+  com centramento 7,0e-12. O comentário que eu tinha escrito atribuía o erro ao condicionamento;
+  era chute e foi corrigido. O centramento fica como seguro barato, e o `RESULTS.md` diz que o
+  check não distingue os dois casos.
+- **O RESULTS dizia que todo IC continha o iROAS verdadeiro.** O de 80% do "biggest markets
+  held out" não contém (2,0 contra 2,12 a 7,00). Corrigido antes do commit.
+- **Subtítulo da OG cortado na 3ª linha.** Foi encurtado.
+- **O `preview_start` recusou a porta 8000,** porque outro chat tem um `serve.py` de pé nesta
+  máquina. O contorno foi `preview_start` com `url` para `http://localhost:8000`, que serve a
+  mesma pasta.
+- **Depois de rolar, o screenshot do painel voltou uma imagem velha**, a armadilha de sempre. O
+  layout a 375 px foi medido pelo DOM (`scrollWidth` 375, nenhum elemento passando da borda).
+- **Eu comecei um comando com `cd`,** contra a regra. Não foi negado, mas não repita.
+
+**Riscos que ficaram abertos:**
+
+- O CI regenera o `reference_tool7.json`, e o `check_tool7` exige a textarea igual ao
+  `example_text`. Localmente a regeneração deu idêntica. Noutro SO, um arredondamento no limite
+  (x,5 do lognormal) poderia mudar um dígito e quebrar o CI. Não medi isso; se quebrar, é aí.
+- A leitura mostra o EP do incremental, mas não expõe o EP do iROAS como número. A C3b vai
+  precisar dele (é `se·nT/spend`, já em `r.fit.se` e `r.nTreat`).
+
+**Segunda opinião:** o subagente Opus, com contexto limpo e o diff desde `fefae9b`, não achou
+nada. Ele rodou de novo o `check_tool7`, o `check_judgement` e o `check_site`. Fez uma
+observação que não conta como achado: apagar o campo de investimento faz a conta voltar ao
+default 44000, e não a 0 (o campo volta a mostrar 44000 ao perder o foco). É o padrão de campo
+vazio das outras páginas; fica como está.
+
+**O que só o Igor faz:**
+
+- **About do GitHub:** agora são seis calculadoras. Revisado com a mesma frase do README:
+
+  ```bash
+  gh repo edit IgorLima-py/experiment-calculators --description "Six free calculators and an interactive explainer for people who run A/B tests and marketing experiments. Every result comes with one plain sentence on what it means and what would invalidate it."
+  ```
+
+- **Sitemap no Search Console:** agora com a `geo-readout.html`. A submissão continua marcada
+  para a C6.
+
+**Próximo passo concreto:** abrir a **C3b — do teste geo ao prior do MMM** numa sessão nova, em
+opus/high e sem plan mode. O prompt de abertura está no `docs/ROADMAP.md`. Comece lendo a doc
+atual de calibração do Meridian e do Robyn, porque a API muda entre versões.
 
 ## 29/09/2026 (noite): C2 — leitura do teste
 

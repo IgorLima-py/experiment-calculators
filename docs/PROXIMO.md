@@ -6,16 +6,16 @@
 > Quem lê: o hook de abertura do plugin `playbook` (`sessao-abre.ps1`), e o `/oi` quando não há hook.
 > Quem escreve: o `/tchau`, ao avançar o ponteiro, e o `/360`, ao desenhar o roadmap.
 
-chat: C3a
-titulo: leitura do teste geo
+chat: C3b
+titulo: do teste geo ao prior do MMM
 perfil: dificil
 modelo: opus
 esforco: high
 forma: sessao
 maquina: qualquer
-plan-mode: sim
-persona: quem fecha o ciclo da Tool 4: o teste foi desenhado aqui, agora é lido aqui, com o mesmo modelo
-objetivo: tools/geo-readout.html com receita incremental e iROAS com IC por ANCOVA (geos como unidades, pré como covariável); reference_tool7.py + check_tool7.js contra statsmodels OLS; a ferramenta em todo lugar que o check_site.js cobra; links de ida e volta com a Tool 4; bateria 11/0/0
+plan-mode: nao
+persona: quem liga o experimento ao modelo de mix: o número que o teste geo mediu vira o prior que o MMM vai usar, sem inventar nada que o teste não mediu
+objetivo: seção "hand it to your MMM" na geo-readout.html com o prior LogNormal do ROI no Meridian (casamento de momentos a partir do iROAS e do EP) e a linha de calibration_input do Robyn, com tag de release e link da doc; campo valor por conversão; casos de casamento de momentos contra scipy.stats.lognorm; link para o artigo de MMM na leitura geo e no index; bateria sem falha
 
 <!--
 `modelo:` e `esforco:` são SEMPRE re-resolvidos pelo /tchau a partir da tabela de perfis do
