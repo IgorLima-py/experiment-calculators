@@ -298,7 +298,7 @@ var GeoReadout = (function () {
         ', scale=' + fixed4(r.prior.sigma) + ').'
     ];
     if (r.metric === 'conversions') {
-      lines.push('# In revenue at ' + plain(r.value) + ' a conversion: give the model the same',
+      lines.push('# In revenue at ' + String(r.value) + ' a conversion: give the model the same',
                  '# figure as revenue_per_kpi.');
     }
     return lines.join('\n');
@@ -320,7 +320,7 @@ var GeoReadout = (function () {
       commented('  liftStartDate = as.Date("YYYY-MM-DD"),', 'the first day of the test'),
       commented('  liftEndDate = as.Date("YYYY-MM-DD"),', 'the last day of the test'),
       commented('  liftAbs = ' + plain(r.incremental) + ',', what + ', the estimate'),
-      commented('  spend = ' + plain(r.spend) + ',', 'what the test spent'),
+      commented('  spend = ' + String(r.spend) + ',', 'what the test spent'),
       commented('  confidence = ' + confidence(r.fit.p) + ',',
                 '1 - p, as Robyn\'s demo suggests'),
       commented('  metric = "your_dep_var",', 'must be your dep_var'),

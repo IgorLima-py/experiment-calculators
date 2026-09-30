@@ -208,7 +208,9 @@ for (const [m, s] of [[0, 1], [-0.4, 0.3], [2, 0], [NaN, 1]]) {
     const label = `${name} ${tag}`;
     if (pageHtml.indexOf(label) === -1) fail(`tools/geo-readout.html does not say "${label}"`);
     if (results.indexOf(label) === -1) fail(`validation/RESULTS.md does not say "${label}"`);
-    const others = new Set([...(pageHtml + results).matchAll(new RegExp(name + ' (v\\d+\\.\\d+\\.\\d+)', 'g'))]
+    /* Every version the two files quote, in prose or inside a link. */
+    const others = new Set([...(pageHtml + results).matchAll(
+      new RegExp('(?:' + name + ' |' + name + '/(?:tree|blob)/)(v\\d+\\.\\d+\\.\\d+)', 'gi'))]
       .map(x => x[1]));
     if (others.size !== 1) fail(`${name} is quoted at more than one release: ${[...others].join(', ')}`);
   }

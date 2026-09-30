@@ -312,7 +312,7 @@ var Judgement = (function () {
    */
   /* A figure the visitor typed, printed the way they typed it. */
   function typed(x) {
-    return x === Math.round(x) ? UI.integer(x) : UI.decimal(x, 2).replace(/0$/, '');
+    return x === Math.round(x) ? UI.integer(x) : String(x);
   }
 
   /*
