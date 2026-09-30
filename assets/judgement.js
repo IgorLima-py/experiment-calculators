@@ -248,16 +248,15 @@ var Judgement = (function () {
           ' of the time, and when it does, the estimate overstates it by ' +
           UI.decimal(tm.exaggeration, 1) + '× on average.' + sign +
           ' A test this small only comes out significant when luck adds to ' +
-          'the effect. Treat the lift as the top of a range, not a ' +
-          'measurement, and confirm it before you plan around it.';
+          'the effect. Treat the lift as the top of a range, and confirm it ' +
+          'before you plan around it.';
       }
 
       return '<strong>What would make this number a lie.</strong>' + moved +
         ' The test had ' + UI.percent(tm.power * 100, 0) + ' power for the ' +
         planned + ' lift you planned, so a significant estimate of a lift ' +
         'that size overstates it by only ' + UI.decimal(tm.exaggeration, 1) +
-        '× on average. The interval, not the single number, is what you ' +
-        'learned. ' + ONE_LOOK;
+        '× on average. What you learned is the whole interval. ' + ONE_LOOK;
     }
 
     var open = '<strong>Inconclusive, not a loss.</strong>' +
@@ -281,9 +280,9 @@ var Judgement = (function () {
 
     return open + 'The test had ' + UI.percent(tm.power * 100, 0) + ' power ' +
       'for the ' + planned + ' lift you planned, so a real lift that size ' +
-      'would usually have shown up. That makes it less likely, not ruled out: ' +
-      'the interval is the honest summary of what the data can and cannot ' +
-      'exclude.';
+      'would usually have shown up. So a lift that size is unlikely, though ' +
+      'the interval above still allows it, and the interval is what the data ' +
+      'can and cannot rule out.';
   }
 
   return {

@@ -580,8 +580,8 @@ for comparison.
 The second row is the mismatch the page is built to catch: 800 users short on
 a 50/50 plan, p = 2.9 × 10⁻⁸. The third and fourth rows are the same traffic.
 Read against a 90/10 plan there is no mismatch. Read against a 50/50 plan the
-mismatch is so large that scipy's p-value underflows to zero. The plan decides,
-not how uneven the arms look.
+mismatch is so large that scipy's p-value underflows to zero. Whether the arms
+are mismatched depends on the plan, whatever they look like side by side.
 
 ### Why p < 0.001 is the mismatch threshold
 
