@@ -192,9 +192,8 @@ const PINNED = {
   geoReadout:
     '<strong>It moved revenue. Whether it paid back is open.</strong>The best ' +
     'estimate is 2.01 in revenue for each unit spent (p = 0.0129), but the 90% ' +
-    'interval runs from 0.71 to 3.31, either side of the break-even of 1. The ' +
-    'campaign did something; this test cannot say it covered its cost. All of ' +
-    'it assumes the held-out markets did not see the campaign and that nothing ' +
+    'interval runs from 0.71 to 3.31, either side of the break-even of 1. All ' +
+    'of it assumes the held-out markets did not see the campaign and that nothing ' +
     'else changed between the groups during the test. People cross borders, and ' +
     'IP-based geo targeting is commonly cited as only 55–80% accurate. Every bit ' +
     'of that leakage pushes the estimate toward zero, so a real effect reads ' +
@@ -353,7 +352,7 @@ const CASES = [
   { tool: 7, name: 'interval above 1: paid back, on revenue',
     html: geoReadout({ spend: 20000 }),
     has: ['It paid back, on revenue.', 'brought back 4.42', '1.57 to 7.28',
-          'revenue, not profit', '55–80%'],
+          'revenue before margin', '55–80%'],
     lacks: ['open', 'at a loss'] },
   { tool: 7, name: 'interval below 1: moved revenue, at a loss',
     html: geoReadout({ spend: 200000 }),

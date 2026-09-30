@@ -23,9 +23,9 @@ if (!fs.existsSync(refPath)) {
 const ref = JSON.parse(fs.readFileSync(refPath, 'utf8'));
 
 /* Relative tolerance. The worst error measured on 2026-09-29 was 7.9e-12 (the
- * relative lift; 7.0e-12 on the coefficient), the price of a 3x3 solve on
- * revenue in the hundreds of thousands against statsmodels' own route. TOL
- * leaves two decades for another platform's floating point. */
+ * relative lift; 7.0e-12 on the coefficient), between two different routes
+ * to the same least squares solution. TOL leaves two decades for another
+ * platform's floating point. */
 const TOL = 1e-9;
 
 let failed = 0;

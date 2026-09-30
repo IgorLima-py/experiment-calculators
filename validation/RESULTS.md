@@ -743,8 +743,8 @@ else moved.
 
 Five synthetic data sets, generated with fixed seeds by `reference_tool7.py`.
 Market sizes are lognormal(11, 0.8), the shape Phase 4 uses for its paste
-helper. Every market grows 3% between the periods with 4–5% market-level noise
-(no noise model is claimed to be real). The test markets get the true lift, and
+helper. Every market grows 3% between the periods with 4–5% market-level noise,
+an assumption rather than a claim about real markets. The test markets get the true lift, and
 the spend is set so that the true iROAS is a round number. Values are rounded
 to whole numbers, as pasted data would be. The first row is the example the
 page ships.
@@ -767,9 +767,8 @@ to say whether the spend paid back.
 
 ### Why ordinary least squares, and what the alternatives give
 
-The readout uses the model the design assumed. A different estimator here
-would mean reading the test with a model other than the one that sized it.
-The alternatives are published on the same data:
+The readout uses the model the design assumed, so the test is read with the
+model that sized it. The alternatives are published on the same data:
 
 | Data | Classical SE (this page) | HC1 SE | WLS 1/pre: effect | WLS 1/pre: SE | Difference in means: SE | SE bought by the pre-period | 1/√(1−ρ²), what tool 4 predicts |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -800,8 +799,8 @@ The alternatives are published on the same data:
   means inflates the covariate-adjusted error (the squared gap between the
   two groups' mean pre-period enters the ANCOVA variance), and the adjustment
   buys 7× instead of 12×. That is the
-  price of an unbalanced assignment, and the reason Phase 4 says to stratify
-  by size.
+  price of an unbalanced assignment, and the reason the geo holdout page says
+  to stratify by size.
 
 GeoLift (synthetic control) and time-based regression use each market's full
 history and remain the better methods when that history is available. The page
@@ -831,7 +830,9 @@ default spend and significance level.
 ### What the tolerances mean
 
 - **1e-9, relative, on every comparison.** The worst error measured on
-  2026-09-29 was 7.9e-12, the price of solving the 3×3 normal equations on
-  revenue in the hundreds of thousands, against statsmodels' own route to the
-  same numbers. The tolerance leaves two decades for another platform's
-  floating point.
+  2026-09-29 was 7.9e-12, between the page's solve of the 3×3 normal
+  equations and statsmodels' own route to the same least squares solution.
+  The tolerance leaves two decades for another platform's floating point.
+  Centring the pre-period, which the page does, changes nothing measurable at
+  these sizes (7.1e-12 without it); the check cannot tell the two apart, and
+  it is not meant to.

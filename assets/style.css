@@ -134,6 +134,15 @@ textarea {
   width: 100%;
 }
 
+/* Pasted data inside the input card is a table: monospace keeps its columns
+ * lined up, and the smaller size fits a market name and two figures on a
+ * phone. */
+.fields textarea {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 .field input:focus,
 .field select:focus,
 textarea:focus {

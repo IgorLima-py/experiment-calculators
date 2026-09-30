@@ -329,8 +329,8 @@ var Judgement = (function () {
       body = '<strong>Revenue fell where the campaign ran.</strong>' + incr +
         roas + '. Before you believe it, check that the groups are labelled ' +
         'the right way round, and look for anything else that hit the treated ' +
-        'markets during the test: a campaign that loses money outright is ' +
-        'rarer than a swapped label or a regional shock.';
+        'markets during the test. A campaign can lower revenue, but rule out ' +
+        'the simpler explanations first.';
     } else if (!r.ciIroas) {
       body = '<strong>What would make this number a lie.</strong>' +
         'The treated markets brought in ' + UI.integer(r.incremental) +
@@ -342,21 +342,20 @@ var Judgement = (function () {
         'Each unit spent brought back ' + UI.decimal(r.iroas, 2) + ' in ' +
         'revenue (p = ' + UI.pValue(r.fit.p) + '), and the ' + level + ' ' +
         'interval, ' + iroasRange(r.ciIroas) + ', sits above the break-even of ' +
-        '1. That is revenue, not profit: once margin is taken out, the bar is ' +
-        'higher than 1.';
+        '1. It counts revenue before margin, so the bar for profit is higher ' +
+        'than 1.';
     } else if (r.ciIroas.hi >= 1) {
       body = '<strong>It moved revenue. Whether it paid back is open.</strong>' +
         'The best estimate is ' + UI.decimal(r.iroas, 2) + ' in revenue for ' +
         'each unit spent (p = ' + UI.pValue(r.fit.p) + '), but the ' + level +
         ' interval runs from ' + iroasRange(r.ciIroas) + ', either side of the ' +
-        'break-even of 1. The campaign did something; this test cannot say it ' +
-        'covered its cost.';
+        'break-even of 1.';
     } else {
       body = '<strong>It moved revenue, at a loss.</strong>' +
         'Each unit spent brought back ' + UI.decimal(r.iroas, 2) + ' in ' +
         'revenue (p = ' + UI.pValue(r.fit.p) + '), and the whole ' + level +
         ' interval, ' + iroasRange(r.ciIroas) + ', sits below the break-even ' +
-        'of 1. The effect is real and smaller than what it cost.';
+        'of 1.';
     }
 
     var extra = '';

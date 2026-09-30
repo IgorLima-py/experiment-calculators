@@ -42,9 +42,10 @@
   campaign added, what each unit of spend brought back, and how sure you can
   be of either.</p>
 
-  <div class="field field-span">
-    <label for="data">Your markets</label>
-    <textarea id="data" rows="10" spellcheck="false">market     group    pre      post
+  <div class="fields">
+    <div class="field field-span">
+      <label for="data">Your markets</label>
+      <textarea id="data" rows="10" spellcheck="false">market     group    pre      post
 Market 01  test     99610    103334
 Market 02  test     70535    81086
 Market 03  test     41823    43502
@@ -85,16 +86,15 @@ Market 37  test     86168    92743
 Market 38  test     51274    54577
 Market 39  test     124343   135256
 Market 40  test     29602    32049</textarea>
-    <span class="hint">One market per line, ending with its group
-    (<code>test</code> or <code>control</code>), its revenue in a period
-    before the test, then its revenue during the test. The two periods should
-    be the same length. Names go first and are ignored, digits and all. No
-    thousands separators. The example is synthetic. Nothing leaves your
-    browser.</span>
-    <span class="note" id="data-summary"></span>
-  </div>
+      <span class="hint">One market per line, ending with its group
+      (<code>test</code> or <code>control</code>), its revenue in a period
+      before the test, then its revenue during the test. The two periods
+      should be the same length. Names go first and are ignored, digits and
+      all. No thousands separators. The example is synthetic. Nothing leaves
+      your browser.</span>
+      <span class="hint" id="data-summary"></span>
+    </div>
 
-  <div class="fields">
     <div class="field">
       <label for="spend">Spend during the test</label>
       <input type="number" id="spend" step="any" min="0" inputmode="decimal">
@@ -181,8 +181,8 @@ Market 40  test     29602    32049</textarea>
       <a href="https://github.com/google/matched_markets">time-based
       regression</a> use each market's full daily history and will usually
       give a tighter, better-calibrated answer from the same test. This page
-      reads the test from two totals per market, which is what makes it quick,
-      and what it gives up.</li>
+      reads the test from two totals per market. That makes it quick, and it
+      leaves out the daily history those tools use.</li>
       <li><strong>Big markets are noisier.</strong> The classical standard
       error treats every market's noise as the same size, and revenue does not
       behave that way. The published comparison shows the robust (HC1) error
@@ -194,8 +194,8 @@ Market 40  test     29602    32049</textarea>
       of mouth crosses borders, and IP-based geo targeting is commonly cited as
       only 55–80% accurate, so some held-out markets saw the ads anyway.</li>
       <li><strong>The spend is taken as known.</strong> The iROAS interval is
-      the revenue interval divided by the spend. It is revenue, not profit: an
-      iROAS of 1 means the campaign paid for itself before margin, not
+      the revenue interval divided by the spend. The iROAS counts revenue
+      before margin: at 1, the campaign paid for itself before margin, not
       after.</li>
       <li><strong>The lift in the test markets has no interval.</strong> It is
       the incremental revenue over what the test markets would have made
@@ -259,7 +259,9 @@ Market 40  test     29602    32049</textarea>
   };
 
   /* Pasted data rides in the fragment, which the browser never sends to a
-   * server, and only when it differs from the example. */
+   * server, and only when it differs from the example. Runs of spaces and
+   * tabs go in as one space: each would otherwise cost three characters of
+   * link, and the parser reads one space the same as ten. */
   var HASH = '#data=';
   if (window.location.hash.indexOf(HASH) === 0) {
     try {
@@ -267,7 +269,8 @@ Market 40  test     29602    32049</textarea>
     } catch (e) { /* a mangled link falls back to the example */ }
   }
   function writeHash() {
-    var hash = data.value === EXAMPLE ? '' : HASH + encodeURIComponent(data.value);
+    var hash = data.value === EXAMPLE ? '' :
+      HASH + encodeURIComponent(data.value.replace(/[ \t]+/g, ' '));
     window.history.replaceState(null, '',
       window.location.pathname + window.location.search + hash);
   }

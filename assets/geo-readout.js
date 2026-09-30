@@ -62,8 +62,10 @@ var GeoReadout = (function () {
    *
    * The pre-period is centred before solving. That moves the intercept and
    * nothing else - the treatment coefficient and its standard error are the
-   * same - but market revenue runs to millions, and centring keeps X'X from
-   * mixing entries twelve orders of magnitude apart.
+   * same. On the validation data (revenue in the tens and hundreds of
+   * thousands) it changes nothing measurable: 7.1e-12 from statsmodels
+   * without it, 7.0e-12 with, on 2026-09-29. It stays as cheap insurance for
+   * revenue in the millions, where X'X mixes entries far apart in size.
    */
   function ancova(rows, alpha) {
     var n = rows.length;
