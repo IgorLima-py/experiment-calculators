@@ -1,6 +1,124 @@
 # Status
 
-*Atualizado em 2026-09-29: C3a fechada. Próxima fatia: C3b.*
+*Atualizado em 2026-09-30: C3b fechada. Próxima fatia: C4a.*
+
+## 30/09/2026: C3b — do teste geo ao prior do MMM
+
+**Bateria:** `bateria 75: 75/0/0`, rodada pelo subagente pela trava depois dos consertos da segunda
+opinião. A contagem é a mesma da C3a: os 64 casos do `check_judgement` mais as 11 checagens do
+`check_site`. Os 11 checks da linha
+`bateria:` saíram 0, e o placar deles é 11/0/0.
+
+**O que foi feito:**
+
+- **`assets/geo-readout.js`:**
+  - `lognormalFromMoments(mean, sd, level)` casa os momentos em forma fechada, com σ² = ln(1 + cv²)
+    e μ = ln(mean) − σ²/2, e devolve também a mediana e o intervalo central. Devolve null com
+    média ≤ 0;
+  - o `analyse` ganhou `metric` ('revenue' | 'conversions'), `value` (valor por conversão),
+    `seIncremental`, `seIroas` e `prior`. Com conversões e sem valor, não há iROAS nem prior;
+  - `meridianSnippet` e `robynSnippet` escrevem o código para colar, e `RELEASES` guarda as tags
+    `v2.1.0` e `v3.12.0`.
+- **`tools/geo-readout.html`:**
+  - o seletor "The figures are" (receita | conversões) e o campo "Value of one conversion", que
+    só aparece com conversões;
+  - a seção "Hand it to your MMM": μ, σ, mediana e faixa do prior em grade 2×2, o trecho do
+    Meridian, a linha do Robyn, as tags com links para a doc e a frase de julgamento;
+  - no honesty box, a frase fixa do valor por conversão (só com conversões e valor) e o item
+    "The MMM prior is unadjusted.".
+- **`assets/judgement.js`:**
+  - o `geoReadout` fala em conversões quando a métrica é conversões. O texto em receita não
+    mudou, e o caso fixado da C3a continua passando;
+  - `conversionValue(value)` é a frase fixa;
+  - o `mmm(r)` tem 4 ramos (sem spend, conversões sem valor, iROAS ≤ 0 e o prior) e 2
+    acréscimos (IC que cruza o zero e confidence abaixo de 0,8 no Robyn). São 15 casos novos, e
+    o `check_judgement` agora tem 64.
+- **Validação:**
+  - o `reference_tool7.py` acha σ por `brentq` sobre o `.std()/.mean()` do próprio
+    `scipy.stats.lognorm`, sem a fórmula fechada. São 26 casos: os 5 conjuntos e uma grade de CV
+    de 1% a 500% em três médias;
+  - o `check_tool7` compara μ, σ, mediana e intervalo, confere que a média e o desvio do scipy
+    devolvem o iROAS e o EP, cobre o iROAS negativo, as conversões, os números dos trechos de
+    código e as tags de release (código = página = `RESULTS.md`);
+  - pior erro 5,0e-13 no σ, com `PRIOR_TOL` de 5e-11, a origem no comentário e no `RESULTS.md`;
+  - `RESULTS.md` Phase 7, com a subseção "Handing the result to a mix model", e
+    `validation/index.html` regerado.
+- **`index.html`:** o card da leitura geo cita o prior, e o parágrafo novo linka o artigo de MMM.
+- **`assets/style.css`:** `.field[hidden]`, `.snippet`, `.snippet-note` e `.result-grid.pairs`.
+- **Sabotagem com `;`:**
+  - tirar o −σ²/2 do μ ou trocar a tag no código faz o `check_tool7` sair 1;
+  - mudar a frase fixa faz o `check_judgement` sair 1;
+  - o sha256 dos restaurados bate.
+- **`/run`** (preview local):
+  - nos defaults: μ 0,630, σ 0,370, mediana 1,88 e faixa de 90% de 1,02 a 3,45;
+  - com conversões a 3,5: iROAS 7,04, μ 1,883 e a frase fixa na leitura e no honesty box;
+  - a 375 px, `scrollWidth` 375. Os `<pre>` rolam por dentro.
+- **Prosa:** passou pela `humanize`, com o `conferir.py` saindo 0 nas duas conferências.
+
+**Fontes lidas na sessão (subagentes Sonnet, e os pontos críticos conferidos com `curl`):**
+
+- **Meridian v2.1.0** (a tag e o PyPI batem):
+  - o `prior_distribution.lognormal_dist_from_mean_std(mean, std)` usa a mesma fórmula fechada;
+  - a API é `PriorDistribution(roi_m=...)` + `spec.ModelSpec(prior=..., media_prior_type='roi')`,
+    com imports `from meridian.model import prior_distribution, spec` (vistos no notebook da tag);
+  - o prior default é LogNormal(0,2, 0,9);
+  - a doc (roi-priors-and-calibration) diz que levar um teste ao modelo traz "an additional
+    layer of uncertainty beyond just the experiment's standard error";
+  - o `CalibrationBuilder` (2.0.0) ajusta por duração, spend e recência. A página não ajusta, e
+    diz isso;
+  - `roi_calibration_period` foi trocado por `roi_calibration` na 2.1.0.
+- **Robyn v3.12.0** (última tag; a `main` diz 3.12.1, que não saiu):
+  - as colunas obrigatórias são channel, liftStartDate, liftEndDate, liftAbs, spend, confidence,
+    metric e calibration_scope;
+  - `confidence` = 1 − p é sugestão do demo. O Robyn só avisa abaixo de 0,8 e não usa o valor
+    para mais nada;
+  - `liftAbs` é uma estimativa pontual na unidade do `dep_var`;
+  - `"immediate"` é a escolha para experimento;
+  - a página `docs/calibration` do site dá 404, e a certa é `docs/features/#calibration-...`.
+- **Artigo de MMM:** diz "MMM does not replace a geo experiment or a holdout test; it is what you
+  calibrate with them". Os textos de link repetem só isso e o achado de que nenhuma das duas
+  ferramentas sabe que canal mediu.
+
+**O que foi tentado e falhou:**
+
+- **O comentário do `PRIOR_TOL` saiu com números que eu não tinha medido.** Foi corrigido pela
+  medição antes do commit.
+- **A citação "additional layer" foi atribuída à página errada do Meridian** (a de experimentos).
+  O `grep` mostrou que ela está na roi-priors-and-calibration. Corrigido no `RESULTS.md` e no
+  comentário.
+- **Heredoc do bash de novo:**
+  - apóstrofos escapados sumiram ao editar o `check_judgement.js`; consertei com `chr(92)`;
+  - o Python do Windows não lê o `/tmp` do bash, e o caminho tem de passar por `cygpath -m`.
+- **A primeira sabotagem da frase fixa não sabotou nada:** o `sed` não casou por causa do `\'`, e
+  o check saiu 0. Refeita por script, falhou como devia.
+- **A 375 px, as quatro células do prior ficavam uma por linha.** Viraram 2×2 em toda largura.
+
+**Riscos que ficaram abertos:**
+
+- **Os trechos de código não foram executados** contra o Meridian nem o Robyn: a máquina não tem
+  os dois instalados. A API foi conferida só na fonte da tag. Se alguém reportar erro ao colar,
+  começa por aí.
+- **O `.std()` do scipy perde dígitos com CV abaixo de ~1%,** e a grade para em 1% por isso. Se
+  o scipy trocar para `expm1`, o pior erro cai, e o check continua passando.
+- **O risco de CI da C3a continua:** o JSON regerado noutro sistema operacional. Os conjuntos
+  antigos saíram idênticos aqui.
+
+**Segunda opinião:** um subagente Opus, com contexto limpo e o diff desde `a3fcdba`, não achou
+nada que bloqueie. Ele rodou as 11 suítes, regenerou o JSON (saiu byte a byte igual) e conferiu a
+API na tag das duas bibliotecas. Levantou dois pontos menores, e os dois foram consertados antes
+do push:
+
+1. **O `typed()` arredondava para 2 casas:** 0,004 saía "0.0" na frase fixa. Agora imprime o
+   número como foi digitado, e o caso novo no `check_judgement` leva a conta a 64. O trecho do
+   Meridian e o `spend` do Robyn também deixaram de arredondar.
+2. **A trava de tag não via a versão dentro de uma URL.** Agora vê. Sabotagem: trocar
+   `tree/v2.1.0` na página faz o `check_tool7` sair 1, e o sha256 do restaurado bate.
+
+**O que só o Igor faz:** nada novo nesta fatia. O About do GitHub e o sitemap seguem da C3a.
+
+**Próximo passo concreto:** abrir a **C4a — métrica contínua** numa sessão nova, em opus/high e
+com plan mode. O prompt de abertura está no `docs/ROADMAP.md`. Antes de mexer, anote o n dos
+defaults da `sample-size.html`.
 
 ## 29/09/2026 (madrugada): C3a — leitura do teste geo
 
