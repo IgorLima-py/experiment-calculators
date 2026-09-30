@@ -285,12 +285,103 @@ var Judgement = (function () {
       'can and cannot rule out.';
   }
 
+  /* What every geo reading rests on, whatever it says. The 55–80% is the same
+   * figure, from the same source, as the geo holdout page's. */
+  var SPILLOVER = 'All of it assumes the held-out markets did not see the ' +
+    'campaign and that nothing else changed between the groups during the ' +
+    'test. People cross borders, and IP-based geo targeting is commonly cited ' +
+    'as only 55–80% accurate. Every bit of that leakage pushes the estimate ' +
+    'toward zero, so a real effect reads smaller than it is.';
+
+  function iroasRange(ci) {
+    return UI.decimal(ci.lo, 2) + ' to ' + UI.decimal(ci.hi, 2);
+  }
+
+  /*
+   * Tool 7, the geo readout. `r` is what GeoReadout.analyse returns.
+   *
+   * An iROAS of 1 is the break-even line on revenue: each unit spent came back
+   * as one unit of revenue. The verdict is on where the interval sits against
+   * zero and against 1, never on the point estimate alone.
+   *
+   * Two things are added when they apply. A test that came out noisier than it
+   * was designed to be, from the correlation the plan assumed (only when the
+   * ratio still reads above 1.0 at the one decimal the sentence prints). And a
+   * small design: under 10 markets, or under 5 held out, the same lines the
+   * geo holdout page draws, from the same sources.
+   */
+  function geoReadout(r) {
+    var level = UI.percent((1 - r.alpha) * 100, 0);
+    var incr = 'The ' + level + ' interval for the incremental revenue runs ' +
+      'from ' + UI.integer(r.ciIncremental.lo) + ' to ' +
+      UI.integer(r.ciIncremental.hi);
+    var roas = r.ciIroas ? ', an iROAS of ' + iroasRange(r.ciIroas) : '';
+    var body;
+
+    if (!r.significant) {
+      var far = r.ciIroas ?
+        'an iROAS as high as ' + UI.decimal(r.ciIroas.hi, 2) :
+        'as much as ' + UI.integer(r.ciIncremental.hi) + ' of incremental revenue';
+      body = '<strong>Inconclusive, not a loss.</strong>' + incr + roas +
+        '. It includes no effect at all, and it includes ' + far + '. A test ' +
+        'that cannot tell those apart has not shown the campaign does nothing.';
+    } else if (r.incremental < 0) {
+      body = '<strong>Revenue fell where the campaign ran.</strong>' + incr +
+        roas + '. Before you believe it, check that the groups are labelled ' +
+        'the right way round, and look for anything else that hit the treated ' +
+        'markets during the test: a campaign that loses money outright is ' +
+        'rarer than a swapped label or a regional shock.';
+    } else if (!r.ciIroas) {
+      body = '<strong>What would make this number a lie.</strong>' +
+        'The treated markets brought in ' + UI.integer(r.incremental) +
+        ' more than the model expected from their pre-period (p = ' +
+        UI.pValue(r.fit.p) + '). ' + incr + '. Enter what the test spent to ' +
+        'turn that into a return on the spend.';
+    } else if (r.ciIroas.lo > 1) {
+      body = '<strong>It paid back, on revenue.</strong>' +
+        'Each unit spent brought back ' + UI.decimal(r.iroas, 2) + ' in ' +
+        'revenue (p = ' + UI.pValue(r.fit.p) + '), and the ' + level + ' ' +
+        'interval, ' + iroasRange(r.ciIroas) + ', sits above the break-even of ' +
+        '1. That is revenue, not profit: once margin is taken out, the bar is ' +
+        'higher than 1.';
+    } else if (r.ciIroas.hi >= 1) {
+      body = '<strong>It moved revenue. Whether it paid back is open.</strong>' +
+        'The best estimate is ' + UI.decimal(r.iroas, 2) + ' in revenue for ' +
+        'each unit spent (p = ' + UI.pValue(r.fit.p) + '), but the ' + level +
+        ' interval runs from ' + iroasRange(r.ciIroas) + ', either side of the ' +
+        'break-even of 1. The campaign did something; this test cannot say it ' +
+        'covered its cost.';
+    } else {
+      body = '<strong>It moved revenue, at a loss.</strong>' +
+        'Each unit spent brought back ' + UI.decimal(r.iroas, 2) + ' in ' +
+        'revenue (p = ' + UI.pValue(r.fit.p) + '), and the whole ' + level +
+        ' interval, ' + iroasRange(r.ciIroas) + ', sits below the break-even ' +
+        'of 1. The effect is real and smaller than what it cost.';
+    }
+
+    var extra = '';
+    if (r.noiseFactor !== null && UI.decimal(r.noiseFactor, 1) !== '1.0' &&
+        r.noiseFactor > 1) {
+      extra += ' The pre-period predicted the test period less well than you ' +
+        'planned (a correlation of ' + UI.decimal(r.rho, 3) + ' against ' +
+        UI.decimal(r.plannedRho, 3) + '), so this test was ' +
+        UI.decimal(r.noiseFactor, 1) + '× noisier than its design.';
+    }
+    if (r.n < 10 || r.nControl < 5) {
+      extra += ' With ' + UI.integer(r.n) + ' markets and ' +
+        UI.integer(r.nControl) + ' held out, one local shock in either group ' +
+        'can make or erase a result this size.';
+    }
+    return body + extra + ' ' + SPILLOVER;
+  }
+
   return {
     sampleSize: sampleSize,
     mde: mde,
     peeking: peeking,
     geoHoldout: geoHoldout,
     ratioMetric: ratioMetric,
-    readout: readout
+    readout: readout,
+    geoReadout: geoReadout
   };
 })();

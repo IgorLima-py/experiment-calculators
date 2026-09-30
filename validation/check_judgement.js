@@ -29,8 +29,8 @@ const path = require('path');
 const assets = path.join(__dirname, '..', 'assets');
 const load = f => (0, eval)(fs.readFileSync(path.join(assets, f), 'utf8'));
 ['stats.js', 'sequential.js', 'experiments.js', 'geo.js', 'cuped.js', 'readout.js',
- 'ui.js', 'judgement.js'].forEach(load);
-const { Experiments, Geo, Cuped, Readout, Sequential, UI, Judgement } = global;
+ 'geo-readout.js', 'ui.js', 'judgement.js'].forEach(load);
+const { Experiments, Geo, Cuped, Readout, GeoReadout, Sequential, UI, Judgement } = global;
 
 /* ---- the pages' own arithmetic, in the units the inputs are typed in ---- */
 
@@ -103,6 +103,32 @@ function readoutAnalysis(o) {
 }
 const readout = o => Judgement.readout(readoutAnalysis(o));
 
+/* tools/geo-readout.html: the example markets the page ships (read from the
+ * page itself, which check_tool7.js holds to reference_tool7.py), what the test
+ * spent, alpha in percent and the planned pre-period correlation. `shift` adds
+ * a fixed amount to every treated market's test period, and `noisy` pushes
+ * every market's test period 20% up or down in turn, so the pre-period
+ * predicts it less well. */
+const GEO_PAGE = fs.readFileSync(path.join(__dirname, '..', 'tools', 'geo-readout.html'), 'utf8');
+const GEO_MARKETS = Geo.parseGroups(
+  /<textarea id="data"[^>]*>([\s\S]*?)<\/textarea>/.exec(GEO_PAGE)[1]).rows;
+function geoReadoutAnalysis(o) {
+  const q = Object.assign({ spend: 44000, alpha: 10, rho: null, shift: 0,
+                            noisy: false, keep: () => true }, o);
+  const rows = GEO_MARKETS.filter(q.keep).map((r, i) => ({
+    group: r.group,
+    pre: r.pre,
+    post: (r.post + (r.group === 'treat' ? q.shift : 0)) *
+          (q.noisy ? (i % 2 ? 1.2 : 0.8) : 1)
+  }));
+  return GeoReadout.analyse({ rows, spend: q.spend, alpha: q.alpha / 100,
+                              plannedRho: q.rho });
+}
+const geoReadout = o => Judgement.geoReadout(geoReadoutAnalysis(o));
+const controlIndex = GEO_MARKETS.map((r, i) => r.group === 'control' ? i : -1)
+  .filter(i => i >= 0);
+const fourControls = (r, i) => r.group === 'treat' || controlIndex.indexOf(i) < 4;
+
 /* Tool 1 quotes the peeking checker's headline; they must print the same. */
 const inflation = (looks, alphaPercent) =>
   UI.percent(Sequential.alphaInflation(looks, alphaPercent / 100) * 100, 1);
@@ -162,7 +188,17 @@ const PINNED = {
     'only if you looked once, at the planned end, and this was the one ' +
     'metric you meant to judge the test on. Stopping at the first ' +
     'good-looking day, or picking the best of several metrics, makes the ' +
-    'p-value smaller than it has any right to be.'
+    'p-value smaller than it has any right to be.',
+  geoReadout:
+    '<strong>It moved revenue. Whether it paid back is open.</strong>The best ' +
+    'estimate is 2.01 in revenue for each unit spent (p = 0.0129), but the 90% ' +
+    'interval runs from 0.71 to 3.31, either side of the break-even of 1. The ' +
+    'campaign did something; this test cannot say it covered its cost. All of ' +
+    'it assumes the held-out markets did not see the campaign and that nothing ' +
+    'else changed between the groups during the test. People cross borders, and ' +
+    'IP-based geo targeting is commonly cited as only 55–80% accurate. Every bit ' +
+    'of that leakage pushes the estimate toward zero, so a real effect reads ' +
+    'smaller than it is.'
 };
 
 /* ---- the table ---- */
@@ -307,7 +343,51 @@ const CASES = [
     has: ['Inconclusive, not a loss.', 'Enter the lift you planned'],
     lacks: ['power'] },
   { tool: 6, name: 'alpha 10% labels a 90% interval',
-    html: readout({ alpha: 10 }), has: ['the 90% interval'] }
+    html: readout({ alpha: 10 }), has: ['the 90% interval'] },
+
+  // Tool 7, the geo readout: inconclusive, a loss of revenue, no spend, and
+  // the three places a significant iROAS interval can sit against the
+  // break-even of 1. Two additions: noisier than planned, and a small design.
+  // Spillover closes every branch.
+  { tool: 7, name: 'defaults, pinned', html: geoReadout({}), exact: PINNED.geoReadout },
+  { tool: 7, name: 'interval above 1: paid back, on revenue',
+    html: geoReadout({ spend: 20000 }),
+    has: ['It paid back, on revenue.', 'brought back 4.42', '1.57 to 7.28',
+          'revenue, not profit', '55–80%'],
+    lacks: ['open', 'at a loss'] },
+  { tool: 7, name: 'interval below 1: moved revenue, at a loss',
+    html: geoReadout({ spend: 200000 }),
+    has: ['It moved revenue, at a loss.', 'brought back 0.44', '0.16 to 0.73',
+          'sits below the break-even'],
+    lacks: ['paid back', 'open'] },
+  { tool: 7, name: 'no spend: incremental revenue only, and asks for the spend',
+    html: geoReadout({ spend: 0 }),
+    has: ['brought in 88,469 more', 'from 31,369 to 145,569',
+          'Enter what the test spent'],
+    lacks: ['iROAS', 'break-even'] },
+  { tool: 7, name: 'inconclusive: not a loss, and the most it allows',
+    html: geoReadout({ shift: -2000 }),
+    has: ['Inconclusive, not a loss.', 'from -28,631 to 85,569',
+          'an iROAS of -0.65 to 1.94', 'as high as 1.94', '55–80%'],
+    lacks: ['paid back', 'fell'] },
+  { tool: 7, name: 'a significant fall points at the labels first',
+    html: geoReadout({ shift: -6000 }),
+    has: ['Revenue fell where the campaign ran.', 'labelled the right way round'],
+    lacks: ['paid back', 'Inconclusive'] },
+  { tool: 7, name: 'noisier than planned: says by how much',
+    html: geoReadout({ noisy: true, rho: 0.99 }),
+    has: ['less well than you planned', 'against 0.990',
+          UI.decimal(geoReadoutAnalysis({ noisy: true, rho: 0.99 }).noiseFactor, 1) +
+          '× noisier than its design'] },
+  { tool: 7, name: 'quieter than planned: nothing added',
+    html: geoReadout({ rho: 0.7 }), lacks: ['noisier', 'less well'] },
+  { tool: 7, name: 'four held out: the small-design warning',
+    html: geoReadout({ keep: fourControls }),
+    has: ['With 34 markets and 4 held out', 'one local shock'] },
+  { tool: 7, name: 'forty markets, ten held out: no small-design warning',
+    html: geoReadout({}), lacks: ['one local shock'] },
+  { tool: 7, name: 'alpha 20% labels an 80% interval',
+    html: geoReadout({ alpha: 20 }), has: ['the 80% interval'] }
 ];
 
 /* ---- run ---- */
