@@ -151,13 +151,18 @@ var Geo = (function () {
    * to a revenue figure is orders of magnitude away, so the median ratio across
    * lines separates the two cases cleanly.
    */
+  /* A pasted line as tokens: whitespace, commas, semicolons and pipes all
+   * separate columns, so spreadsheet copies, CSV and aligned text all read. */
+  function tokens(line) {
+    return line.split(/[\s,;|]+/).filter(function (t) { return t !== ''; });
+  }
+
   function parsePasted(text) {
     var rows = [];
     var lines = String(text).split(/\r?\n/);
 
     for (var i = 0; i < lines.length; i++) {
-      var numbers = lines[i]
-        .split(/[\s,;|]+/)
+      var numbers = tokens(lines[i])
         .map(function (token) { return parseFloat(token); })
         .filter(function (n) { return isFinite(n); });
       if (numbers.length > 0) rows.push(numbers);
@@ -206,6 +211,50 @@ var Geo = (function () {
     return result;
   }
 
+  /*
+   * The words a finished test's markets can be labelled with. The label is a
+   * word and never a digit on purpose: "Market 1  100  110" would otherwise
+   * read as a treated market with no name, the same trap as the row-number bug
+   * above.
+   */
+  var GROUP_WORDS = {
+    test: 'treat', treatment: 'treat', treated: 'treat', t: 'treat',
+    control: 'control', holdout: 'control', h: 'control', c: 'control'
+  };
+
+  function isNumber(token) {
+    return /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(token);
+  }
+
+  /*
+   * Markets from a finished geo test: one per line, ending with the group,
+   * then the pre-period, then the test period, in that order. Anything before
+   * the group (the market's name, digits and all) is ignored.
+   *
+   * A line with no numbers is a header or a blank and is skipped. A line with
+   * numbers that does not end in a recognised group and two figures is
+   * reported rather than guessed at: "471,900" split on its thousands comma
+   * lands here, and reading it as two markets' worth of numbers would be the
+   * silent kind of wrong.
+   */
+  function parseGroups(text) {
+    var rows = [];
+    var errors = [];
+    var lines = String(text).split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var t = tokens(lines[i]);
+      if (!t.some(isNumber)) continue;
+      var k = t.length;
+      var group = k >= 3 ? GROUP_WORDS[t[k - 3].toLowerCase()] : undefined;
+      if (!group || !isNumber(t[k - 2]) || !isNumber(t[k - 1])) {
+        errors.push(i + 1);
+        continue;
+      }
+      rows.push({ group: group, pre: Number(t[k - 2]), post: Number(t[k - 1]) });
+    }
+    return { rows: rows, errors: errors };
+  }
+
   function median(a) {
     var sorted = a.slice().sort(function (x, y) { return x - y; });
     var mid = Math.floor(sorted.length / 2);
@@ -244,6 +293,7 @@ var Geo = (function () {
     power: power,
     smallestHoldout: smallestHoldout,
     mdeCurve: mdeCurve,
-    parsePasted: parsePasted
+    parsePasted: parsePasted,
+    parseGroups: parseGroups
   };
 })();
