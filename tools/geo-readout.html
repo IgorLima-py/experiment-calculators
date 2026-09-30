@@ -87,8 +87,8 @@ Market 38  test     51274    54577
 Market 39  test     124343   135256
 Market 40  test     29602    32049</textarea>
       <span class="hint">One market per line, ending with its group
-      (<code>test</code> or <code>control</code>), its revenue in a period
-      before the test, then its revenue during the test. The two periods
+      (<code>test</code> or <code>control</code>), its revenue (or
+      conversions) in a period before the test, then during the test. The two periods
       should be the same length. Names go first and are ignored, digits and
       all. No thousands separators. The example is synthetic. Nothing leaves
       your browser.</span>
@@ -108,6 +108,22 @@ Market 40  test     29602    32049</textarea>
       <span class="hint">Percent. The one you planned with. Geo tests often use 10.</span>
     </div>
 
+    <div class="field">
+      <label for="metric">The figures are</label>
+      <select id="metric">
+        <option value="revenue">Revenue</option>
+        <option value="conversions">Conversions</option>
+      </select>
+      <span class="hint">What each market's two numbers count.</span>
+    </div>
+
+    <div class="field" id="value-field" hidden>
+      <label for="value">Value of one conversion</label>
+      <input type="number" id="value" step="any" min="0" inputmode="decimal" placeholder="Optional">
+      <span class="hint">In the currency of the spend. The test cannot measure
+      it; it only turns conversions into a return on the spend.</span>
+    </div>
+
     <div class="field field-span">
       <label for="rho">Pre-period correlation you planned with</label>
       <input type="number" id="rho" step="0.01" min="0" max="0.99" inputmode="decimal" placeholder="Optional">
@@ -124,7 +140,7 @@ Market 40  test     29602    32049</textarea>
     <div class="result-grid">
       <div class="result-cell">
         <span class="result-value" id="out-incr">--</span>
-        <span class="result-label">incremental revenue</span>
+        <span class="result-label" id="out-incr-label">incremental revenue</span>
       </div>
       <div class="result-cell">
         <span class="result-value" id="out-incr-ci">--</span>
@@ -155,6 +171,56 @@ Market 40  test     29602    32049</textarea>
 
   <p><a id="next-link" href="geo-holdout.html">Planning the next test? Size it
   from these markets →</a></p>
+
+  <section class="mmm" aria-labelledby="mmm-title">
+    <h2 id="mmm-title">Hand it to your MMM</h2>
+    <p>A marketing mix model estimates each channel's return from history
+    alone. <a href="https://github.com/IgorLima-py/mmm-meridian-vs-robyn/blob/main/article/meridian-vs-robyn.md">A
+    comparison of Meridian and Robyn</a> on simulated data found both report
+    every channel with the same apparent confidence, whether the data pinned it
+    down or not. This test measured one channel directly, and both models can
+    take its result in.</p>
+
+    <h3>Meridian: a prior on the channel's ROI</h3>
+    <div class="result-grid pairs">
+      <div class="result-cell">
+        <span class="result-value" id="out-mu">--</span>
+        <span class="result-label">lognormal loc (μ)</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-sigma">--</span>
+        <span class="result-label">lognormal scale (σ)</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-median">--</span>
+        <span class="result-label">median of the prior</span>
+      </div>
+      <div class="result-cell">
+        <span class="result-value" id="out-range">--</span>
+        <span class="result-label" id="out-range-label">range of the prior</span>
+      </div>
+    </div>
+    <pre class="snippet"><code id="out-meridian"></code></pre>
+    <p class="snippet-note">Mean and standard deviation matched to the
+    iROAS and its standard error, the way Meridian's own
+    <code>lognormal_dist_from_mean_std</code> does it. Written against
+    <a href="https://github.com/google/meridian/tree/v2.1.0">Meridian v2.1.0</a>.
+    Meridian's guide:
+    <a href="https://developers.google.com/meridian/docs/advanced-modeling/roi-priors-and-calibration">ROI
+    priors and calibration</a>.</p>
+
+    <h3>Robyn: a row of <code>calibration_input</code></h3>
+    <pre class="snippet"><code id="out-robyn"></code></pre>
+    <p class="snippet-note">Written against
+    <a href="https://github.com/facebookexperimental/Robyn/tree/v3.12.0">Robyn v3.12.0</a>.
+    The columns are explained in
+    <a href="https://github.com/facebookexperimental/Robyn/blob/v3.12.0/demo/demo.R">its
+    demo script</a>, and the calibration itself on
+    <a href="https://facebookexperimental.github.io/Robyn/docs/features/#calibration-of-average-effect-size-with-causal-experiments">Robyn's
+    features page</a>.</p>
+
+    <div class="judgement" id="mmm-judgement"></div>
+  </section>
 
   <div class="share">
     <button type="button" class="btn" id="copy">Copy link</button>
@@ -197,6 +263,15 @@ Market 40  test     29602    32049</textarea>
       the revenue interval divided by the spend. The iROAS counts revenue
       before margin: at 1, the campaign paid for itself before margin, not
       after.</li>
+      <li id="conversion-note" hidden><strong>What a conversion is
+      worth.</strong> <span id="conversion-sentence"></span></li>
+      <li><strong>The MMM prior is unadjusted.</strong> Its
+      mean is the iROAS and its standard deviation is the iROAS's standard
+      error. Meridian's calibration builder also adjusts for how long the test
+      ran, how its spend compares with the channel's and how old it is. This
+      page makes none of those adjustments. Robyn keeps only the point
+      estimate. Both models take the test's weeks and markets as standing for
+      the channel as a whole.</li>
       <li><strong>The lift in the test markets has no interval.</strong> It is
       the incremental revenue over what the test markets would have made
       without the campaign, and that baseline is estimated too, so it is shown
@@ -233,19 +308,26 @@ Market 40  test     29602    32049</textarea>
    * validation/reference_tool7.py - forty markets, ten held out, the geo
    * holdout page's own defaults - and the spend that script set for them. */
   var SPEC = {
-    spend: { def: 44000, min: 0, max: 1e12 },
-    alpha: { def: 10,    min: 0.1, max: 50 },
-    rho:   { def: null,  min: 0, max: 0.99 }
+    spend:  { def: 44000, min: 0, max: 1e12 },
+    metric: { def: 'revenue', text: true, values: ['revenue', 'conversions'] },
+    value:  { def: null,  min: 0, max: 1e12 },
+    alpha:  { def: 10,    min: 0.1, max: 50 },
+    rho:    { def: null,  min: 0, max: 0.99 }
   };
 
-  var ids = ['iroas', 'iroas-label', 'incr', 'incr-ci', 'incr-ci-label', 'p', 'rel',
-             'split', 'rho'];
+  var ids = ['iroas', 'iroas-label', 'incr', 'incr-label', 'incr-ci', 'incr-ci-label',
+             'p', 'rel', 'split', 'rho', 'mu', 'sigma', 'median', 'range',
+             'range-label', 'meridian', 'robyn'];
   var out = {};
   ids.forEach(function (id) { out[id] = document.getElementById('out-' + id); });
   var data = document.getElementById('data');
   var summary = document.getElementById('data-summary');
   var warn = document.getElementById('warn');
   var judgement = document.getElementById('judgement');
+  var mmmJudgement = document.getElementById('mmm-judgement');
+  var valueField = document.getElementById('value-field');
+  var conversionNote = document.getElementById('conversion-note');
+  var conversionSentence = document.getElementById('conversion-sentence');
   var next = document.getElementById('next-link');
   var EXAMPLE = data.defaultValue;
 
@@ -280,12 +362,18 @@ Market 40  test     29602    32049</textarea>
     return (x > 0 ? '+' : '') + UI.integer(x);
   }
 
-  function blank() {
-    ['iroas', 'incr', 'incr-ci', 'p', 'rel', 'split', 'rho'].forEach(function (id) {
+  function blank(noun) {
+    ['iroas', 'incr', 'incr-ci', 'p', 'rel', 'split', 'rho', 'mu', 'sigma', 'median',
+     'range'].forEach(function (id) {
       out[id].textContent = '--';
     });
     out['iroas-label'].textContent = 'revenue per unit of spend (iROAS)';
-    out['incr-ci-label'].textContent = 'interval for the incremental revenue';
+    out['incr-label'].textContent = 'incremental ' + noun;
+    out['incr-ci-label'].textContent = 'interval for the incremental ' + noun;
+    out['range-label'].textContent = 'range of the prior';
+    out.meridian.textContent = '# Nothing to write until the test can be read.';
+    out.robyn.textContent = '# Nothing to write until the test can be read.';
+    mmmJudgement.innerHTML = '';
     next.href = 'geo-holdout.html';
   }
 
@@ -308,7 +396,14 @@ Market 40  test     29602    32049</textarea>
     summary.textContent = rows.length ? rows.length + ' markets read: ' + nT +
       ' test, ' + (rows.length - nT) + ' held out.' : '';
 
-    blank();
+    var conversions = v.metric === 'conversions';
+    var noun = conversions ? 'conversions' : 'revenue';
+    valueField.hidden = !conversions;
+    conversionNote.hidden = !(conversions && v.value > 0);
+    conversionSentence.textContent = conversions && v.value > 0 ?
+      Judgement.conversionValue(v.value) : '';
+
+    blank(noun);
     var notes = [];
     if (parsed.errors.length) {
       notes.push('<strong>' + (parsed.errors.length === 1 ? 'Line ' : 'Lines ') +
@@ -319,7 +414,8 @@ Market 40  test     29602    32049</textarea>
     }
 
     var r = rows.length ? GeoReadout.analyse({
-      rows: rows, spend: v.spend, alpha: v.alpha / 100, plannedRho: v.rho
+      rows: rows, spend: v.spend, alpha: v.alpha / 100, plannedRho: v.rho,
+      metric: v.metric, value: v.value
     }) : { invalid: 'empty' };
 
     if (r.invalid) {
@@ -335,14 +431,33 @@ Market 40  test     29602    32049</textarea>
       out['iroas-label'].textContent = 'revenue per unit of spend (iROAS), ' +
         level + ' interval ' + UI.decimal(r.ciIroas.lo, 2) + ' to ' +
         UI.decimal(r.ciIroas.hi, 2);
+      if (conversions) {
+        out['iroas-label'].textContent += ', at ' + v.value + ' a conversion';
+      }
     } else {
       out['iroas-label'].textContent = 'revenue per unit of spend (iROAS): ' +
-        'enter the spend';
+        (!(v.spend > 0) ? 'enter the spend' : 'enter the value of a conversion');
     }
     out.incr.textContent = signed(r.incremental);
     out['incr-ci'].textContent = signed(r.ciIncremental.lo) + ' to ' +
       signed(r.ciIncremental.hi);
-    out['incr-ci-label'].textContent = level + ' interval for the incremental revenue';
+    out['incr-ci-label'].textContent = level + ' interval for the incremental ' + noun;
+
+    if (r.prior) {
+      out.mu.textContent = UI.decimal(r.prior.mu, 3);
+      out.sigma.textContent = UI.decimal(r.prior.sigma, 3);
+      out.median.textContent = UI.decimal(r.prior.median, 2);
+      out.range.textContent = UI.decimal(r.prior.interval.lo, 2) + ' to ' +
+        UI.decimal(r.prior.interval.hi, 2);
+      out['range-label'].textContent = level + ' range of the prior';
+    }
+    out.meridian.textContent = GeoReadout.meridianSnippet(r) ||
+      (!(v.spend > 0) ? '# Enter what the test spent to write the prior.' :
+       !r.iroas && conversions ? '# Enter the value of a conversion to write the prior.' :
+       '# No prior: a lognormal cannot have a mean of zero or less.');
+    out.robyn.textContent = GeoReadout.robynSnippet(r) ||
+      '# Enter what the test spent to write the row.';
+    mmmJudgement.innerHTML = Judgement.mmm(r);
     out.p.textContent = UI.pValue(r.fit.p);
     out.rel.textContent = isFinite(r.relative) ?
       (r.relative > 0 ? '+' : '') + UI.percent(r.relative * 100, 1) : '--';

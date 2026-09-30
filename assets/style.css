@@ -204,6 +204,30 @@ textarea:focus {
 
 .result-cell .result-value { font-size: 1.4rem; }
 
+/* Four figures that read as two pairs: two columns at every width. */
+.result-grid.pairs { grid-template-columns: repeat(2, 1fr); }
+
+/* A field the page shows only for some inputs: display: flex on .field would
+ * otherwise beat the hidden attribute. */
+.field[hidden] { display: none; }
+
+/* ---------- code to copy into another tool (the geo readout's MMM section) ---------- */
+
+.snippet {
+  margin: 0.8rem 0 0.4rem;
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.snippet code { font-size: inherit; overflow-wrap: normal; white-space: pre; }
+
+.snippet-note { font-size: 0.8rem; color: var(--text-soft); }
+
 /* ---------- the judgement sentence: the actual product ---------- */
 
 .judgement {

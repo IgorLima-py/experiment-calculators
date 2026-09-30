@@ -18,7 +18,7 @@
  * here, where the test can reach it.
  *
  * Needs UI (the number formatters) and, for the sample size sentence,
- * Sequential.
+ * Sequential; for the geo readout's MMM sentence, GeoReadout.
  */
 var Judgement = (function () {
   'use strict';
@@ -310,9 +310,27 @@ var Judgement = (function () {
    * small design: under 10 markets, or under 5 held out, the same lines the
    * geo holdout page draws, from the same sources.
    */
+  /* A figure the visitor typed, printed the way they typed it. */
+  function typed(x) {
+    return x === Math.round(x) ? UI.integer(x) : UI.decimal(x, 2).replace(/0$/, '');
+  }
+
+  /*
+   * The fixed sentence for a test measured in conversions: every revenue
+   * figure the page shows is the visitor's value per conversion times what the
+   * test measured, and the page says whose number that is.
+   */
+  function conversionValue(value) {
+    return 'Every revenue figure here is the conversions the test measured ' +
+      'times the ' + typed(value) + ' you entered for one conversion. That ' +
+      'value is yours, not the test\'s.';
+  }
+
   function geoReadout(r) {
+    var conversions = r.metric === 'conversions';
     var level = UI.percent((1 - r.alpha) * 100, 0);
-    var incr = 'The ' + level + ' interval for the incremental revenue runs ' +
+    var incr = 'The ' + level + ' interval for the incremental ' +
+      (conversions ? 'conversions' : 'revenue') + ' runs ' +
       'from ' + UI.integer(r.ciIncremental.lo) + ' to ' +
       UI.integer(r.ciIncremental.hi);
     var roas = r.ciIroas ? ', an iROAS of ' + iroasRange(r.ciIroas) : '';
@@ -321,21 +339,28 @@ var Judgement = (function () {
     if (!r.significant) {
       var far = r.ciIroas ?
         'an iROAS as high as ' + UI.decimal(r.ciIroas.hi, 2) :
-        'as much as ' + UI.integer(r.ciIncremental.hi) + ' of incremental revenue';
+        'as much as ' + UI.integer(r.ciIncremental.hi) +
+        (conversions ? ' incremental conversions' : ' of incremental revenue');
       body = '<strong>Inconclusive, not a loss.</strong>' + incr + roas +
         '. It includes no effect at all, and it includes ' + far + '. A test ' +
         'that cannot tell those apart has not shown the campaign does nothing.';
     } else if (r.incremental < 0) {
-      body = '<strong>Revenue fell where the campaign ran.</strong>' + incr +
+      body = '<strong>' + (conversions ? 'Conversions' : 'Revenue') + ' fell ' +
+        'where the campaign ran.</strong>' + incr +
         roas + '. Before you believe it, check that the groups are labelled ' +
         'the right way round, and look for anything else that hit the treated ' +
-        'markets during the test. A campaign can lower revenue, but rule out ' +
+        'markets during the test. A campaign can lower ' +
+        (conversions ? 'conversions' : 'revenue') + ', but rule out ' +
         'the simpler explanations first.';
     } else if (!r.ciIroas) {
+      var missing = !(r.spend > 0) && conversions && !r.value ?
+        'what the test spent and what a conversion is worth' :
+        !(r.spend > 0) ? 'what the test spent' : 'what a conversion is worth';
       body = '<strong>What would make this number a lie.</strong>' +
         'The treated markets brought in ' + UI.integer(r.incremental) +
-        ' more than the model expected from their pre-period (p = ' +
-        UI.pValue(r.fit.p) + '). ' + incr + '. Enter what the test spent to ' +
+        (conversions ? ' more conversions' : ' more') +
+        ' than the model expected from their pre-period (p = ' +
+        UI.pValue(r.fit.p) + '). ' + incr + '. Enter ' + missing + ' to ' +
         'turn that into a return on the spend.';
     } else if (r.ciIroas.lo > 1) {
       body = '<strong>It paid back, on revenue.</strong>' +
@@ -371,7 +396,81 @@ var Judgement = (function () {
         UI.integer(r.nControl) + ' held out, one local shock in either group ' +
         'can make or erase a result this size.';
     }
+    if (conversions && r.value) extra += ' ' + conversionValue(r.value);
     return body + extra + ' ' + SPILLOVER;
+  }
+
+  /*
+   * Tool 7's second sentence: what the test hands a marketing mix model.
+   *
+   * Meridian takes a lognormal prior on the channel's ROI; this one has the
+   * iROAS as its mean and the iROAS's standard error as its standard
+   * deviation. Meridian's guide (roi-priors-and-calibration, read 2026-09-30)
+   * says moving a test into a model adds "an additional layer of
+   * uncertainty beyond just the experiment's standard error", so the sentence
+   * calls this the narrowest prior the test supports, never the right one.
+   * A lognormal cannot have a mean at or below zero: no prior then, and no
+   * made-up positive stand-in.
+   *
+   * Robyn takes the point estimate and a `confidence` its demo sets to 1 - p;
+   * it warns below 0.8 (check_calibration in R/checks.R, v3.12.0) and uses it
+   * for nothing else.
+   */
+  var ROBYN_WARNS_BELOW = 0.8;
+
+  function mmm(r) {
+    if (!(r.spend > 0)) {
+      return '<strong>Nothing to hand over yet.</strong>Both models need ' +
+        'what the test spent. Enter it above.';
+    }
+
+    var conf = GeoReadout.confidence(r.fit.p);
+    var robyn = conf < ROBYN_WARNS_BELOW ?
+      ' Robyn takes the point estimate, ' + UI.integer(r.incremental) + ', ' +
+      'with a confidence of 1 − p = ' + UI.decimal(conf, 3) + '. Below ' +
+      UI.decimal(ROBYN_WARNS_BELOW, 1) + ' it warns that the test is ' +
+      'low-confidence and suggests running it again.' :
+      ' Robyn takes only the point estimate, ' + UI.integer(r.incremental) +
+      ', and leaves the interval behind: its confidence column, 1 − p = ' +
+      UI.decimal(conf, 3) + ' here, only triggers a warning below ' +
+      UI.decimal(ROBYN_WARNS_BELOW, 1) + '.';
+
+    if (r.metric === 'conversions' && !r.value) {
+      return '<strong>Robyn can take this as it is. Meridian cannot ' +
+        'yet.</strong>Robyn calibrates on the lift in whatever your model ' +
+        'predicts, conversions included. Meridian\'s ROI prior is revenue ' +
+        'over spend, so it needs what one conversion is worth: the figure ' +
+        'your model already uses as revenue_per_kpi.' + robyn;
+    }
+    if (!r.prior) {
+      return '<strong>No ROI prior to give.</strong>The best estimate is an ' +
+        'iROAS of ' + UI.decimal(r.iroas, 2) + ', and Meridian\'s ROI prior ' +
+        'is a lognormal, which cannot have a mean of zero or less. Leave the ' +
+        'channel on the prior you would have used without this test. A small ' +
+        'positive number in its place would be a return the test did not ' +
+        'measure.' + robyn;
+    }
+
+    var level = UI.percent((1 - r.alpha) * 100, 0);
+    var body = '<strong>The narrowest prior this test supports.</strong>' +
+      'Its standard deviation is the test\'s standard error, ' +
+      UI.decimal(r.seIroas, 2) + '. Meridian\'s documentation says a test ' +
+      'carries more uncertainty than that into a model, and its calibration ' +
+      'builder widens it for a short test, a spend level unlike the ' +
+      'model\'s and a result that has aged. The test measured the return ' +
+      'inside its own window. Meridian reads the prior as the return over ' +
+      'the whole modelling period.';
+    if (r.metric === 'conversions') {
+      body += ' It is in revenue at the ' + typed(r.value) + ' a conversion ' +
+        'you entered, so give Meridian the same figure as revenue_per_kpi.';
+    }
+    if (r.ciIroas.lo <= 0) {
+      body += ' The test\'s ' + level + ' interval reaches ' +
+        UI.decimal(r.ciIroas.lo, 2) + ', and a lognormal cannot go below ' +
+        'zero, so the prior\'s own ' + level + ' range is ' +
+        iroasRange(r.prior.interval) + ' instead.';
+    }
+    return body + robyn;
   }
 
   return {
@@ -381,6 +480,8 @@ var Judgement = (function () {
     geoHoldout: geoHoldout,
     ratioMetric: ratioMetric,
     readout: readout,
-    geoReadout: geoReadout
+    geoReadout: geoReadout,
+    conversionValue: conversionValue,
+    mmm: mmm
   };
 })();

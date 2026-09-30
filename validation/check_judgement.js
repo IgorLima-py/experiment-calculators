@@ -114,7 +114,8 @@ const GEO_MARKETS = Geo.parseGroups(
   /<textarea id="data"[^>]*>([\s\S]*?)<\/textarea>/.exec(GEO_PAGE)[1]).rows;
 function geoReadoutAnalysis(o) {
   const q = Object.assign({ spend: 44000, alpha: 10, rho: null, shift: 0,
-                            noisy: false, keep: () => true }, o);
+                            noisy: false, keep: () => true, metric: 'revenue',
+                            value: null }, o);
   const rows = GEO_MARKETS.filter(q.keep).map((r, i) => ({
     group: r.group,
     pre: r.pre,
@@ -122,9 +123,10 @@ function geoReadoutAnalysis(o) {
           (q.noisy ? (i % 2 ? 1.2 : 0.8) : 1)
   }));
   return GeoReadout.analyse({ rows, spend: q.spend, alpha: q.alpha / 100,
-                              plannedRho: q.rho });
+                              plannedRho: q.rho, metric: q.metric, value: q.value });
 }
 const geoReadout = o => Judgement.geoReadout(geoReadoutAnalysis(o));
+const mmm = o => Judgement.mmm(geoReadoutAnalysis(o));
 const controlIndex = GEO_MARKETS.map((r, i) => r.group === 'control' ? i : -1)
   .filter(i => i >= 0);
 const fourControls = (r, i) => r.group === 'treat' || controlIndex.indexOf(i) < 4;
@@ -197,7 +199,17 @@ const PINNED = {
     'else changed between the groups during the test. People cross borders, and ' +
     'IP-based geo targeting is commonly cited as only 55–80% accurate. Every bit ' +
     'of that leakage pushes the estimate toward zero, so a real effect reads ' +
-    'smaller than it is.'
+    'smaller than it is.',
+  mmm:
+    '<strong>The narrowest prior this test supports.</strong>Its standard ' +
+    'deviation is the test\'s standard error, 0.77. Meridian\'s documentation ' +
+    'says a test carries more uncertainty than that into a model, and its ' +
+    'calibration builder widens it for a short test, a spend level unlike the ' +
+    'model\'s and a result that has aged. The test measured the return inside ' +
+    'its own window. Meridian reads the prior as the return over the whole ' +
+    'modelling period. Robyn takes only the point estimate, 88,469, and leaves ' +
+    'the interval behind: its confidence column, 1 − p = 0.987 here, only ' +
+    'triggers a warning below 0.8.'
 };
 
 /* ---- the table ---- */
@@ -386,7 +398,69 @@ const CASES = [
   { tool: 7, name: 'forty markets, ten held out: no small-design warning',
     html: geoReadout({}), lacks: ['one local shock'] },
   { tool: 7, name: 'alpha 20% labels an 80% interval',
-    html: geoReadout({ alpha: 20 }), has: ['the 80% interval'] }
+    html: geoReadout({ alpha: 20 }), has: ['the 80% interval'] },
+
+  // Tool 7 in conversions: the lift stays in conversions until a value per
+  // conversion is typed, and then the fixed sentence says whose value it is.
+  { tool: 7, name: 'conversions with a value: the fixed sentence, with the value typed',
+    html: geoReadout({ metric: 'conversions', value: 3.5 }),
+    has: [Judgement.conversionValue(3.5),
+          'times the 3.5 you entered for one conversion. That value is yours, not the test\'s.',
+          'brought back 7.04 in revenue'],
+    lacks: ['3.50'] },
+  { tool: 7, name: 'conversions with a whole value prints it whole',
+    html: geoReadout({ metric: 'conversions', value: 1200 }),
+    has: ['times the 1,200 you entered'] },
+  { tool: 7, name: 'conversions, no value: the lift in conversions, and asks for the value',
+    html: geoReadout({ metric: 'conversions' }),
+    has: ['brought in 88,469 more conversions', 'incremental conversions runs',
+          'Enter what a conversion is worth'],
+    lacks: ['iROAS', 'you entered', 'incremental revenue'] },
+  { tool: 7, name: 'conversions, no value and no spend: asks for both',
+    html: geoReadout({ metric: 'conversions', spend: 0 }),
+    has: ['Enter what the test spent and what a conversion is worth'] },
+  { tool: 7, name: 'conversions that fell say conversions',
+    html: geoReadout({ metric: 'conversions', shift: -6000 }),
+    has: ['Conversions fell where the campaign ran.', 'lower conversions'],
+    lacks: ['Revenue fell'] },
+  { tool: 7, name: 'inconclusive in conversions, no value: the most it allows, in conversions',
+    html: geoReadout({ metric: 'conversions', shift: -2000 }),
+    has: ['as much as 85,569 incremental conversions'] },
+
+  // Tool 7's MMM sentence: nothing without a spend, Robyn only without a value
+  // per conversion, no prior below zero, and the prior with the two additions
+  // (an interval that crosses zero, a Robyn confidence under 0.8).
+  { tool: 7, name: 'MMM, defaults, pinned', html: mmm({}), exact: PINNED.mmm },
+  { tool: 7, name: 'MMM, no spend: nothing to hand over',
+    html: mmm({ spend: 0 }), has: ['Nothing to hand over yet.'],
+    lacks: ['Robyn takes', 'prior'] },
+  { tool: 7, name: 'MMM, conversions with no value: Robyn yes, Meridian not yet',
+    html: mmm({ metric: 'conversions' }),
+    has: ['Robyn can take this as it is. Meridian cannot yet.', 'revenue_per_kpi',
+          'point estimate, 88,469'],
+    lacks: ['narrowest'] },
+  { tool: 7, name: 'MMM, conversions with a value: the same figure as revenue_per_kpi',
+    html: mmm({ metric: 'conversions', value: 3.5 }),
+    has: ['The narrowest prior', 'standard error, 2.69',
+          'at the 3.5 a conversion you entered', 'revenue_per_kpi'] },
+  { tool: 7, name: 'MMM, a negative iROAS: no prior, and no stand-in',
+    html: mmm({ shift: -6000 }),
+    has: ['No ROI prior to give.', 'an iROAS of -2.08', 'cannot have a mean of zero or less',
+          'a return the test did not measure', 'point estimate, -91,531'],
+    lacks: ['narrowest'] },
+  { tool: 7, name: 'MMM, an interval across zero: the prior\'s own range, and Robyn warns',
+    html: mmm({ shift: -2000 }),
+    has: ['reaches -0.65', 'the prior\'s own 90% range is 0.09 to 1.95',
+          '1 − p = 0.594', 'warns that the test is low-confidence'],
+    lacks: ['leaves the interval behind'] },
+  { tool: 7, name: 'MMM, the prior\'s range is the one the page shows',
+    html: mmm({ shift: -2000 }),
+    has: [(a => UI.decimal(a.prior.interval.lo, 2) + ' to ' +
+                UI.decimal(a.prior.interval.hi, 2))(geoReadoutAnalysis({ shift: -2000 }))] },
+  { tool: 7, name: 'MMM, confidence at 0.907: no Robyn warning',
+    html: mmm({ shift: -1000 }),
+    has: ['1 − p = 0.907', 'leaves the interval behind'],
+    lacks: ['low-confidence', 'reaches'] }
 ];
 
 /* ---- run ---- */
