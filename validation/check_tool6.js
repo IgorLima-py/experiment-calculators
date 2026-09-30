@@ -47,11 +47,24 @@ const interval = (lo, hi, d) => `${pct(lo, d)} to ${pct(hi, d)}`;
 
 /* ---- readouts ---- */
 
+/* The mismatch threshold is a sourced choice (validation/RESULTS.md, Phase 6:
+ * Eppo, GrowthBook and Statsig's alert use 0.001), not a tuning knob. */
+const SRM_ALPHA = 0.001;
+if (Readout.SRM_ALPHA !== SRM_ALPHA) {
+  failed++;
+  console.error(`SRM threshold is ${Readout.SRM_ALPHA}, not the ${SRM_ALPHA} RESULTS.md documents`);
+}
+
 const readoutRows = [];
 for (const r of ref.readouts) {
   const srm = Readout.srm(r.na, r.nb, r.split);
   compare('SRM chi-square (relative)', srm.chi2, r.srm_chi2, true);
   compare('SRM p-value', srm.p, r.srm_p, false);
+  if (srm.flagged !== (r.srm_p < SRM_ALPHA)) {
+    failed++;
+    console.error(`SRM verdict for ${r.na} vs ${r.nb} on a ${r.split} plan: ` +
+                  `flagged=${srm.flagged}, scipy p=${r.srm_p}`);
+  }
 
   const t = Readout.zTest(r.na, r.ca, r.nb, r.cb);
   compare('z statistic (relative)', t.z, r.z, true);
@@ -74,6 +87,23 @@ for (const r of ref.readouts) {
   } else {
     compare('Relative-lift interval', rl.lo, r.ratio_log[0], false);
     compare('Relative-lift interval', rl.hi, r.ratio_log[1], false);
+  }
+
+  /* What the page shows comes from Readout.analyse, so the composition is
+   * held to the same references as the parts: Newcombe, not Wald, and the
+   * log interval, not another. */
+  const a = Readout.analyse({ na: r.na, ca: r.ca, nb: r.nb, cb: r.cb,
+                              split: r.split, alpha: r.alpha, mde: null });
+  compare('Page: p-value', a.p, r.p, false);
+  compare('Page: difference interval is Newcombe', a.ciDiff.lo, r.newcombe[0], false);
+  compare('Page: difference interval is Newcombe', a.ciDiff.hi, r.newcombe[1], false);
+  if (r.ratio_log !== null) {
+    compare('Page: relative-lift interval is the log method', a.ciRelative.lo, r.ratio_log[0], false);
+    compare('Page: relative-lift interval is the log method', a.ciRelative.hi, r.ratio_log[1], false);
+  }
+  if (a.srm.flagged !== srm.flagged) {
+    failed++;
+    console.error(`Page: SRM verdict differs from Readout.srm for ${r.na} vs ${r.nb}`);
   }
 
   readoutRows.push({ r, srm, t, nc, rl });
