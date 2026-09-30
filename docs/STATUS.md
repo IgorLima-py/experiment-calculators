@@ -1,6 +1,101 @@
 # Status
 
-*Atualizado em 2026-09-29: C1 fechada. Próxima fatia: C2.*
+*Atualizado em 2026-09-29: C2 fechada. Próxima fatia: C3a.*
+
+## 29/09/2026 (noite): C2 — leitura do teste
+
+**Bateria:** `bateria 49: 49/0/0`, rodada pelo subagente no `/tchau` e marcada verde pela
+trava para o código `204bcf0a255d`. O subagente conta 49 testes; na sessão, os 10 checks da
+linha `bateria:`, rodados um por um, deram 10/0/0. A segunda opinião (subagente Opus, contexto limpo,
+diff desde `6842222`) achou duas lacunas, e as duas foram consertadas antes do push:
+(1) as tolerâncias do `check_tool6` (1e-12 e 4 EP) não estavam no `RESULTS.md` com a origem;
+agora há "What the tolerances mean" na Phase 6. (2) O link da Tool 1 ignorava o plano
+unicaudal: um plano unicaudal a α chegava à leitura como bicaudal a α, com menos poder do que o
+plano tinha. Agora passa `alpha = 2α`, a mesma região de rejeição na direção planejada, com teto
+de 50. Conferido no browser: `?tails=1` → `readout.html?mde=10&alpha=10`.
+
+**O que foi feito:**
+
+- **`tools/readout.html` + `assets/readout.js`:** a leitura de um teste A/B de conversão, com
+  dois braços. A ordem é a da leitura:
+  1. SRM primeiro: qui-quadrado contra o split planejado, sem correção de continuidade, p < 0,001.
+     Com SRM, as células de resultado ficam `--` e a frase diz por quê;
+  2. lift absoluto e relativo;
+  3. IC de Newcombe na diferença e IC log (Katz) no lift relativo;
+  4. p do z combinado;
+  5. erro tipo M pela forma fechada de Lu, Qiu & Deng (2019). O efeito é sempre o MDE
+     planejado, aplicado à taxa observada do controle, e nunca o lift observado.
+- **Parâmetros de URL:** `na`, `ca`, `nb`, `cb`, `split` (default 50), `alpha` (default 5) e
+  `mde` (vazio por padrão, decisão do Igor). Só bicaudal, também decisão do Igor.
+- **`Judgement.readout`** com 7 ramos: SRM, na beirada (p e IC discordam), significativo com
+  poder, significativo com poder < 50% (exagero), significativo sem MDE, inconclusivo com MDE e
+  inconclusivo sem MDE. São 14 casos novos no `check_judgement.js`, que agora tem 38.
+- **`reference_tool6.py` + `check_tool6.js`:**
+  - compara contra `proportions_ztest`, `confint_proportions_2indep` e `scipy.stats.chisquare`;
+  - o tipo M é conferido contra a forma fechada em scipy, contra um Monte Carlo com 10⁶
+    sorteios e contra o 1,12 e o 77 de Gelman & Carlin;
+  - o check segura também a composição da página (o `analyse`) e o limiar de SRM;
+  - pior erro: 2e-15; Monte Carlo a 2,1 EP.
+- **Tool 1:** ganhou o link "Test finished? Read your result against this plan →", que leva
+  `mde` relativo (converte de pp pela base) e `alpha`.
+- **Integração no site:**
+  - a ferramenta entrou no nav das 6 ferramentas e no do `build_page.py`, no index, no 404, no
+    `sitemap.xml`, no README e no `PAGES`;
+  - `og/readout.png` é nova; a `home.png` foi regerada, e as outras seis saíram idênticas byte a
+    byte;
+  - "Four free calculators" virou "Five" (index ×3, README, `build_og.py`).
+- **`RESULTS.md` Phase 6:**
+  - a tabela de limiares de SRM, com fontes;
+  - Wald × Newcombe e log × log-adjusted, com o porquê da escolha;
+  - o tipo M em grade;
+  - o argumento de Hoenig & Heisey.
+  - `validation/index.html` regerado. Workflow e linha `bateria:` com o `check_tool6.js`.
+- **`assets/ui.js`:** `syncInputs` escreve `''` para valor `null`, que é o que viabiliza o
+  campo opcional. O texto das outras 5 ferramentas nos defaults deu o mesmo hash antes e
+  depois; na Tool 1, só depois de tirar o parágrafo do link novo.
+- **Sabotagem com `;`:** mudar o limiar para 0,01, trocar Newcombe por Wald no `analyse` ou
+  perturbar o limite de Newcombe faz o `check_tool6` sair 1. O sha256 do restaurado bate.
+- **Prosa:** passou pela `humanize`, com o `conferir.py` saindo 0. Saíram quatro "X, not Y".
+- **Stack de referência instalado nesta máquina (Karen-v2):** scipy 1.17.1, statsmodels 0.14.6,
+  numpy 2.4.3 e Pillow 12.3.0.
+
+**O que foi tentado e falhou:**
+
+- **A primeira pesquisa em subagente (Sonnet) morreu no limite de sessão da conta** (429,
+  "resets 9:40pm"). Na segunda tentativa entregou, depois de ~9 min.
+- **Checar o 1,12 de Gelman & Carlin por arredondamento falhou:** a forma fechada dá 1,1252, e
+  o número deles vem de simulação com 10⁴ sorteios. A regra virou "até uma unidade na última
+  casa impressa".
+- **A primeira versão do `check_tool6` não pegava a troca de Newcombe por Wald dentro do
+  `analyse`,** porque testava as funções e não a composição. Só a frase fixada pegava.
+  Corrigido.
+- **O heredoc do bash quebrou de novo ao escrever a seção do RESULTS.md** (apóstrofos), como a
+  armadilha abaixo já avisava. O arquivo não foi tocado; escrevi pela ferramenta de edição.
+- **O screenshot em 375 px veio ladrilhado 2×2** (artefato do painel). O segundo, depois de
+  rolar a página, veio normal. O DOM mediu `scrollWidth` 375 e nenhum overflow.
+
+**Decisões com fonte (moram no `RESULTS.md` Phase 6 e na caixa de honestidade da página):**
+
+- **Limiar de SRM:** 0,001, como Eppo, GrowthBook e o alerta do Statsig. A Microsoft usa 0,0005
+  e o Vermeer usava 0,01. **Não** atribuir 0,001 ao livro do Kohavi: não foi verificado.
+- **Aviso de exagero:** abaixo de 50% de poder, onde Gelman & Carlin dizem que o problema
+  começa.
+
+**O que só o Igor faz:**
+
+- **About do GitHub:** ainda diz "Four free calculators". O rascunho, com a mesma frase do
+  README:
+
+  ```bash
+  gh repo edit IgorLima-py/experiment-calculators --description "Five free calculators and an interactive explainer for people who run A/B tests and marketing experiments. Every result comes with one plain sentence on what it means and what would invalidate it."
+  ```
+
+- **Sitemap no Search Console:** o `sitemap.xml` agora tem a `readout.html`. A submissão
+  continua marcada para a C6.
+
+**Próximo passo concreto:** abrir a **C3a — leitura do teste geo** numa sessão nova, em
+opus/high e com plan mode. O prompt de abertura está no `docs/ROADMAP.md`. O stack de
+referência já está instalado nesta máquina.
 
 ## 29/09/2026: C1 — frases testadas e guarda do site
 

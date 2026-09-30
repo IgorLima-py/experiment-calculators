@@ -188,6 +188,8 @@
 <h3 id="worst-disagreements">Worst disagreements</h3>
 <ul><li>SRM p-value vs <code>scipy.stats.chisquare</code>: <strong>1.1e-16</strong></li><li>p-value vs <code>proportions_ztest</code>: <strong>1.1e-16</strong></li><li>Newcombe interval vs <code>confint_proportions_2indep</code>: <strong>2.1e-17</strong></li><li>Relative-lift interval vs the log method: <strong>8.9e-16</strong></li><li>Exaggeration vs the closed form in scipy: <strong>2.0e-15</strong> (relative)</li><li>Exaggeration vs the Monte Carlo: <strong>2.1</strong> of the simulation&#x27;s own standard errors, against a tolerance of 4</li></ul>
 <p>Every closed-form comparison is at double-precision machine epsilon.</p>
+<h3 id="what-the-tolerances-mean">What the tolerances mean</h3>
+<ul><li><strong>1e-12 on every closed-form comparison.</strong> The worst error measured on 2026-09-29 was 2.0e-15, so this leaves three decades for another platform&#x27;s <code>Math.exp</code> and <code>Math.log</code>, and nothing more.</li><li><strong>4 standard errors for the Monte Carlo.</strong> A correct formula lands more than 4 standard errors from an unbiased simulation with probability 6.3e-5 per case, about 0.13% across the 21 cases. The simulation is seeded, so the check cannot flicker between runs either.</li><li><strong>One unit in the last printed digit for Gelman &amp; Carlin&#x27;s figures,</strong> because theirs come from a 10,000-draw simulation and are printed rounded.</li></ul>
 </main>
 
 <footer class="site-footer">

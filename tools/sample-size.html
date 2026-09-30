@@ -190,11 +190,17 @@
   };
 
   /* The readout needs the effect this test was planned for, as a relative
-   * lift, to say how much a significant result is likely exaggerating. */
+   * lift, to say how much a significant result is likely exaggerating.
+   *
+   * The readout is two-sided only. A one-sided plan at alpha rejects where a
+   * two-sided test at 2 * alpha does in the planned direction, so that is the
+   * level it carries over; passing alpha unchanged would report less power
+   * than the plan had. The readout caps alpha at 50%. */
   function readoutLink(v) {
     var relative = v.rel === 1 ? v.mde : v.mde / v.base * 100;
+    var alpha = Math.min(50, v.tails === 1 ? 2 * v.alpha : v.alpha);
     var parts = ['mde=' + Number(relative.toFixed(4))];
-    if (v.alpha !== 5) parts.push('alpha=' + v.alpha);
+    if (alpha !== 5) parts.push('alpha=' + Number(alpha.toFixed(4)));
     return 'readout.html?' + parts.join('&');
   }
 

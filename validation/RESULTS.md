@@ -694,3 +694,15 @@ effect.
   errors, against a tolerance of 4
 
 Every closed-form comparison is at double-precision machine epsilon.
+
+### What the tolerances mean
+
+- **1e-12 on every closed-form comparison.** The worst error measured on
+  2026-09-29 was 2.0e-15, so this leaves three decades for another platform's
+  `Math.exp` and `Math.log`, and nothing more.
+- **4 standard errors for the Monte Carlo.** A correct formula lands more than
+  4 standard errors from an unbiased simulation with probability 6.3e-5 per
+  case, about 0.13% across the 21 cases. The simulation is seeded, so the check
+  cannot flicker between runs either.
+- **One unit in the last printed digit for Gelman & Carlin's figures,**
+  because theirs come from a 10,000-draw simulation and are printed rounded.

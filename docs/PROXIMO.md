@@ -6,16 +6,16 @@
 > Quem lê: o hook de abertura do plugin `playbook` (`sessao-abre.ps1`), e o `/oi` quando não há hook.
 > Quem escreve: o `/tchau`, ao avançar o ponteiro, e o `/360`, ao desenhar o roadmap.
 
-chat: C2
-titulo: leitura do teste
+chat: C3a
+titulo: leitura do teste geo
 perfil: dificil
 modelo: opus
 esforco: high
 forma: sessao
 maquina: qualquer
 plan-mode: sim
-persona: estatístico que escreve a leitura de resultado que ninguém faz de graça: o número, o intervalo, e o que invalida os dois
-objetivo: tools/readout.html com lift, IC, p, SRM checado antes e erro tipo M; reference_tool6.py + check_tool6.js; a ferramenta em todo lugar que o check_site.js cobra; bateria 10/0/0
+persona: quem fecha o ciclo da Tool 4: o teste foi desenhado aqui, agora é lido aqui, com o mesmo modelo
+objetivo: tools/geo-readout.html com receita incremental e iROAS com IC por ANCOVA (geos como unidades, pré como covariável); reference_tool7.py + check_tool7.js contra statsmodels OLS; a ferramenta em todo lugar que o check_site.js cobra; links de ida e volta com a Tool 4; bateria 11/0/0
 
 <!--
 `modelo:` e `esforco:` são SEMPRE re-resolvidos pelo /tchau a partir da tabela de perfis do
