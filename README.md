@@ -2,7 +2,7 @@
 
 [![validation](https://github.com/IgorLima-py/experiment-calculators/actions/workflows/validation.yml/badge.svg)](https://github.com/IgorLima-py/experiment-calculators/actions/workflows/validation.yml)
 
-Five free calculators and an interactive explainer for people who run A/B tests
+Six free calculators and an interactive explainer for people who run A/B tests
 and marketing experiments. Every result comes with one plain sentence
 explaining what it means and what would invalidate it, and every formula is
 cross-checked against a reference implementation with
@@ -24,10 +24,12 @@ dependencies, no tracking, no email form in front of anything.
 | [Peeking checker](tools/peeking.html) | What checking early did to your false-positive rate, and the threshold that fixes it |
 | [Test readout](tools/readout.html) | What a finished test found: lift with its interval, a traffic-split check first, and how much a significant result is likely exaggerating |
 | [Geo holdout power](tools/geo-holdout.html) | How many markets to hold out of an incrementality test |
+| [Geo test readout](tools/geo-readout.html) | What a finished geo test added in revenue, and the iROAS with its interval, from the same model the test was designed with |
 | [CUPED & ratio metrics](tools/cuped.html) | Why session-level metrics need different maths, and how to buy traffic you don't have |
 
 Inputs are encoded in the query string, so any result can be shared as a link.
-Defaults are omitted from the URL to keep shared links short.
+Defaults are omitted from the URL to keep shared links short. The geo readout
+carries pasted market data after the `#`, which browsers never send to a server.
 
 ## Running it
 

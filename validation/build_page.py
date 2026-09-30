@@ -291,6 +291,7 @@ SHELL = """<!DOCTYPE html>
     <a href="../tools/peeking.html">Peeking checker</a>
     <a href="../tools/readout.html">Test readout</a>
     <a href="../tools/geo-holdout.html">Geo holdout</a>
+    <a href="../tools/geo-readout.html">Geo readout</a>
     <a href="../tools/cuped.html">CUPED &amp; ratio metrics</a>
     <a href="index.html" aria-current="page">Validation</a>
   </nav>

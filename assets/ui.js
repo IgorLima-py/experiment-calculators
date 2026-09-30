@@ -69,9 +69,12 @@ var UI = (function () {
     return parts.join('&');
   }
 
+  /* The fragment is kept: the geo readout carries pasted market data there,
+   * where the browser never sends it to the server. */
   function write(spec, values) {
     var query = buildQuery(spec, values);
-    var url = window.location.pathname + (query ? '?' + query : '');
+    var url = window.location.pathname + (query ? '?' + query : '') +
+              window.location.hash;
     window.history.replaceState(null, '', url);
   }
 

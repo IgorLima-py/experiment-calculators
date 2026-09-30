@@ -78,6 +78,10 @@ jobs:
         working-directory: validation
         run: python reference_tool6.py && node check_tool6.js
 
+      - name: Geo test readout
+        working-directory: validation
+        run: python reference_tool7.py && node check_tool7.js
+
       # The sentence under each result is what the site is for, and it has
       # shipped wrong before. The steps above check the arithmetic; this one
       # checks the words built from it.

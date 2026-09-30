@@ -31,6 +31,7 @@
     <a href="peeking.html">Peeking checker</a>
     <a href="readout.html">Test readout</a>
     <a href="geo-holdout.html" aria-current="page">Geo holdout</a>
+    <a href="geo-readout.html">Geo readout</a>
     <a href="cuped.html">CUPED &amp; ratio metrics</a>
   </nav>
 </header>
@@ -111,6 +112,9 @@
   <div class="warn" id="warn"></div>
 
   <div class="judgement" id="judgement"></div>
+
+  <p><a id="readout-link" href="geo-readout.html">Test finished? Read it
+  against this plan →</a></p>
 
   <figure>
     <div id="curve"></div>
@@ -210,8 +214,20 @@
     warn: document.getElementById('warn'),
     judgement: document.getElementById('judgement'),
     curve: document.getElementById('curve'),
-    pasteSummary: document.getElementById('paste-summary')
+    pasteSummary: document.getElementById('paste-summary'),
+    readout: document.getElementById('readout-link')
   };
+
+  /* The readout compares the pre-period correlation the test actually had
+   * with the one it was planned with, so the plan's correlation goes along,
+   * with the significance level. A correlation of 0 here means the variation
+   * was already adjusted, which leaves nothing to compare against. */
+  function readoutLink(v) {
+    var parts = [];
+    if (v.alpha !== 10) parts.push('alpha=' + v.alpha);
+    if (v.rho > 0) parts.push('rho=' + v.rho);
+    return 'geo-readout.html' + (parts.length ? '?' + parts.join('&') : '');
+  }
 
   function curveSvg(points, currentHoldout, totalGeos) {
     if (points.length < 2) return '';
@@ -292,6 +308,7 @@
   }
 
   function render(v) {
+    out.readout.href = readoutLink(v);
     var holdout = v.holdout;
     var treated = v.geos - holdout;
     var cv = v.cv / 100;

@@ -706,3 +706,132 @@ Every closed-form comparison is at double-precision machine epsilon.
   cannot flicker between runs either.
 - **One unit in the last printed digit for Gelman & Carlin's figures,**
   because theirs come from a 10,000-draw simulation and are printed rounded.
+
+---
+
+## Phase 7: Geo test readout (`tools/geo-readout.html`)
+
+Reproduce with:
+
+```bash
+python reference_tool7.py && node check_tool7.js
+```
+
+The geo holdout page (Phase 4) designs a test with markets as the units and
+each market's pre-period as a covariate: the (1 − ρ²) it takes off the
+variation is what adjusting for the pre-period buys. The readout reads the
+finished test with that same model, an ordinary least squares regression with
+one row per market (analysis of covariance):
+
+  post = a + b · treat + c · pre + e
+
+- **b** is the effect per test market, so the **incremental revenue** is b
+  times the number of test markets, and its interval is b's interval scaled the
+  same way.
+- The **iROAS** is the incremental revenue divided by the spend, with the
+  interval divided by the same number. The spend is a known constant, not an
+  estimate.
+- The standard error is the classical one, with a t distribution on n − 3
+  degrees of freedom.
+
+The reference is `statsmodels` OLS on the raw pre-period. The page centres the
+pre-period before solving, which moves the intercept and nothing else.
+Matching statsmodels on b and its standard error is the check that nothing
+else moved.
+
+### Readouts
+
+Five synthetic data sets, generated with fixed seeds by `reference_tool7.py`.
+Market sizes are lognormal(11, 0.8), the shape Phase 4 uses for its paste
+helper. Every market grows 3% between the periods with 4–5% market-level noise
+(no noise model is claimed to be real). The test markets get the true lift, and
+the spend is set so that the true iROAS is a round number. Values are rounded
+to whole numbers, as pasted data would be. The first row is the example the
+page ships.
+
+| Data | Markets (test / held out) | α | Effect per test market | Standard error | p-value | Incremental revenue, interval | iROAS | iROAS interval | Pre-period ρ |
+|---|---|---:|---:|---:|---:|---|---:|---|---:|
+| example | 30 / 10 | 10% | 2,949 | 1,128 | 0.0129 | 31,369 to 145,569 | 2.01 | 0.71 to 3.31 | 0.9983 |
+| few markets | 5 / 5 | 10% | 7,935 | 2,535 | 0.0166 | 15,657 to 63,690 | 4.96 | 1.96 to 7.96 | 0.9980 |
+| all US DMAs | 180 / 30 | 5% | 1,375 | 1,153 | 0.2344 | −161,633 to 656,545 | 0.96 | −0.63 to 2.55 | 0.9971 |
+| no effect | 20 / 20 | 10% | 2,078 | 1,381 | 0.1407 | −5,020 to 88,155 | 0.17 | −0.02 to 0.35 | 0.9964 |
+| biggest markets held out | 22 / 8 | 20% | 4,767 | 1,941 | 0.0207 | 48,789 to 160,958 | 4.56 | 2.12 to 7.00 | 0.9965 |
+
+The true iROAS was 2.5, 3.0, 1.8, none and 2.0. Four intervals contain it;
+the last, an 80% interval, misses it by 0.12, which an 80% interval should do
+one time in five. Five intervals prove nothing about coverage either way; they
+show the arithmetic, which is what this table is for. In the example, the campaign moved revenue
+(p = 0.013), but the iROAS interval runs from 0.71 to 3.31, either side of
+break-even. That is the page's default reading: significant, and still unable
+to say whether the spend paid back.
+
+### Why ordinary least squares, and what the alternatives give
+
+The readout uses the model the design assumed. A different estimator here
+would mean reading the test with a model other than the one that sized it.
+The alternatives are published on the same data:
+
+| Data | Classical SE (this page) | HC1 SE | WLS 1/pre: effect | WLS 1/pre: SE | Difference in means: SE | SE bought by the pre-period | 1/√(1−ρ²), what tool 4 predicts |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| example | 1,128 | 1,299 | 2,212 | 811 | 18,956 | 16.8× | 17.2× |
+| few markets | 2,535 | 2,587 | 5,693 | 1,928 | 34,401 | 13.6× | 16.0× |
+| all US DMAs | 1,153 | 719 | 428 | 627 | 15,164 | 13.2× | 13.2× |
+| no effect | 1,381 | 1,223 | 1,105 | 966 | 15,747 | 11.4× | 11.7× |
+| biggest markets held out | 1,941 | 2,246 | 5,684 | 2,032 | 13,582 | 7.0× | 12.0× |
+
+- **HC1** is the heteroskedasticity-robust standard error of the same fit.
+  Here it sits between 38% below and 16% above the classical one. The
+  robust error runs small with few units (Imbens & Kolesár 2016), and geo
+  tests have few units, so the page keeps the classical error and says it
+  treats the noise of big and small markets as equal.
+- **WLS 1/pre** is the geo-based regression of
+  [Vaver & Koehler (2011)](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/38355.pdf),
+  which weights each market by the inverse of its size so that big markets can
+  be noisier. The synthetic noise here is proportional to size, which is the
+  case that weighting is built for. The weighted estimate of the effect lands
+  from 19% above the page's to 69% below it, inside the page's interval in all
+  five data sets. The page's honesty box quotes that range, and `check_tool7.js`
+  fails if the prose and this table drift apart.
+- **The difference in means** ignores the pre-period. The last two columns
+  close the loop with Phase 4: the standard error the pre-period bought is
+  what 1/√(1−ρ²) predicts, within 3% on the three larger balanced data sets.
+  With five markets a side the residual degrees of freedom cost part of it.
+  When the biggest markets are held out, the gap between the groups' pre-period
+  means inflates the covariate-adjusted error (the squared gap between the
+  two groups' mean pre-period enters the ANCOVA variance), and the adjustment
+  buys 7× instead of 12×. That is the
+  price of an unbalanced assignment, and the reason Phase 4 says to stratify
+  by size.
+
+GeoLift (synthetic control) and time-based regression use each market's full
+history and remain the better methods when that history is available. The page
+says so.
+
+### The pasted data
+
+One market per line, ending with its group, its pre-period and its test period.
+The group is a word (`test`, `treatment`, `treated`, `t`, or `control`,
+`holdout`, `h`, `c`), never a digit: "Market 1  100  110" would otherwise read
+as a test market with no name, the same trap as the row-number bug in Phase 4.
+A line with numbers that does not end in a group and two figures is reported
+by line number, not guessed at. That includes a figure written with a thousands
+comma, which would otherwise split into two. `check_tool7.js` holds the parser
+to six cases and requires the example in the page's text box to be,
+character for character, the one `reference_tool7.py` wrote, with the page's
+default spend and significance level.
+
+### Worst disagreements
+
+- Treatment coefficient and standard error vs `statsmodels` OLS: **7.0e-12**
+  (relative)
+- p-value: **9.0e-13**
+- Incremental revenue, iROAS and their intervals: **7.0e-12** (relative)
+- Within-group pre-period correlation vs numpy on the residuals: **8.9e-16**
+
+### What the tolerances mean
+
+- **1e-9, relative, on every comparison.** The worst error measured on
+  2026-09-29 was 7.9e-12, the price of solving the 3×3 normal equations on
+  revenue in the hundreds of thousands, against statsmodels' own route to the
+  same numbers. The tolerance leaves two decades for another platform's
+  floating point.

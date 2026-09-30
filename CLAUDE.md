@@ -33,7 +33,7 @@ de julgamento sobre o que o número significa e o que o invalidaria.
 A linha de contrato da bateria, sozinha e na coluna zero (quem lê é o hook de push do
 plugin `playbook`, o subagente `bateria` e o `/tchau`):
 
-bateria: node validation\check_core.js && node validation\check_tool1.js && node validation\check_tool2.js && node validation\check_tool3.js && node validation\check_tool3_spending.js && node validation\check_tool4.js && node validation\check_tool5.js && node validation\check_tool6.js && node validation\check_judgement.js && node validation\check_site.js
+bateria: node validation\check_core.js && node validation\check_tool1.js && node validation\check_tool2.js && node validation\check_tool3.js && node validation\check_tool3_spending.js && node validation\check_tool4.js && node validation\check_tool5.js && node validation\check_tool6.js && node validation\check_tool7.js && node validation\check_judgement.js && node validation\check_site.js
 
 ## O que roda onde
 
